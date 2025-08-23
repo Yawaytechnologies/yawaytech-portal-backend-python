@@ -21,3 +21,17 @@ class Expense(ExpenseBase):
 
     class Config:
         orm_mode = True
+
+
+
+class TotalSummary(BaseModel):
+    total_expenses_all_time: float
+
+class YearlySummary(BaseModel):
+    year: int
+    total_expenses_this_year: float
+
+class MonthlySummary(BaseModel):
+    year: int
+    month: int
+    total_expenses_this_month: float
