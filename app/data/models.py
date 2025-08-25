@@ -1,9 +1,4 @@
-﻿from sqlalchemy.orm import declarative_base
-Base = declarative_base()
-# You'll add Category and Expense models here later.
-
-
-from sqlalchemy import Column, Integer, String, Float, Date
+﻿from sqlalchemy import Column, Integer, String, Float, Date, Text
 from app.data.db import Base
 
 class Expense(Base):
@@ -14,5 +9,5 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     category = Column(String(50), nullable=False)
     date = Column(Date, nullable=False)
-    description = Column(String(250), nullable=True)
+    description = Column(Text, nullable=True)         # Text is better for longer content
     added_by = Column(String(100), nullable=False)
