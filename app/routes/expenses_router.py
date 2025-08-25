@@ -2,9 +2,19 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.schemas.expense import Expense, ExpenseCreate, ExpenseUpdate
+from app.schemas.expense import Expense, ExpenseCreate, ExpenseUpdate,TotalSummary,YearlySummary,MonthlySummary
 from app.controllers import expenses_controller
 from app.data.db import get_db
+
+from sqlalchemy import func,extract
+
+from datetime import date
+from calendar import monthrange
+
+
+from app.services import expense_summary_service
+
+
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
@@ -27,3 +37,20 @@ def update_expense(expense_id: int, expense: ExpenseUpdate, db: Session = Depend
 @router.delete("/{expense_id}")
 def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     return expenses_controller.delete_expense(db, expense_id)
+
+
+
+# ---------- Summary Endpoints ----------
+
+@router.get("/summary/total", response_model=TotalSummary)
+def total_expenses(db: Session = Depends(get_db)):
+    total = expense_summary_service.get_total_expenses(db)
+    return {"total_expenses_all_time": total}
+
+@router.get("/summary/year",response_model=YearlySummary)
+def yearly_expenses(db: Session = Depends(get_db)):
+    return expense_summary_service.get_yearly_expenses(db)
+
+@router.get("/summary/month",response_model=MonthlySummary)
+def monthly_expenses(db: Session = Depends(get_db)):
+    return expense_summary_service.get_monthly_expenses(db)
