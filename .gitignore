@@ -1,0 +1,84 @@
+.env
+# ---- Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+ 
+# ---- Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+# If you DON'T want to share your pyenv version, ignore this:
+#.python-version
+ 
+# ---- Build / packaging
+build/
+dist/
+wheels/
+pip-wheel-metadata/
+*.egg-info/
+.eggs/
+*.egg
+ 
+# ---- Test / coverage / tooling
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+ 
+# ---- Jupyter
+.ipynb_checkpoints/
+ 
+# ---- Logs & runtime
+logs/
+*.log
+*.pid
+*.pid.lock
+ 
+# ---- Local databases / state
+*.sqlite3
+*.db
+*.db-journal
+ 
+# ---- Environment & secrets
+.env
+.env.*
+!.env.example        # keep a template committed
+*.key
+*.pem
+local.settings.json  # e.g., Azure Functions local secrets
+ 
+# ---- User uploads (keep out of git if generated at runtime)
+uploads/
+media/
+ 
+# ---- Docs
+docs/_build/
+ 
+# ---- OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+ 
+# ---- Editors / IDEs
+# VS Code: ignore workspace stuff but allow shared settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*~
+*.swp
