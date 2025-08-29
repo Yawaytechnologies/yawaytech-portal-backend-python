@@ -2,6 +2,7 @@
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base,Session
+from typing import Generator
 
 load_dotenv()
 
@@ -13,7 +14,7 @@ Base = declarative_base()
 
 
 # ✅ This is what FastAPI will use to get a DB session
-def get_db() -> Session:
+def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
