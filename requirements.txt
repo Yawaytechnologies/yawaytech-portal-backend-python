@@ -4,3 +4,4 @@ SQLAlchemy>=2.0
 pydantic>=2
 python-dotenv
 pymysql
+psycopg2-binary==2.9.9
