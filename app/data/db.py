@@ -1,43 +1,23 @@
-﻿from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from app.core.config import DB_URL  # adjust if your variable name is different
+﻿import os
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base,Session
+from typing import Generator
 
-connect_args = {'check_same_thread': False} if DB_URL.startswith('sqlite') else {}
+load_dotenv()
 
-engine = create_engine(DB_URL, pool_pre_ping=True, echo=False, connect_args=connect_args)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-from sqlalchemy.ext.declarative import declarative_base
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 
-def get_db():
+
+# ✅ This is what FastAPI will use to get a DB session
+def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-
-
-
-# app/data/db.py
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from app.core.config import DB_URL
-
-DATABASE_URL = "sqlite:///./dev.db"  # swap to Postgres when ready
-
-class Base(DeclarativeBase):
-    pass
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+ 
