@@ -1,21 +1,24 @@
 # app/controllers/expenses_controller.py
 
+from typing import Any
+
 from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.data.models import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
 
 
-def _dump(model) -> dict:
+def _dump(model: Any) -> dict[str, Any]:
     """Pydantic v2/v1 compatible to-dict helper."""
     if hasattr(model, "model_dump"):
         return model.model_dump()
     return model.dict()  # type: ignore[attr-defined]
 
 
-def _dump_partial(model) -> dict:
+def _dump_partial(model: Any) -> dict[str, Any]:
     """Dump only provided fields (exclude_unset) for PATCH/PUT."""
     if hasattr(model, "model_dump"):
         return model.model_dump(exclude_unset=True)
@@ -31,7 +34,9 @@ def get_expense(db: Session, expense_id: int) -> Expense:
 
 def get_expenses(db: Session, skip: int = 0, limit: int = 100) -> list[Expense]:
     stmt = select(Expense).offset(skip).limit(limit)
-    return db.execute(stmt).scalars().all()
+    rows = db.execute(stmt).scalars().all()
+    # ensure a concrete list type for mypy (some stubs mark .all() as Sequence)
+    return list(rows)
 
 
 def create_expense(db: Session, expense_data: ExpenseCreate) -> Expense:
@@ -42,7 +47,7 @@ def create_expense(db: Session, expense_data: ExpenseCreate) -> Expense:
         db.commit()
         db.refresh(expense)
         return expense
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
         raise
 
@@ -56,7 +61,7 @@ def update_expense(db: Session, expense_id: int, expense_data: ExpenseUpdate) ->
         db.commit()
         db.refresh(expense)
         return expense
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
         raise
 
@@ -67,6 +72,6 @@ def delete_expense(db: Session, expense_id: int) -> dict[str, str]:
         db.delete(expense)
         db.commit()
         return {"detail": "Expense deleted"}
-    except Exception:
+    except SQLAlchemyError:
         db.rollback()
         raise
