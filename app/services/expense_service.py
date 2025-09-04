@@ -1,7 +1,9 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 from app.data.models import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
+
 
 class ExpenseService:
     def __init__(self, db: Session):

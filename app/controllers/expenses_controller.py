@@ -1,5 +1,5 @@
 # app/controllers/expenses_controller.py
-from typing import List, Dict
+
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -8,14 +8,14 @@ from app.data.models import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
 
 
-def _dump(model) -> Dict:
+def _dump(model) -> dict:
     """Pydantic v2/v1 compatible to-dict helper."""
     if hasattr(model, "model_dump"):
         return model.model_dump()
     return model.dict()  # type: ignore[attr-defined]
 
 
-def _dump_partial(model) -> Dict:
+def _dump_partial(model) -> dict:
     """Dump only provided fields (exclude_unset) for PATCH/PUT."""
     if hasattr(model, "model_dump"):
         return model.model_dump(exclude_unset=True)
@@ -29,7 +29,7 @@ def get_expense(db: Session, expense_id: int) -> Expense:
     return expense
 
 
-def get_expenses(db: Session, skip: int = 0, limit: int = 100) -> List[Expense]:
+def get_expenses(db: Session, skip: int = 0, limit: int = 100) -> list[Expense]:
     stmt = select(Expense).offset(skip).limit(limit)
     return db.execute(stmt).scalars().all()
 
@@ -61,7 +61,7 @@ def update_expense(db: Session, expense_id: int, expense_data: ExpenseUpdate) ->
         raise
 
 
-def delete_expense(db: Session, expense_id: int) -> Dict[str, str]:
+def delete_expense(db: Session, expense_id: int) -> dict[str, str]:
     expense = get_expense(db, expense_id)
     try:
         db.delete(expense)
