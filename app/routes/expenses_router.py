@@ -16,7 +16,7 @@ from app.schemas.expense import (
     TotalSummary,
     YearlySummary,
 )
-from app.services import expense_summary_service
+
 
 # Reusable DB session type (removes Ruff B008 and keeps behavior the same)
 DBSession = Annotated[Session, Depends(get_db)]
@@ -53,15 +53,15 @@ def delete_expense(expense_id: int, db: DBSession):
 # ---------- Summary Endpoints ----------
 @router.get("/summary/total", response_model=TotalSummary)
 def total_expenses(db: DBSession):
-    total = expense_summary_service.get_total_expenses(db)
+    total = expenses_controller.get_total_expenses(db)
     return {"total_expenses_all_time": total}
 
 
 @router.get("/summary/year", response_model=YearlySummary)
 def yearly_expenses(db: DBSession):
-    return expense_summary_service.get_yearly_expenses(db)
+    return expenses_controller.get_yearly_expenses(db)
 
 
 @router.get("/summary/month", response_model=MonthlySummary)
 def monthly_expenses(db: DBSession):
-    return expense_summary_service.get_monthly_expenses(db)
+    return expenses_controller.get_monthly_expenses(db)
