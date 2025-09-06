@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import APP_NAME
 from app.data.db import engine  # engine lives in db.py
-from app.data.models import Base  # Base lives in models.py
+from app.data.db import Base  # Base lives in db.py
 
 # Routers (import the router objects explicitly)
 from app.routes.expenses_router import router as expenses_router
