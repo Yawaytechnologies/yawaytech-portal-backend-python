@@ -1,5 +1,7 @@
-﻿from sqlalchemy import Column, Integer, String, Float, Date, Text
+﻿from sqlalchemy import Column, Date, Float, Integer, String, Text
+
 from app.data.db import Base
+
 
 class Expense(Base):
     __tablename__ = "expenses"
@@ -9,5 +11,5 @@ class Expense(Base):
     amount = Column(Float, nullable=False)
     category = Column(String(50), nullable=False)
     date = Column(Date, nullable=False)
-    description = Column(Text, nullable=True)         # Text is better for longer content
+    description = Column(Text, nullable=True)  # Text is better for longer content
     added_by = Column(String(100), nullable=False)

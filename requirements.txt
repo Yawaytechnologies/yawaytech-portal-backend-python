@@ -1,7 +1,14 @@
-﻿fastapi
+fastapi
 uvicorn[standard]
 SQLAlchemy>=2.0
 pydantic>=2
 python-dotenv
 pymysql
 psycopg[binary]
+
+# --- CI / Dev tools ---
+ruff
+black
+mypy
+pytest
+pytest-cov
