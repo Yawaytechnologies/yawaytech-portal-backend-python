@@ -1,6 +1,6 @@
 # app/controllers/add_employee_controller.py
 from __future__ import annotations
-from typing import List, Optional, Tuple
+from typing import  Optional
 from sqlalchemy.orm import Session
 
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead

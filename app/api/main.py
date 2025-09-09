@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.core.config import APP_NAME
 from app.data.db import engine, Base
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # Routers
 from app.routes.expenses_router import router as expenses_router
@@ -62,7 +63,7 @@ async def unhandled_exceptions(_: Request, exc: Exception):
     # Avoid leaking internals; log details in real apps.
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
-from starlette.exceptions import HTTPException as StarletteHTTPException
+
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})

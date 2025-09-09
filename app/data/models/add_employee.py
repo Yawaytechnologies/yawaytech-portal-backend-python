@@ -1,6 +1,6 @@
 ﻿# app/models/add_employee_model.py
 from __future__ import annotations
-from datetime import date, datetime
+from datetime import  datetime
 from enum import Enum
 
 from sqlalchemy import (
