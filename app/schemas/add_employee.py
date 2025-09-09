@@ -1,109 +1,86 @@
-# app/schemas/employee.py
-from datetime import date, datetime
-from enum import Enum
+# app/schemas/add_employee.py
+from __future__ import annotations
+from datetime import date
 from typing import Optional
+from pydantic import BaseModel, Field, EmailStr, validator
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
-
-
-# --- Enums (for dropdowns/radios) ---
-
-class MaritalStatus(str, Enum):
-    SINGLE = "Single"
-    MARRIED = "Married"
-    
+from app.data.models.add_employee import MaritalStatus, Department
 
 
-class GuardianType(str, Enum):
-    PARENT = "Parent"
-    GUARDIAN = "Guardian"
-
-
-# --- Base (shared fields) ---
-
+# Base fields shared by create/update/read
 class EmployeeBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=120)
-    parent_name: str = Field(..., min_length=2, max_length=120)
-    guardian_type: GuardianType = Field(default=GuardianType.PARENT)
+    father_name: str = Field(..., min_length=2, max_length=120)
+    employee_id: str = Field(..., min_length=2, max_length=50)
 
-    employee_id: str = Field(..., min_length=3, max_length=30)  # display id/code
-    email: EmailStr
-    mobile_number: str = Field(..., min_length=8, max_length=15, description="Digits with optional +country code")
-    alternative_number: Optional[str] = Field(None, min_length=8, max_length=15)
-
-    designation: str = Field(..., min_length=2, max_length=80)
-    permanent_address: str = Field(..., min_length=5, max_length=500)
-
-    marital_status: MaritalStatus
-    date_of_birth: date
     date_of_joining: date
     date_of_leaving: Optional[date] = None
 
-    uan_number: Optional[str] = Field(None, min_length=8, max_length=20, description="Typically 12-digit in India")
+    email: EmailStr
+    mobile_number: str = Field(..., min_length=7, max_length=20)
 
-    @field_validator("mobile_number", "alternative_number")
-    @classmethod
-    def validate_phone(cls, v: Optional[str]):
-        if v is None:
-            return v
-        import re
-        # Simple allow: +, digits, spaces, dashes. Ensure at least 10 digits total.
-        cleaned = re.sub(r"[^\d]", "", v)
-        if len(cleaned) < 10:
-            raise ValueError("Phone number must contain at least 10 digits")
+    marital_status: MaritalStatus
+    date_of_birth: date
+
+    permanent_address: str = Field(..., min_length=5)
+    designation: str = Field(..., min_length=2, max_length=120)
+    department: Department
+
+    @validator("date_of_leaving")
+    def leaving_not_before_joining(cls, v, values):
+        doj = values.get("date_of_joining")
+        if v and doj and v < doj:
+            raise ValueError("Date of Leaving cannot be earlier than Date of Joining")
         return v
 
-    @field_validator("uan_number")
-    @classmethod
-    def validate_uan(cls, v: Optional[str]):
-        if v is None:
-            return v
-        # Not all UANs are exactly 12 digits in old data; enforce numeric & 8-20 len
-        if not v.isdigit():
-            raise ValueError("UAN must be numeric")
-        if not (8 <= len(v) <= 20):
-            raise ValueError("UAN must be between 8 and 20 digits")
+    @validator("date_of_birth")
+    def dob_before_joining(cls, v, values):
+        doj = values.get("date_of_joining")
+        if doj and v >= doj:
+            raise ValueError("Date of Birth must be earlier than Date of Joining")
         return v
 
-    @field_validator("date_of_leaving")
-    @classmethod
-    def leaving_after_join(cls, leaving: Optional[date], info):
-        if not leaving:
-            return leaving
-        joining = info.data.get('date_of_joining')
-        if joining and leaving < joining:
-            raise ValueError("Date of leaving must be after date of joining")
-        return leaving
-
-
-# --- Create ---
 
 class EmployeeCreate(EmployeeBase):
     pass
 
 
-# --- Update ---
-
 class EmployeeUpdate(BaseModel):
+    # All fields optional for PATCH-like update
     name: Optional[str] = Field(None, min_length=2, max_length=120)
-    parent_name: Optional[str] = Field(None, min_length=2, max_length=120)
-    guardian_type: Optional[GuardianType] = None
-    employee_id: Optional[str] = Field(None, min_length=3, max_length=30)
-    email: Optional[EmailStr] = None
-    mobile_number: Optional[str] = Field(None, min_length=8, max_length=15)
-    alternative_number: Optional[str] = Field(None, min_length=8, max_length=15)
-    designation: Optional[str] = Field(None, min_length=2, max_length=80)
-    permanent_address: Optional[str] = Field(None, min_length=5, max_length=500)
-    marital_status: Optional[MaritalStatus] = None
-    date_of_birth: Optional[date] = None
+    father_name: Optional[str] = Field(None, min_length=2, max_length=120)
+    employee_id: Optional[str] = Field(None, min_length=2, max_length=50)
+
     date_of_joining: Optional[date] = None
     date_of_leaving: Optional[date] = None
-    uan_number: Optional[str] = Field(None, min_length=8, max_length=20)
 
+    email: Optional[EmailStr] = None
+    mobile_number: Optional[str] = Field(None, min_length=7, max_length=20)
 
-# --- Read ---
+    marital_status: Optional[MaritalStatus] = None
+    date_of_birth: Optional[date] = None
+
+    permanent_address: Optional[str] = Field(None, min_length=5)
+    designation: Optional[str] = Field(None, min_length=2, max_length=120)
+    department: Optional[Department] = None
+
+    @validator("date_of_leaving")
+    def leaving_not_before_joining(cls, v, values):
+        doj = values.get("date_of_joining")
+        if v and doj and v < doj:
+            raise ValueError("Date of Leaving cannot be earlier than Date of Joining")
+        return v
+
+    @validator("date_of_birth")
+    def dob_before_joining(cls, v, values):
+        doj = values.get("date_of_joining")
+        if doj and v and v >= doj:
+            raise ValueError("Date of Birth must be earlier than Date of Joining")
+        return v
+
 
 class EmployeeRead(EmployeeBase):
     id: int
-    created_at: datetime
-    updated_at: datetime
+
+    class Config:
+        from_attributes = True  # Pydantic v2 (or orm_mode=True for v1)

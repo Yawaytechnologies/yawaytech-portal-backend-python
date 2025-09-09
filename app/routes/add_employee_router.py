@@ -1,61 +1,78 @@
 # app/routes/add_employee_router.py
-from typing import List, Tuple, Optional
+from __future__ import annotations
+from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
 from sqlalchemy.orm import Session
 
 from app.data.db import get_db
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
-from app.services.add_employee_service import EmployeeService
+from app.controllers.add_employee_controller import AddEmployeeController
 
 router = APIRouter(prefix="/employees", tags=["Employees"])
-svc = EmployeeService()
+
+def get_controller() -> AddEmployeeController:
+    return AddEmployeeController()
 
 @router.post("/", response_model=EmployeeRead, status_code=status.HTTP_201_CREATED)
-def create_employee(payload: EmployeeCreate, db: Session = Depends(get_db)):
+def create_employee(
+    payload: EmployeeCreate,
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
     try:
-        return svc.create_employee(db, payload)
+        return ctrl.create(db, payload)
     except ValueError as e:
-        # e.g., duplicate employee_id/email
+        # 400 for validation/uniqueness conflicts
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get("/{id_}", response_model=EmployeeRead)
-def get_employee(id_: int = Path(..., ge=1), db: Session = Depends(get_db)):
-    try:
-        return svc.get_employee(db, id_)
-    except LookupError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-@router.get("/", response_model=List[EmployeeRead])
-def list_employees(
-    q: Optional[str] = Query(None),
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
-    designation: Optional[str] = Query(None),
-    marital_status: Optional[str] = Query(None),
+def get_employee(
+    id_: int = Path(..., ge=1),
     db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
 ):
-    items, total = svc.list_employees(
-        db, q=q, page=page, size=size, designation=designation, marital_status=marital_status
-    )
-    # Optionally expose total via header
-    # from fastapi import Response
-    # response.headers["X-Total-Count"] = str(total)
-    return items
+    emp = ctrl.get_one(db, id_)
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return emp
+
+
+@router.get("/", response_model=dict)
+def list_employees(
+    q: Optional[str] = Query(None, description="Search by name/email/employee_id/designation"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
+    rows, total = ctrl.list_many(db, q=q, skip=skip, limit=limit)
+    return {"items": rows, "total": total, "skip": skip, "limit": limit}
+
 
 @router.put("/{id_}", response_model=EmployeeRead)
-@router.patch("/{id_}", response_model=EmployeeRead)
-def update_employee(id_: int, payload: EmployeeUpdate, db: Session = Depends(get_db)):
+def update_employee(
+    id_: int = Path(..., ge=1),
+    payload: EmployeeUpdate = ...,
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
     try:
-        return svc.update_employee(db, id_, payload)
-    except LookupError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        emp = ctrl.update(db, id_, payload)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    if not emp:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    return emp
+
 
 @router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_employee(id_: int, db: Session = Depends(get_db)):
-    try:
-        svc.delete_employee(db, id_)
-    except LookupError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+def delete_employee(
+    id_: int = Path(..., ge=1),
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
+    ok = ctrl.delete(db, id_)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Employee not found")
     return None

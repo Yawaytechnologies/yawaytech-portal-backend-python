@@ -1,21 +1,9 @@
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple, List
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
-from app.data.models import Employee
-
+from sqlalchemy import select, or_, func
+from app.data.models.add_employee import Employee
 
 class EmployeeRepository:
-    def get_by_id(self, db: Session, id_: int) -> Optional[Employee]:
-        return db.get(Employee, id_)
-
-    def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
-        stmt = select(Employee).where(Employee.employee_id == code)
-        return db.execute(stmt).scalar_one_or_none()
-
-    def get_by_email(self, db: Session, email: str) -> Optional[Employee]:
-        stmt = select(Employee).where(Employee.email == email)
-        return db.execute(stmt).scalar_one_or_none()
-
     def create(self, db: Session, obj: Employee) -> Employee:
         db.add(obj)
         db.commit()
@@ -23,6 +11,7 @@ class EmployeeRepository:
         return obj
 
     def update(self, db: Session, obj: Employee) -> Employee:
+        db.add(obj)
         db.commit()
         db.refresh(obj)
         return obj
@@ -31,6 +20,18 @@ class EmployeeRepository:
         db.delete(obj)
         db.commit()
 
+    def get_by_id(self, db: Session, id_: int) -> Optional[Employee]:
+        return db.get(Employee, id_)
+
+    def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
+        return db.execute(select(Employee).where(Employee.employee_id == code)).scalar_one_or_none()
+
+    def get_by_email(self, db: Session, email: str) -> Optional[Employee]:
+        return db.execute(select(Employee).where(Employee.email == email)).scalar_one_or_none()
+
+    def get_by_phone(self, db: Session, phone: str) -> Optional[Employee]:
+        return db.execute(select(Employee).where(Employee.phone == phone)).scalar_one_or_none()
+
     def list(
         self,
         db: Session,
@@ -38,42 +39,26 @@ class EmployeeRepository:
         q: Optional[str],
         page: int,
         size: int,
-        designation: Optional[str],
-        marital_status: Optional[str],
+        department: Optional[str] = None,
     ) -> Tuple[List[Employee], int]:
-        # defensive pagination
-        page = max(1, int(page or 1))
-        size = max(1, int(size or 10))
-
         stmt = select(Employee)
-
-        # Normalize inputs
-        q = (q or "").strip()
-        designation = (designation or "").strip()
-        marital_status = (marital_status or "").strip()
-
         if q:
+            like = f"%{q}%"
             stmt = stmt.where(
-                Employee.name.ilike(f"%{q}%") |
-                Employee.employee_id.ilike(f"%{q}%")
+                or_(
+                    Employee.first_name.ilike(like),
+                    Employee.last_name.ilike(like),
+                    Employee.email.ilike(like),
+                    Employee.employee_id.ilike(like),
+                )
             )
+        if department:
+            stmt = stmt.where(Employee.department == department)
 
-        if designation:
-            # Use ilike in case values aren’t normalized in DB
-            stmt = stmt.where(Employee.designation.ilike(designation))
-
-        if marital_status:
-            stmt = stmt.where(Employee.marital_status.ilike(marital_status))
-
-        # Deterministic ordering for stable pagination
-        stmt = stmt.order_by(Employee.id.desc())
-
-        # Count total (wrap in subquery to preserve filters)
-        total_stmt = select(func.count()).select_from(stmt.subquery())
-        total = db.execute(total_stmt).scalar() or 0
-
-        # Page slice
-        stmt = stmt.offset((page - 1) * size).limit(size)
-
-        rows = db.execute(stmt).scalars().all()
-        return rows, int(total)
+        total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+        rows = db.execute(
+            stmt.order_by(Employee.id.desc())
+                .offset((page - 1) * size)
+                .limit(size)
+        ).scalars().all()
+        return rows, (total or 0)

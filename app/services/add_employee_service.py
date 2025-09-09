@@ -1,140 +1,85 @@
 # app/services/add_employee_service.py
-import logging
+from __future__ import annotations
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
-from datetime import datetime
+from sqlalchemy import select, func
 
-# app/services/add_employee_service.py
-from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
-from app.data.repositories.add_employee_repository import EmployeeRepository
-from app.data.models import Employee
-
-
-
-def _enum_value_or_same(v: Optional[object]) -> Optional[str]:
-    """
-    Accepts an Enum, a str, or None and returns a plain str or None.
-    This prevents AttributeError when payload fields are strings instead of Enums.
-    """
-    if v is None:
-        return None
-    return getattr(v, "value", v)  # Enum.value if Enum; else the value itself (e.g., str)
+from app.data.models.add_employee import Employee
+from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 
 
 class EmployeeService:
-    def __init__(self, repo: Optional[EmployeeRepository] = None):
-        self.repo = repo or EmployeeRepository()
-        self.logger = logging.getLogger(__name__)
-
-    # --- Create ---
-
-    def create_employee(self, db: Session, payload: EmployeeCreate) -> EmployeeRead:
-        # Ensure unique constraints (employee_id & email)
-        if self.repo.get_by_employee_id(db, payload.employee_id):
-            self.logger.error(f"Create failed: Employee ID {payload.employee_id} already exists")
-            raise ValueError("Employee ID already exists")
-        if self.repo.get_by_email(db, payload.email):
-            self.logger.error(f"Create failed: Email {payload.email} already exists")
+    def create_employee(self, db: Session, payload: EmployeeCreate) -> Employee:
+        # Uniqueness checks (email, employee_id)
+        exists_email = db.scalar(select(func.count()).select_from(Employee).where(Employee.email == payload.email))
+        if exists_email:
             raise ValueError("Email already exists")
+        exists_empid = db.scalar(select(func.count()).select_from(Employee).where(Employee.employee_id == payload.employee_id))
+        if exists_empid:
+            raise ValueError("Employee ID already exists")
 
-        obj = Employee(
-            name=payload.name,
-            parent_name=payload.parent_name,
-            guardian_type=_enum_value_or_same(payload.guardian_type),
-            employee_id=payload.employee_id,
-            email=payload.email,
-            mobile_number=payload.mobile_number,
-            alternative_number=payload.alternative_number,
-            designation=payload.designation,
-            permanent_address=payload.permanent_address,
-            marital_status=_enum_value_or_same(payload.marital_status),
-            date_of_birth=payload.date_of_birth,
-            date_of_joining=payload.date_of_joining,
-            date_of_leaving=payload.date_of_leaving,
-            uan_number=payload.uan_number,
-        )
-        created = self.repo.create(db, obj)
-        self.logger.info(f"Created employee with ID {created.id} and employee_id {created.employee_id}")
-        return EmployeeRead.model_validate(created)
+        emp = Employee(**payload.dict())
+        db.add(emp)
+        db.commit()
+        db.refresh(emp)
+        return emp
 
-    # --- Read ---
-
-    def get_employee(self, db: Session, id_: int) -> EmployeeRead:
-        obj = self.repo.get_by_id(db, id_)
-        if not obj:
-            self.logger.error(f"Get failed: Employee with id {id_} not found")
-            raise LookupError("Employee not found")
-        return EmployeeRead.model_validate(obj)
+    def get_employee(self, db: Session, id_: int) -> Optional[Employee]:
+        return db.get(Employee, id_)
 
     def list_employees(
-        self,
-        db: Session,
-        *,
-        q: Optional[str] = None,
-        page: int = 1,
-        size: int = 10,
-        designation: Optional[str] = None,
-        marital_status: Optional[str] = None,
-    ) -> Tuple[List[EmployeeRead], int]:
-        rows, total = self.repo.list(
-            db, q=q, page=page, size=size, designation=designation, marital_status=marital_status
-        )
-        self.logger.info(
-            "Listed employees with filters q=%s, designation=%s, marital_status=%s, page=%s, size=%s",
-            q, designation, marital_status, page, size
-        )
-        return [EmployeeRead.model_validate(r) for r in rows], total
+        self, db: Session, q: Optional[str], skip: int, limit: int
+    ) -> Tuple[List[Employee], int]:
+        stmt = select(Employee)
+        if q:
+            like = f"%{q.strip()}%"
+            stmt = stmt.where(
+                (Employee.name.ilike(like))
+                | (Employee.email.ilike(like))
+                | (Employee.employee_id.ilike(like))
+                | (Employee.designation.ilike(like))
+            )
+        total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+        stmt = stmt.order_by(Employee.id.desc()).offset(skip).limit(limit)
+        rows = db.scalars(stmt).all()
+        return rows, total or 0
 
-    # --- Update (PUT/PATCH) ---
+    def update_employee(self, db: Session, id_: int, payload: EmployeeUpdate) -> Optional[Employee]:
+        emp = db.get(Employee, id_)
+        if not emp:
+            return None
 
-    def update_employee(self, db: Session, id_: int, payload: EmployeeUpdate) -> EmployeeRead:
-        obj = self.repo.get_by_id(db, id_)
-        if not obj:
-            self.logger.error(f"Update failed: Employee with id {id_} not found")
-            raise LookupError("Employee not found")
+        data = payload.dict(exclude_unset=True)
 
-        # Unique constraints if changing employee_id/email
-        if payload.employee_id and payload.employee_id != obj.employee_id:
-            if self.repo.get_by_employee_id(db, payload.employee_id):
-                self.logger.error(f"Update failed: Employee ID {payload.employee_id} already exists")
-                raise ValueError("Employee ID already exists")
-            obj.employee_id = payload.employee_id
-
-        if payload.email and payload.email != obj.email:
-            if self.repo.get_by_email(db, payload.email):
-                self.logger.error(f"Update failed: Email {payload.email} already exists")
+        # If updating unique fields, check conflicts
+        if "email" in data:
+            dup = db.scalar(
+                select(func.count()).select_from(Employee).where(
+                    Employee.email == data["email"], Employee.id != id_
+                )
+            )
+            if dup:
                 raise ValueError("Email already exists")
-            obj.email = payload.email
+        if "employee_id" in data:
+            dup = db.scalar(
+                select(func.count()).select_from(Employee).where(
+                    Employee.employee_id == data["employee_id"], Employee.id != id_
+                )
+            )
+            if dup:
+                raise ValueError("Employee ID already exists")
 
-        # Map remaining updates (only if provided)
-        for field in [
-            "name", "parent_name", "designation", "permanent_address",
-            "mobile_number", "alternative_number", "uan_number",
-            "date_of_birth", "date_of_joining", "date_of_leaving"
-        ]:
-            val = getattr(payload, field, None)
-            if val is not None:
-                setattr(obj, field, val)
+        for k, v in data.items():
+            setattr(emp, k, v)
 
-        # Handle enum-or-string fields safely
-        if payload.guardian_type is not None:
-            obj.guardian_type = _enum_value_or_same(payload.guardian_type)
+        db.commit()
+        db.refresh(emp)
+        return emp
 
-        if payload.marital_status is not None:
-            obj.marital_status = _enum_value_or_same(payload.marital_status)
-
-        obj.updated_at = datetime.utcnow()
-
-        updated = self.repo.update(db, obj)
-        self.logger.info(f"Updated employee with id {id_}")
-        return EmployeeRead.model_validate(updated)
-
-    # --- Delete ---
-
-    def delete_employee(self, db: Session, id_: int) -> None:
-        obj = self.repo.get_by_id(db, id_)
-        if not obj:
-            self.logger.error(f"Delete failed: Employee with id {id_} not found")
-            raise LookupError("Employee not found")
-        self.repo.delete(db, obj)
-        self.logger.info(f"Deleted employee with id {id_}")
+    def delete_employee(self, db: Session, id_: int) -> bool:
+        emp = db.get(Employee, id_)
+        if not emp:
+            return False
+        db.delete(emp)
+        db.commit()
+        return True
