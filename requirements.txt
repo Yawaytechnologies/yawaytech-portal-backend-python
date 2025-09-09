@@ -1,4 +1,4 @@
-fastapi
+﻿fastapi
 uvicorn[standard]
 SQLAlchemy>=2.0
 pydantic>=2
@@ -12,3 +12,8 @@ black
 mypy
 pytest
 pytest-cov
+
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
