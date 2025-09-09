@@ -1,18 +1,12 @@
-# app/data/models/add_employee.py  (adjust path/name as needed)
+# app/data/models/add_employee.py
 from __future__ import annotations
+
 from datetime import date, datetime
 from enum import Enum
 
-from sqlalchemy import (
-    String,
-    Date,
-    DateTime,
-    Text,
-    Enum as SAEnum,
-    UniqueConstraint,
-    Integer,
-)
+from sqlalchemy import Date, DateTime, Enum as SAEnum, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+
 from app.data.db import Base
 
 
