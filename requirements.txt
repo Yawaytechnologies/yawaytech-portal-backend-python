@@ -5,6 +5,7 @@ pydantic>=2
 python-dotenv
 pymysql
 psycopg[binary]
+email-validator
 
 # --- CI / Dev tools ---
 ruff
