@@ -1,4 +1,4 @@
-﻿# app/data/db.py
+# app/data/db.py
 import os
 from collections.abc import Generator
 
