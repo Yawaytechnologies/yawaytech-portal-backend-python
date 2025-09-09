@@ -3,8 +3,7 @@ from datetime import date
 from sqlalchemy import extract, func
 from sqlalchemy.orm import Session
 
-from app.data.models.expenses import Expense 
-
+from app.data.models.expenses import Expense
 
 
 def get_total_expenses(db: Session) -> float:

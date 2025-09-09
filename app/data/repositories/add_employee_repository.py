@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, or_, func
 from app.data.models.add_employee import Employee
 
+
 class EmployeeRepository:
     def create(self, db: Session, obj: Employee) -> Employee:
         db.add(obj)
@@ -56,9 +57,9 @@ class EmployeeRepository:
             stmt = stmt.where(Employee.department == department)
 
         total = db.scalar(select(func.count()).select_from(stmt.subquery()))
-        rows = db.execute(
-            stmt.order_by(Employee.id.desc())
-                .offset((page - 1) * size)
-                .limit(size)
-        ).scalars().all()
+        rows = (
+            db.execute(stmt.order_by(Employee.id.desc()).offset((page - 1) * size).limit(size))
+            .scalars()
+            .all()
+        )
         return rows, (total or 0)

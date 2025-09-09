@@ -1,10 +1,17 @@
 ﻿# app/models/add_employee_model.py
 from __future__ import annotations
-from datetime import  datetime
+from datetime import datetime
 from enum import Enum
 
 from sqlalchemy import (
-    Column, Integer, String, Date, DateTime, Text, Enum as SAEnum, UniqueConstraint
+    Column,
+    Integer,
+    String,
+    Date,
+    DateTime,
+    Text,
+    Enum as SAEnum,
+    UniqueConstraint,
 )
 from app.data.db import Base
 
@@ -12,7 +19,7 @@ from app.data.db import Base
 class MaritalStatus(str, Enum):
     SINGLE = "Single"
     MARRIED = "Married"
-    
+
 
 class Department(str, Enum):
     HR = "HR"

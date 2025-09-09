@@ -1,6 +1,6 @@
 # app/controllers/add_employee_controller.py
 from __future__ import annotations
-from typing import  Optional
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
@@ -19,7 +19,9 @@ class AddEmployeeController:
         emp = self.service.get_employee(db, id_)
         return EmployeeRead.model_validate(emp) if emp else None
 
-    def list_many(self, db: Session, q: Optional[str], skip: int, limit: int) -> tuple[list[EmployeeRead], int]:
+    def list_many(
+        self, db: Session, q: Optional[str], skip: int, limit: int
+    ) -> tuple[list[EmployeeRead], int]:
         rows, total = self.service.list_employees(db, q=q, skip=skip, limit=limit)
         return [EmployeeRead.model_validate(r) for r in rows], total
 

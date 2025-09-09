@@ -11,10 +11,16 @@ from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 class EmployeeService:
     def create_employee(self, db: Session, payload: EmployeeCreate) -> Employee:
         # Uniqueness checks (email, employee_id)
-        exists_email = db.scalar(select(func.count()).select_from(Employee).where(Employee.email == payload.email))
+        exists_email = db.scalar(
+            select(func.count()).select_from(Employee).where(Employee.email == payload.email)
+        )
         if exists_email:
             raise ValueError("Email already exists")
-        exists_empid = db.scalar(select(func.count()).select_from(Employee).where(Employee.employee_id == payload.employee_id))
+        exists_empid = db.scalar(
+            select(func.count())
+            .select_from(Employee)
+            .where(Employee.employee_id == payload.employee_id)
+        )
         if exists_empid:
             raise ValueError("Employee ID already exists")
 
@@ -54,17 +60,17 @@ class EmployeeService:
         # If updating unique fields, check conflicts
         if "email" in data:
             dup = db.scalar(
-                select(func.count()).select_from(Employee).where(
-                    Employee.email == data["email"], Employee.id != id_
-                )
+                select(func.count())
+                .select_from(Employee)
+                .where(Employee.email == data["email"], Employee.id != id_)
             )
             if dup:
                 raise ValueError("Email already exists")
         if "employee_id" in data:
             dup = db.scalar(
-                select(func.count()).select_from(Employee).where(
-                    Employee.employee_id == data["employee_id"], Employee.id != id_
-                )
+                select(func.count())
+                .select_from(Employee)
+                .where(Employee.employee_id == data["employee_id"], Employee.id != id_)
             )
             if dup:
                 raise ValueError("Employee ID already exists")

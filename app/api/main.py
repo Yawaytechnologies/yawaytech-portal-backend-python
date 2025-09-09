@@ -44,13 +44,15 @@ app.add_middleware(
 )
 
 # Routers
-app.include_router(expenses_router, prefix="")           # e.g. /expenses
-app.include_router(add_employee_router, prefix="/api")   # -> /api/employees
+app.include_router(expenses_router, prefix="")  # e.g. /expenses
+app.include_router(add_employee_router, prefix="/api")  # -> /api/employees
+
 
 # Health & Root
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 @app.get("/")
 def root():

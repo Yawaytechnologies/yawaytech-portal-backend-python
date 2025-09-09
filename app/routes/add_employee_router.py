@@ -10,8 +10,10 @@ from app.controllers.add_employee_controller import AddEmployeeController
 
 router = APIRouter(prefix="/employees", tags=["Employees"])
 
+
 def get_controller() -> AddEmployeeController:
     return AddEmployeeController()
+
 
 @router.post("/", response_model=EmployeeRead, status_code=status.HTTP_201_CREATED)
 def create_employee(
