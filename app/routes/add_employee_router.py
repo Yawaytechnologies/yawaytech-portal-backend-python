@@ -1,7 +1,7 @@
 # app/routes/add_employee_router.py
 from __future__ import annotations
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, status
+from typing import Optional, Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, status, Body
 from sqlalchemy.orm import Session
 
 from app.data.db import get_db
@@ -17,14 +17,13 @@ def get_controller() -> AddEmployeeController:
 
 @router.post("/", response_model=EmployeeRead, status_code=status.HTTP_201_CREATED)
 def create_employee(
-    payload: EmployeeCreate,
+    payload: EmployeeCreate,  # Body marker not strictly needed here
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
     try:
         return ctrl.create(db, payload)
     except ValueError as e:
-        # 400 for validation/uniqueness conflicts
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -54,8 +53,8 @@ def list_employees(
 
 @router.put("/{id_}", response_model=EmployeeRead)
 def update_employee(
-    id_: int = Path(..., ge=1),
-    payload: EmployeeUpdate = ...,
+    payload: Annotated[EmployeeUpdate, Body(...)],  # <-- no default here
+    id_: int = Path(..., ge=1),  # defaults follow
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):

@@ -1,4 +1,7 @@
-from typing import Optional, Tuple, List
+# app/data/repositories/add_employee_repository.py
+from __future__ import annotations
+
+from typing import Optional, Tuple, List, cast
 from sqlalchemy.orm import Session
 from sqlalchemy import select, or_, func
 from app.data.models.add_employee import Employee
@@ -47,8 +50,6 @@ class EmployeeRepository:
             like = f"%{q}%"
             stmt = stmt.where(
                 or_(
-                    Employee.first_name.ilike(like),
-                    Employee.last_name.ilike(like),
                     Employee.email.ilike(like),
                     Employee.employee_id.ilike(like),
                 )
@@ -56,10 +57,14 @@ class EmployeeRepository:
         if department:
             stmt = stmt.where(Employee.department == department)
 
-        total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+        total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
+
         rows = (
             db.execute(stmt.order_by(Employee.id.desc()).offset((page - 1) * size).limit(size))
             .scalars()
             .all()
         )
-        return rows, (total or 0)
+
+        # 🔑 mypy-safe: coerce & cast to concrete list[Employee]
+        employees: List[Employee] = cast(List[Employee], list(rows))
+        return employees, int(total)

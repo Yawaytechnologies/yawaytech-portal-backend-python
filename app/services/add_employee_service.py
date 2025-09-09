@@ -1,6 +1,6 @@
 # app/services/add_employee_service.py
 from __future__ import annotations
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
@@ -10,12 +10,12 @@ from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 
 class EmployeeService:
     def create_employee(self, db: Session, payload: EmployeeCreate) -> Employee:
-        # Uniqueness checks (email, employee_id)
         exists_email = db.scalar(
             select(func.count()).select_from(Employee).where(Employee.email == payload.email)
         )
         if exists_email:
             raise ValueError("Email already exists")
+
         exists_empid = db.scalar(
             select(func.count())
             .select_from(Employee)
@@ -24,6 +24,7 @@ class EmployeeService:
         if exists_empid:
             raise ValueError("Employee ID already exists")
 
+        # If you're on Pydantic v2, prefer payload.model_dump()
         emp = Employee(**payload.dict())
         db.add(emp)
         db.commit()
@@ -45,19 +46,24 @@ class EmployeeService:
                 | (Employee.employee_id.ilike(like))
                 | (Employee.designation.ilike(like))
             )
-        total = db.scalar(select(func.count()).select_from(stmt.subquery()))
+
+        total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
         stmt = stmt.order_by(Employee.id.desc()).offset(skip).limit(limit)
         rows = db.scalars(stmt).all()
-        return rows, total or 0
+
+        # 🔑 mypy-safe: force concrete list[Employee]
+        employees: List[Employee] = cast(List[Employee], list(rows))
+        return employees, int(total)
 
     def update_employee(self, db: Session, id_: int, payload: EmployeeUpdate) -> Optional[Employee]:
         emp = db.get(Employee, id_)
         if not emp:
             return None
 
-        data = payload.dict(exclude_unset=True)
+        data = payload.dict(
+            exclude_unset=True
+        )  # Pydantic v2: payload.model_dump(exclude_unset=True)
 
-        # If updating unique fields, check conflicts
         if "email" in data:
             dup = db.scalar(
                 select(func.count())
@@ -66,6 +72,7 @@ class EmployeeService:
             )
             if dup:
                 raise ValueError("Email already exists")
+
         if "employee_id" in data:
             dup = db.scalar(
                 select(func.count())
