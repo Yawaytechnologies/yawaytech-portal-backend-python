@@ -1,4 +1,4 @@
-﻿# app/data/models/add_employee.py  (adjust path/name as needed)
+# app/data/models/add_employee.py  (adjust path/name as needed)
 from __future__ import annotations
 from datetime import date, datetime
 from enum import Enum
@@ -48,9 +48,7 @@ class Employee(Base):
     email: Mapped[str] = mapped_column(String(160), nullable=False, unique=True, index=True)
     mobile_number: Mapped[str] = mapped_column(String(20), nullable=False)
 
-    marital_status: Mapped[MaritalStatus] = mapped_column(
-        SAEnum(MaritalStatus), nullable=False
-    )
+    marital_status: Mapped[MaritalStatus] = mapped_column(SAEnum(MaritalStatus), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
 
     permanent_address: Mapped[str] = mapped_column(Text, nullable=False)
@@ -58,9 +56,7 @@ class Employee(Base):
     designation: Mapped[str] = mapped_column(String(120), nullable=False)
     department: Mapped[Department] = mapped_column(SAEnum(Department), nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )
