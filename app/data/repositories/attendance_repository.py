@@ -1,8 +1,10 @@
 from datetime import datetime, date
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 from calendar import monthrange
 from app.data.models.attendance import AttendanceSession, AttendanceDay
+from app.data.models.add_employee import Employee
 
 
 class AttendanceRepository:
@@ -85,3 +87,30 @@ class AttendanceRepository:
             .order_by(AttendanceDay.work_date_local.asc())
         )
         return list(db.execute(stmt).scalars())
+
+    def get_employee_basic(self, db: Session, employee_id: str) -> Optional[Employee]:
+        stmt = select(Employee).where(Employee.employee_id == employee_id)
+        return db.execute(stmt).scalar_one_or_none()
+
+    def get_days_for_employee(
+        self,
+        db: Session,
+        employee_id: str,
+        date_from: date,
+        date_to: date,
+    ) -> List[AttendanceDay]:
+        """
+        Returns AttendanceDay rows in [date_from, date_to] (inclusive).
+        """
+        stmt = (
+            select(AttendanceDay)
+            .where(
+                and_(
+                    AttendanceDay.employee_id == employee_id,
+                    AttendanceDay.work_date_local >= date_from,
+                    AttendanceDay.work_date_local <= date_to,
+                )
+            )
+            .order_by(AttendanceDay.work_date_local.asc())
+        )
+        return list(db.execute(stmt).scalars().all())
