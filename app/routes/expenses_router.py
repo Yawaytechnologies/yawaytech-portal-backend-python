@@ -15,6 +15,9 @@ from calendar import monthrange
 from app.services import expense_summary_service
 
 
+from app.services.expense_summary_service import get_monthly_expenses, get_weekly_expenses
+
+
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
@@ -54,3 +57,44 @@ def yearly_expenses(db: Session = Depends(get_db)):
 @router.get("/summary/month",response_model=MonthlySummary)
 def monthly_expenses(db: Session = Depends(get_db)):
     return expense_summary_service.get_monthly_expenses(db)
+
+
+#---------------------------------------------------------
+
+from app.schemas.expense import MonthlyTrend, HalfYearSummary
+
+@router.get("/summary/monthly-trend", response_model=List[MonthlyTrend])
+def monthly_trend(year: int, db: Session = Depends(get_db)):
+    return expense_summary_service.get_monthly_trend(db, year)
+
+@router.get("/summary/first-half", response_model=HalfYearSummary)
+def first_half(year: int, db: Session = Depends(get_db)):
+    return expense_summary_service.get_half_year_summary(db, year, "H1")
+
+@router.get("/summary/second-half", response_model=HalfYearSummary)
+def second_half(year: int, db: Session = Depends(get_db)):
+    return expense_summary_service.get_half_year_summary(db, year, "H2")
+
+
+@router.get("/summary/monthly-trend/{year}")
+def monthly_trend(year: int, db: Session = Depends(get_db)):
+    return expense_summary_service.get_monthly_trend(db, year)
+
+
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.services.expense_summary_service import get_monthly_expenses, get_weekly_expenses
+from app.data.database import get_db
+
+router = APIRouter(prefix="/expenses/summary", tags=["Expense Summary"])
+
+@router.get("/monthly/{year}")
+def monthly_summary(year: int, db: Session = Depends(get_db)):
+    return get_monthly_expenses(db, year)
+
+@router.get("/weekly/{year}/{month}")
+def weekly_summary(year: int, month: int, db: Session = Depends(get_db)):
+    return get_weekly_expenses(db, year, month)
+
+

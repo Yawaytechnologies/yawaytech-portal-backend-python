@@ -35,3 +35,19 @@ class MonthlySummary(BaseModel):
     year: int
     month: int
     total_expenses_this_month: float
+
+#-----------------------------
+
+from typing import List
+
+class MonthlyTrend(BaseModel):
+    month: int
+    total: float
+
+class HalfYearSummary(BaseModel):
+    year: int
+    half: str  
+    total: float
+
+
+
