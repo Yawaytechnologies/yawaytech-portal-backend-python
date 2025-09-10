@@ -8,6 +8,9 @@ from app.data.models.add_employee import Employee
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 
 
+
+
+
 class EmployeeService:
     def create_employee(self, db: Session, payload: EmployeeCreate) -> Employee:
         exists_email = db.scalar(
