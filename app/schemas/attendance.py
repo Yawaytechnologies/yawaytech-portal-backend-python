@@ -34,6 +34,7 @@ class MonthDay(BaseModel):
     secondsWorked: int
     present: bool
 
+
 class AttendanceDayItem(BaseModel):
     work_date_local: date
     seconds_worked: int = 0
@@ -53,6 +54,7 @@ class EmployeeAttendanceResponse(BaseModel):
     absent_days: int
     items: List[AttendanceDayItem]
 
+
 class MonthlyAttendanceItem(BaseModel):
     month: int  # 1..12
     month_name: str
@@ -62,6 +64,7 @@ class MonthlyAttendanceItem(BaseModel):
     absent_days: int
     days_counted: int  # how many calendar days considered for this month
 
+
 class EmployeeYearlyAttendanceResponse(BaseModel):
     employee_id: str
     employee_name: str | None = None
@@ -70,13 +73,14 @@ class EmployeeYearlyAttendanceResponse(BaseModel):
     total_hours_worked: str
     total_present_days: int
     total_absent_days: int
-    months: List[MonthlyAttendanceItem]   
+    months: List[MonthlyAttendanceItem]
+
 
 class EmployeeMonthlyAttendanceResponse(BaseModel):
     employee_id: str
     employee_name: str | None = None
     year: int
-    month: int                 # 1..12
+    month: int  # 1..12
     month_name: str
     days_counted: int
     present_days: int

@@ -1,7 +1,6 @@
 from __future__ import annotations
 from datetime import datetime, timedelta, date
 from typing import List, Dict
-from zoneinfo import ZoneInfo
 import calendar
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -9,13 +8,12 @@ from app.core.timeutils import now_utc, to_local_date_ist, IST
 from app.data.repositories.attendance_repository import AttendanceRepository
 from app.data.models.add_employee import Employee  # to ensure employee exists
 
-from app.data.repositories.attendance_repository import AttendanceRepository
 from app.schemas.attendance import (
     AttendanceDayItem,
     EmployeeAttendanceResponse,
-     MonthlyAttendanceItem,
+    MonthlyAttendanceItem,
     EmployeeYearlyAttendanceResponse,
-     EmployeeMonthlyAttendanceResponse
+    EmployeeMonthlyAttendanceResponse,
 )
 
 
@@ -24,22 +22,21 @@ def _to_hours_minutes(seconds: int) -> str:
     minutes = seconds // 60
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
-IST = ZoneInfo("Asia/Kolkata")
 
 def _last_day_of_month(y: int, m: int) -> int:
     return calendar.monthrange(y, m)[1]
 
+
 def _is_weekend(d: date) -> bool:
     # Mon=0 ... Sun=6
     return d.weekday() >= 5
+
 
 def _avg_hhmm(total_seconds: int, denom_days: int) -> str:
     if denom_days <= 0:
         return "00:00"
     minutes = (total_seconds // 60) // denom_days
     return f"{minutes // 60:02d}:{minutes % 60:02d}"
-
-
 
 
 class AttendanceService:
@@ -152,7 +149,7 @@ class AttendanceService:
             }
             for d in days
         ]
-    
+
     def get_employee_attendance(
         self,
         db: Session,
@@ -217,7 +214,6 @@ class AttendanceService:
             absent_days=absent_days,
             items=items,
         )
-    
 
     def get_employee_attendance_monthly(
         self,
@@ -319,7 +315,6 @@ class AttendanceService:
             total_absent_days=total_absent,
             months=months,
         )
-    
 
     def get_employee_month_report(
         self,

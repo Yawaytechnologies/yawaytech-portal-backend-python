@@ -87,7 +87,7 @@ class AttendanceRepository:
             .order_by(AttendanceDay.work_date_local.asc())
         )
         return list(db.execute(stmt).scalars())
-    
+
     def get_employee_basic(self, db: Session, employee_id: str) -> Optional[Employee]:
         stmt = select(Employee).where(Employee.employee_id == employee_id)
         return db.execute(stmt).scalar_one_or_none()

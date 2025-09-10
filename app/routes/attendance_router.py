@@ -1,10 +1,18 @@
 from __future__ import annotations
-from fastapi import APIRouter, Depends, Query,  HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException
 from datetime import date
 from sqlalchemy.orm import Session
 from app.data.db import get_db
 from app.controllers.attandence_controller import AttendanceController
-from app.schemas.attendance import CheckInResponse, CheckOutResponse, TodayStatus, MonthDay, EmployeeAttendanceResponse, EmployeeYearlyAttendanceResponse, EmployeeMonthlyAttendanceResponse
+from app.schemas.attendance import (
+    CheckInResponse,
+    CheckOutResponse,
+    TodayStatus,
+    MonthDay,
+    EmployeeAttendanceResponse,
+    EmployeeYearlyAttendanceResponse,
+    EmployeeMonthlyAttendanceResponse,
+)
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"])
 controller = AttendanceController()
@@ -33,6 +41,7 @@ def month(
     db: Session = Depends(get_db),
 ):
     return controller.month_view(db, employeeId, year, month)
+
 
 @router.get(
     "/{employee_id}/days",
