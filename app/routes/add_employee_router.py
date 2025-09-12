@@ -41,7 +41,7 @@ def get_employee(
 
 @router.get("/", response_model=dict)
 def list_employees(
-    q: Optional[str] = Query(None, description="Search by name/email/employee_id/designation"),
+    q: Optional[str] = Query(None, description="Search by employee_id/department"),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),

@@ -45,6 +45,7 @@ class EmployeeService:
                 | (Employee.email.ilike(like))
                 | (Employee.employee_id.ilike(like))
                 | (Employee.designation.ilike(like))
+                
             )
 
         total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0

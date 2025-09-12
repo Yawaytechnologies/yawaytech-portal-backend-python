@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Optional, Tuple, List, cast
 from sqlalchemy.orm import Session
 from sqlalchemy import select, or_, func
-from app.data.models.add_employee import Employee
+from app.data.models.add_employee import Employee, Department
 
 
 class EmployeeRepository:
@@ -24,8 +24,6 @@ class EmployeeRepository:
         db.delete(obj)
         db.commit()
 
-    def get_by_id(self, db: Session, id_: int) -> Optional[Employee]:
-        return db.get(Employee, id_)
 
     def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
         return db.execute(select(Employee).where(Employee.employee_id == code)).scalar_one_or_none()
@@ -35,6 +33,7 @@ class EmployeeRepository:
 
     def get_by_phone(self, db: Session, phone: str) -> Optional[Employee]:
         return db.execute(select(Employee).where(Employee.phone == phone)).scalar_one_or_none()
+        
 
     def list(
         self,
@@ -68,3 +67,27 @@ class EmployeeRepository:
         # 🔑 mypy-safe: coerce & cast to concrete list[Employee]
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees, int(total)
+
+
+class EmployeeRepository:
+    def list_employees(
+        self,
+        db: Session,
+        department: Optional[Department],
+        limit: int,
+        offset: int,
+    ) -> Tuple[List[Employee], int]:
+        stmt = select(Employee)
+        count_stmt = select(func.count()).select_from(Employee)
+
+        if department:
+            stmt = stmt.where(Employee.department == department)
+            count_stmt = count_stmt.where(Employee.department == department)
+
+        # Order newest first; adjust to your need
+        stmt = stmt.order_by(Employee.id.desc()).limit(limit).offset(offset)
+
+        items = list(db.execute(stmt).scalars().all())
+        total = db.scalar(count_stmt) or 0
+
+        return items, total

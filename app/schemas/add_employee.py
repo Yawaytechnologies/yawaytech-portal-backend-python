@@ -9,21 +9,17 @@ from app.data.models.add_employee import MaritalStatus, Department
 
 # Base fields shared by create/update/read
 class EmployeeBase(BaseModel):
-    name: str = Field(..., min_length=2, max_length=120)
-    father_name: str = Field(..., min_length=2, max_length=120)
-    employee_id: str = Field(..., min_length=2, max_length=50)
-
+    name: str = Field(..., min_length=2, max_length=30)
+    father_name: str = Field(..., min_length=2, max_length=30)
+    date_of_birth: date
+    employee_id: str = Field(..., min_length=9, max_length=9)
     date_of_joining: date
     date_of_leaving: Optional[date] = None
-
     email: EmailStr
-    mobile_number: str = Field(..., min_length=7, max_length=20)
-
+    mobile_number: str = Field(..., min_length=10, max_length=10)
     marital_status: MaritalStatus
-    date_of_birth: date
-
     permanent_address: str = Field(..., min_length=5)
-    designation: str = Field(..., min_length=2, max_length=120)
+    designation: str = Field(..., min_length=2, max_length=30)
     department: Department
 
     @validator("date_of_leaving")
@@ -47,21 +43,22 @@ class EmployeeCreate(EmployeeBase):
 
 class EmployeeUpdate(BaseModel):
     # All fields optional for PATCH-like update
-    name: Optional[str] = Field(None, min_length=2, max_length=120)
-    father_name: Optional[str] = Field(None, min_length=2, max_length=120)
+    name: Optional[str] = Field(None, min_length=2, max_length=30)
+    father_name: Optional[str] = Field(None, min_length=2, max_length=30)
     employee_id: Optional[str] = Field(None, min_length=2, max_length=50)
 
     date_of_joining: Optional[date] = None
     date_of_leaving: Optional[date] = None
 
     email: Optional[EmailStr] = None
-    mobile_number: Optional[str] = Field(None, min_length=7, max_length=20)
+    mobile_number: Optional[str] = Field(None, min_length=10, max_length=10)
 
     marital_status: Optional[MaritalStatus] = None
     date_of_birth: Optional[date] = None
+    password: Optional[str] =Field(None, min_length=8, max_length=15) 
 
     permanent_address: Optional[str] = Field(None, min_length=5)
-    designation: Optional[str] = Field(None, min_length=2, max_length=120)
+    designation: Optional[str] = Field(None, min_length=2, max_length=30)
     department: Optional[Department] = None
 
     @validator("date_of_leaving")
