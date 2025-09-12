@@ -4,6 +4,7 @@ from datetime import date
 from pydantic import BaseModel, ConfigDict
 from app.data.models.add_employee import Department
 
+
 class EmployeeOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -19,10 +20,9 @@ class EmployeeOut(BaseModel):
     permanent_address: str
     designation: str
     department: Department
-    
 
-    
     profile_picture: Optional[str] = None
+
 
 class EmployeesPage(BaseModel):
     items: List[EmployeeOut]

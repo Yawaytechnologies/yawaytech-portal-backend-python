@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.data.models.add_employee import Employee, Department
 from app.data.repositories.add_employee_repository import EmployeeRepository
 
+
 class DashboardService:
     def __init__(self, repo: EmployeeRepository | None = None):
         self.repo = repo or EmployeeRepository()

@@ -55,7 +55,7 @@ class EmployeeUpdate(BaseModel):
 
     marital_status: Optional[MaritalStatus] = None
     date_of_birth: Optional[date] = None
-    password: Optional[str] =Field(None, min_length=8, max_length=15) 
+    password: Optional[str] = Field(None, min_length=8, max_length=15)
 
     permanent_address: Optional[str] = Field(None, min_length=5)
     designation: Optional[str] = Field(None, min_length=2, max_length=30)

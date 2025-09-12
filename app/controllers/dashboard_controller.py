@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.data.db import get_db  # your existing session dependency
@@ -9,6 +9,7 @@ from app.schemas.dashboard import EmployeesPage, EmployeeOut
 from app.services.dashboard_service import DashboardService
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+
 
 @router.get("/employees", response_model=EmployeesPage)
 def list_employees(

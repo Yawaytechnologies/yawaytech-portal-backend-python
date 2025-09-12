@@ -1,4 +1,4 @@
-﻿# app/data/models/add_employee.py
+# app/data/models/add_employee.py
 from __future__ import annotations
 from datetime import date, datetime
 from enum import Enum
@@ -52,8 +52,7 @@ class Employee(Base):
     __table_args__ = (
         UniqueConstraint("employee_id", name="uq_employee_employee_id"),
         UniqueConstraint("email", name="uq_employee_email"),
-        UniqueConstraint("mobile_number", name="uq_employee_mobile_number")
+        UniqueConstraint("mobile_number", name="uq_employee_mobile_number"),
     )
-
 
     # Index("ix_employees_dept_name", Employee.department, Employee.name)

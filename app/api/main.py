@@ -1,4 +1,4 @@
-﻿# app/api/main.py
+# app/api/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -53,7 +53,6 @@ app.include_router(expenses_router, prefix="")  # e.g. /expenses
 app.include_router(add_employee_router, prefix="/api")  # -> /api/employees
 app.include_router(attendance_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")  # e.g. /api/dashboard
-
 
 
 # Health & Root

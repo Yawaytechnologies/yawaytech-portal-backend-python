@@ -1,4 +1,4 @@
-﻿# app/data/db.py
+# app/data/db.py
 from __future__ import annotations
 import os
 from collections.abc import Generator

@@ -8,12 +8,6 @@ from app.data.models.add_employee import Employee, Department
 
 
 class EmployeeRepository:
-    def create(self, db: Session, obj: Employee) -> Employee:
-        db.add(obj)
-        db.commit()
-        db.refresh(obj)
-        return obj
-
     def update(self, db: Session, obj: Employee) -> Employee:
         db.add(obj)
         db.commit()
@@ -24,7 +18,6 @@ class EmployeeRepository:
         db.delete(obj)
         db.commit()
 
-
     def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
         return db.execute(select(Employee).where(Employee.employee_id == code)).scalar_one_or_none()
 
@@ -33,7 +26,6 @@ class EmployeeRepository:
 
     def get_by_phone(self, db: Session, phone: str) -> Optional[Employee]:
         return db.execute(select(Employee).where(Employee.phone == phone)).scalar_one_or_none()
-        
 
     def list(
         self,
@@ -42,9 +34,10 @@ class EmployeeRepository:
         q: Optional[str],
         page: int,
         size: int,
-        department: Optional[str] = None,
+        department: Optional[str | Department] = None,
     ) -> Tuple[List[Employee], int]:
         stmt = select(Employee)
+
         if q:
             like = f"%{q}%"
             stmt = stmt.where(
@@ -53,6 +46,7 @@ class EmployeeRepository:
                     Employee.employee_id.ilike(like),
                 )
             )
+
         if department:
             stmt = stmt.where(Employee.department == department)
 
@@ -64,30 +58,22 @@ class EmployeeRepository:
             .all()
         )
 
-        # 🔑 mypy-safe: coerce & cast to concrete list[Employee]
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees, int(total)
 
-
-class EmployeeRepository:
+    # Optional helper to mimic old signature (uses offset/limit)
     def list_employees(
         self,
         db: Session,
-        department: Optional[Department],
-        limit: int,
-        offset: int,
+        department: Optional[Department] = None,
+        limit: int = 20,
+        offset: int = 0,
     ) -> Tuple[List[Employee], int]:
-        stmt = select(Employee)
-        count_stmt = select(func.count()).select_from(Employee)
-
-        if department:
-            stmt = stmt.where(Employee.department == department)
-            count_stmt = count_stmt.where(Employee.department == department)
-
-        # Order newest first; adjust to your need
-        stmt = stmt.order_by(Employee.id.desc()).limit(limit).offset(offset)
-
-        items = list(db.execute(stmt).scalars().all())
-        total = db.scalar(count_stmt) or 0
-
-        return items, total
+        page = (offset // max(1, limit)) + 1
+        return self.list(
+            db,
+            q=None,
+            page=page,
+            size=limit,
+            department=department,
+        )
