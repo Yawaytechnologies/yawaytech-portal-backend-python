@@ -4,16 +4,10 @@ from __future__ import annotations
 from typing import Optional, Tuple, List, cast
 from sqlalchemy.orm import Session
 from sqlalchemy import select, or_, func
-from app.data.models.add_employee import Employee
+from app.data.models.add_employee import Employee, Department
 
 
 class EmployeeRepository:
-    def create(self, db: Session, obj: Employee) -> Employee:
-        db.add(obj)
-        db.commit()
-        db.refresh(obj)
-        return obj
-
     def update(self, db: Session, obj: Employee) -> Employee:
         db.add(obj)
         db.commit()
@@ -23,9 +17,6 @@ class EmployeeRepository:
     def delete(self, db: Session, obj: Employee) -> None:
         db.delete(obj)
         db.commit()
-
-    def get_by_id(self, db: Session, id_: int) -> Optional[Employee]:
-        return db.get(Employee, id_)
 
     def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
         return db.execute(select(Employee).where(Employee.employee_id == code)).scalar_one_or_none()
@@ -43,9 +34,10 @@ class EmployeeRepository:
         q: Optional[str],
         page: int,
         size: int,
-        department: Optional[str] = None,
+        department: Optional[str | Department] = None,
     ) -> Tuple[List[Employee], int]:
         stmt = select(Employee)
+
         if q:
             like = f"%{q}%"
             stmt = stmt.where(
@@ -54,6 +46,7 @@ class EmployeeRepository:
                     Employee.employee_id.ilike(like),
                 )
             )
+
         if department:
             stmt = stmt.where(Employee.department == department)
 
@@ -65,6 +58,22 @@ class EmployeeRepository:
             .all()
         )
 
-        # 🔑 mypy-safe: coerce & cast to concrete list[Employee]
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees, int(total)
+
+    # Optional helper to mimic old signature (uses offset/limit)
+    def list_employees(
+        self,
+        db: Session,
+        department: Optional[Department] = None,
+        limit: int = 20,
+        offset: int = 0,
+    ) -> Tuple[List[Employee], int]:
+        page = (offset // max(1, limit)) + 1
+        return self.list(
+            db,
+            q=None,
+            page=page,
+            size=limit,
+            department=department,
+        )
