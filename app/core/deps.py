@@ -8,6 +8,7 @@ from app.data.repositories.admin_repository import AdminRepository
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/admin/login")
 repo = AdminRepository()
 
+
 def get_current_admin(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_token(token)
@@ -22,10 +23,12 @@ def get_current_admin(db: Session = Depends(get_db), token: str = Depends(oauth2
         raise HTTPException(status_code=401, detail="Inactive or invalid admin")
     return admin
 
-def require_admin(current = Depends(get_current_admin)):
+
+def require_admin(current=Depends(get_current_admin)):
     return current
 
-def require_super_admin(current = Depends(get_current_admin)):
+
+def require_super_admin(current=Depends(get_current_admin)):
     if not getattr(current, "is_super_admin", False):
         raise HTTPException(status_code=403, detail="Super admin required")
     return current
