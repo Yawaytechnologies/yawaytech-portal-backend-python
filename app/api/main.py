@@ -1,4 +1,4 @@
-﻿# app/api/main.py
+# app/api/main.py
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
