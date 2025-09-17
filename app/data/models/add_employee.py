@@ -44,7 +44,7 @@ class Employee(Base):
 
     designation: Mapped[str] = mapped_column(String(30), nullable=False)
     department: Mapped[Department] = mapped_column(SAEnum(Department), nullable=False, index=True)
-    password: Mapped[str] = mapped_column(default=True, nullable=False)
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
