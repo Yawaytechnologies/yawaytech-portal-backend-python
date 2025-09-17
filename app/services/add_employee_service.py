@@ -58,7 +58,9 @@ class EmployeeService:
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees, int(total)
 
-    def update_employee(self, db: Session, employee_id: str, payload: EmployeeUpdate) -> Optional[Employee]:
+    def update_employee(
+        self, db: Session, employee_id: str, payload: EmployeeUpdate
+    ) -> Optional[Employee]:
         emp = db.get(Employee, employee_id)
         if not emp:
             return None

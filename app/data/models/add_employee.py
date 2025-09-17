@@ -1,4 +1,4 @@
-﻿# app/data/models/add_employee.py
+# app/data/models/add_employee.py
 from __future__ import annotations
 from datetime import date, datetime
 from enum import Enum
@@ -18,7 +18,7 @@ class Department(str, Enum):
     IT = "IT"
     SALES = "Sales"
     FINANCE = "Finance"
-    MARKETING = "Marketing"    
+    MARKETING = "Marketing"
 
 
 class Employee(Base):

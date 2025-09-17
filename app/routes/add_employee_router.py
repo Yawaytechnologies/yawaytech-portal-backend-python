@@ -39,7 +39,6 @@ def get_employee(
     return emp
 
 
-
 @router.get("/", response_model=dict)
 def list_employees(
     q: Optional[str] = Query(None, description="Search by employee_id/department"),
