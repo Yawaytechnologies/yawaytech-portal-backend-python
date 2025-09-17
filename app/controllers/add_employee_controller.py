@@ -31,5 +31,5 @@ class AddEmployeeController:
         emp = self.service.update_employee(db, employee_id, payload)
         return EmployeeRead.model_validate(emp) if emp else None
 
-    def delete(self, db: Session, id_: int) -> bool:
+    def delete(self, db: Session, id_: str) -> bool:
         return self.service.delete_employee(db, id_)
