@@ -21,7 +21,7 @@ class EmployeeBase(BaseModel):
     permanent_address: str = Field(..., min_length=5)
     designation: str = Field(..., min_length=2, max_length=30)
     department: Department
-    password: str = Field(..., min_length=8, max_length=15)
+    password: str = Field(..., min_length=8)
 
     @validator("date_of_leaving")
     def leaving_not_before_joining(cls, v, values):
@@ -56,7 +56,7 @@ class EmployeeUpdate(BaseModel):
 
     marital_status: Optional[MaritalStatus] = None
     date_of_birth: Optional[date] = None
-    password: Optional[str] = Field(None, min_length=8, max_length=15)
+    password: Optional[str] = Field(None, min_length=8)
 
     permanent_address: Optional[str] = Field(None, min_length=5)
     designation: Optional[str] = Field(None, min_length=2, max_length=30)

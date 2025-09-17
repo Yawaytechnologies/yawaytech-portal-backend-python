@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple, cast
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
+from app.core.security import hash_password
 from app.data.models.add_employee import Employee
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 
@@ -25,7 +26,9 @@ class EmployeeService:
             raise ValueError("Employee ID already exists")
 
         # If you're on Pydantic v2, prefer payload.model_dump()
-        emp = Employee(**payload.dict())
+        data = payload.dict()
+        data["password"] = hash_password(data.pop("password"))
+        emp = Employee(**data)
         db.add(emp)
         db.commit()
         db.refresh(emp)
@@ -63,6 +66,9 @@ class EmployeeService:
         data = payload.dict(
             exclude_unset=True
         )  # Pydantic v2: payload.model_dump(exclude_unset=True)
+
+        if "password" in data:
+            data["password"] = hash_password(data["password"])
 
         if "email" in data:
             dup = db.scalar(
