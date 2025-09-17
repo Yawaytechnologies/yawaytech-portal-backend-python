@@ -46,7 +46,7 @@ class EmployeeUpdate(BaseModel):
     # All fields optional for PATCH-like update
     name: Optional[str] = Field(None, min_length=2, max_length=30)
     father_name: Optional[str] = Field(None, min_length=2, max_length=30)
-    employee_id: Optional[str] = Field(None, min_length=2, max_length=50)
+    employee_id: Optional[str] = Field(None, min_length=9, max_length=9)
 
     date_of_joining: Optional[date] = None
     date_of_leaving: Optional[date] = None

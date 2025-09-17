@@ -15,8 +15,8 @@ class AddEmployeeController:
         emp = self.service.create_employee(db, payload)
         return EmployeeRead.model_validate(emp)
 
-    def get_one(self, db: Session, id_: int) -> Optional[EmployeeRead]:
-        emp = self.service.get_employee(db, id_)
+    def get_one(self, db: Session, employee_id: str) -> Optional[EmployeeRead]:
+        emp = self.service.get_employee(db, employee_id)
         return EmployeeRead.model_validate(emp) if emp else None
 
     def list_many(
@@ -25,8 +25,8 @@ class AddEmployeeController:
         rows, total = self.service.list_employees(db, q=q, skip=skip, limit=limit)
         return [EmployeeRead.model_validate(r) for r in rows], total
 
-    def update(self, db: Session, id_: int, payload: EmployeeUpdate) -> Optional[EmployeeRead]:
-        emp = self.service.update_employee(db, id_, payload)
+    def update(self, db: Session, employee_id: str, payload: EmployeeUpdate) -> Optional[EmployeeRead]:
+        emp = self.service.update_employee(db, employee_id, payload)
         return EmployeeRead.model_validate(emp) if emp else None
 
     def delete(self, db: Session, id_: int) -> bool:

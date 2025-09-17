@@ -31,8 +31,8 @@ class EmployeeService:
         db.refresh(emp)
         return emp
 
-    def get_employee(self, db: Session, id_: int) -> Optional[Employee]:
-        return db.get(Employee, id_)
+    def get_employee(self, db: Session, employee_id: str) -> Optional[Employee]:
+        return db.get(Employee, employee_id)
 
     def list_employees(
         self, db: Session, q: Optional[str], skip: int, limit: int
@@ -55,8 +55,8 @@ class EmployeeService:
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees, int(total)
 
-    def update_employee(self, db: Session, id_: int, payload: EmployeeUpdate) -> Optional[Employee]:
-        emp = db.get(Employee, id_)
+    def update_employee(self, db: Session, employee_id: str, payload: EmployeeUpdate) -> Optional[Employee]:
+        emp = db.get(Employee, employee_id)
         if not emp:
             return None
 
@@ -68,7 +68,7 @@ class EmployeeService:
             dup = db.scalar(
                 select(func.count())
                 .select_from(Employee)
-                .where(Employee.email == data["email"], Employee.id != id_)
+                .where(Employee.email == data["email"], Employee.id != employee_id)
             )
             if dup:
                 raise ValueError("Email already exists")
@@ -77,7 +77,7 @@ class EmployeeService:
             dup = db.scalar(
                 select(func.count())
                 .select_from(Employee)
-                .where(Employee.employee_id == data["employee_id"], Employee.id != id_)
+                .where(Employee.employee_id == data["employee_id"], Employee.id != employee_id)
             )
             if dup:
                 raise ValueError("Employee ID already exists")
@@ -89,8 +89,8 @@ class EmployeeService:
         db.refresh(emp)
         return emp
 
-    def delete_employee(self, db: Session, id_: int) -> bool:
-        emp = db.get(Employee, id_)
+    def delete_employee(self, db: Session, employee_id: str) -> bool:
+        emp = db.get(Employee, employee_id)
         if not emp:
             return False
         db.delete(emp)

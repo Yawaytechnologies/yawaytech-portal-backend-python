@@ -1,4 +1,4 @@
-# app/data/models/add_employee.py
+﻿# app/data/models/add_employee.py
 from __future__ import annotations
 from datetime import date, datetime
 from enum import Enum
@@ -16,7 +16,9 @@ class MaritalStatus(str, Enum):
 class Department(str, Enum):
     HR = "HR"
     IT = "IT"
-    OTHER = "Other"
+    SALES = "Sales"
+    FINANCE = "Finance"
+    MARKETING = "Marketing"    
 
 
 class Employee(Base):
@@ -56,3 +58,4 @@ class Employee(Base):
     )
 
     # Index("ix_employees_dept_name", Employee.department, Employee.name)
+    # Index("ix_employees_employee_id", Employee.employee_id, unique=True)

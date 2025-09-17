@@ -27,16 +27,17 @@ def create_employee(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/{id_}", response_model=EmployeeRead)
+@router.get("/{employee_id}", response_model=EmployeeRead)
 def get_employee(
-    id_: int = Path(..., ge=1),
+    employee_id: str = Path(..., ge=1),
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
-    emp = ctrl.get_one(db, id_)
+    emp = ctrl.get_one(db, employee_id)
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
     return emp
+
 
 
 @router.get("/", response_model=dict)
@@ -51,15 +52,15 @@ def list_employees(
     return {"items": rows, "total": total, "skip": skip, "limit": limit}
 
 
-@router.put("/{id_}", response_model=EmployeeRead)
+@router.put("/{employee_id}", response_model=EmployeeRead)
 def update_employee(
     payload: Annotated[EmployeeUpdate, Body(...)],  # <-- no default here
-    id_: int = Path(..., ge=1),  # defaults follow
+    employee_id: str = Path(..., ge=1),  # defaults follow
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
     try:
-        emp = ctrl.update(db, id_, payload)
+        emp = ctrl.update(db, employee_id, payload)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not emp:
