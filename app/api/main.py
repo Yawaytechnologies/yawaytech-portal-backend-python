@@ -12,7 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.routes.expenses_router import router as expenses_router
 from app.routes.add_employee_router import router as add_employee_router
 from app.routes.dashboard_router import router as dashboard_router
-from app.routes import admin_router, proctected_example_router
+from app.routes import admin_router, proctected_example_router, employee_router
 
 # from app.routes.admin_auth_router import router as admin_auth_router
 from app.routes.attendance_router import router as attendance_router
@@ -50,6 +50,7 @@ app.add_middleware(
 
 # Mount routers once
 # app.include_router(admin_auth_router, prefix="/api")
+app.include_router(employee_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
 app.include_router(expenses_router, prefix="")  # e.g. /expenses
