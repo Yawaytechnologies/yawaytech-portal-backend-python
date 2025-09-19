@@ -1,7 +1,7 @@
 # app/routes/add_employee_router.py
 from __future__ import annotations
-from typing import Optional, Annotated
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, status, Body
+from typing import Annotated, List
+from fastapi import APIRouter, Depends, HTTPException, Path, status, Body
 from sqlalchemy.orm import Session
 
 from app.data.db import get_db
@@ -27,39 +27,48 @@ def create_employee(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/{id_}", response_model=EmployeeRead)
-def get_employee(
-    id_: int = Path(..., ge=1),
+@router.get("/", response_model=List[EmployeeRead])
+def list_employees(
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
-    emp = ctrl.get_one(db, id_)
+    rows, _ = ctrl.list_many(db)
+    return rows
+
+
+@router.get("/{employee_id}", response_model=EmployeeRead)
+def get_employee(
+    employee_id: str = Path(..., min_length=1),
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
+    emp = ctrl.get_one(db, employee_id)
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
     return emp
 
 
-@router.get("/", response_model=dict)
-def list_employees(
-    q: Optional[str] = Query(None, description="Search by employee_id/department"),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(20, ge=1, le=100),
-    db: Session = Depends(get_db),
-    ctrl: AddEmployeeController = Depends(get_controller),
-):
-    rows, total = ctrl.list_many(db, q=q, skip=skip, limit=limit)
-    return {"items": rows, "total": total, "skip": skip, "limit": limit}
+# @router.get("/", response_model=dict)
+# def list_employees(
+#     q: Optional[str] = Query(None, description="Search by employee_id"),
+#     skip: int = Query(0, ge=0),
+#     limit: int = Query(20, ge=1, le=100),
+#     db: Session = Depends(get_db),
+#     ctrl: AddEmployeeController = Depends(get_controller),
+# ):
+#     rows, total = ctrl.list_many(db, q=q, skip=skip, limit=limit)
+#     return {"items": rows, "total": total, "skip": skip, "limit": limit}
 
 
-@router.put("/{id_}", response_model=EmployeeRead)
+@router.put("/{employee_id}", response_model=EmployeeRead)
 def update_employee(
-    payload: Annotated[EmployeeUpdate, Body(...)],  # <-- no default here
-    id_: int = Path(..., ge=1),  # defaults follow
+    payload: Annotated[EmployeeUpdate, Body(...)],
+    employee_id: str = Path(..., min_length=1),  # <--- was ge=1
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
     try:
-        emp = ctrl.update(db, id_, payload)
+        emp = ctrl.update(db, employee_id, payload)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     if not emp:
@@ -67,13 +76,13 @@ def update_employee(
     return emp
 
 
-@router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{employee_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_employee(
-    id_: int = Path(..., ge=1),
+    employee_id: str = Path(..., min_length=1),
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
-    ok = ctrl.delete(db, id_)
+    ok = ctrl.delete(db, employee_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Employee not found")
     return None

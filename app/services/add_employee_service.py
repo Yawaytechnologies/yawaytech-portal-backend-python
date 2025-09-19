@@ -34,11 +34,11 @@ class EmployeeService:
         db.refresh(emp)
         return emp
 
-    def get_employee(self, db: Session, id_: int) -> Optional[Employee]:
-        return db.get(Employee, id_)
+    def get_employee(self, db: Session, employee_id: str) -> Optional[Employee]:
+        return db.scalar(select(Employee).where(Employee.employee_id == employee_id))
 
     def list_employees(
-        self, db: Session, q: Optional[str], skip: int, limit: int
+        self, db: Session, q: Optional[str] = None, skip: int = 0, limit: Optional[int] = None
     ) -> Tuple[List[Employee], int]:
         stmt = select(Employee)
         if q:
@@ -51,15 +51,19 @@ class EmployeeService:
             )
 
         total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-        stmt = stmt.order_by(Employee.id.desc()).offset(skip).limit(limit)
+        stmt = stmt.order_by(Employee.id.desc())
+        if limit is not None:
+            stmt = stmt.offset(skip).limit(limit)
         rows = db.scalars(stmt).all()
 
         # 🔑 mypy-safe: force concrete list[Employee]
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees, int(total)
 
-    def update_employee(self, db: Session, id_: int, payload: EmployeeUpdate) -> Optional[Employee]:
-        emp = db.get(Employee, id_)
+    def update_employee(
+        self, db: Session, employee_id: str, payload: EmployeeUpdate
+    ) -> Optional[Employee]:
+        emp = db.scalar(select(Employee).where(Employee.employee_id == employee_id))
         if not emp:
             return None
 
@@ -74,7 +78,7 @@ class EmployeeService:
             dup = db.scalar(
                 select(func.count())
                 .select_from(Employee)
-                .where(Employee.email == data["email"], Employee.id != id_)
+                .where(Employee.email == data["email"], Employee.id != emp.id)
             )
             if dup:
                 raise ValueError("Email already exists")
@@ -83,7 +87,7 @@ class EmployeeService:
             dup = db.scalar(
                 select(func.count())
                 .select_from(Employee)
-                .where(Employee.employee_id == data["employee_id"], Employee.id != id_)
+                .where(Employee.employee_id == data["employee_id"], Employee.id != emp.id)
             )
             if dup:
                 raise ValueError("Employee ID already exists")
@@ -95,8 +99,8 @@ class EmployeeService:
         db.refresh(emp)
         return emp
 
-    def delete_employee(self, db: Session, id_: int) -> bool:
-        emp = db.get(Employee, id_)
+    def delete_employee(self, db: Session, employee_id: str) -> bool:
+        emp = db.scalar(select(Employee).where(Employee.employee_id == employee_id))
         if not emp:
             return False
         db.delete(emp)
