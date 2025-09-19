@@ -1,5 +1,5 @@
 # app/routes/expenses_router.py
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -12,8 +12,11 @@ from app.schemas.expense import (
 from app.schemas.expense import (
     ExpenseCreate,
     ExpenseUpdate,
+    HalfSummary,
     MonthlySummary,
+    MonthwiseSummary,
     TotalSummary,
+    WeeklySummary,
     YearlySummary,
 )
 
@@ -65,3 +68,18 @@ def yearly_expenses(db: DBSession):
 @router.get("/summary/month", response_model=MonthlySummary)
 def monthly_expenses(db: DBSession):
     return expenses_controller.get_monthly_expenses(db)
+
+
+@router.get("/summary/half", response_model=HalfSummary)
+def half_expenses(db: DBSession, year: int, half: str):
+    return expenses_controller.get_half_expenses(db, year, half)
+
+
+@router.get("/summary/monthwise", response_model=MonthwiseSummary)
+def monthwise_expenses(db: DBSession, year: int, month: Optional[int] = None):
+    return expenses_controller.get_monthwise_expenses(db, year, month)
+
+
+@router.get("/summary/week", response_model=WeeklySummary)
+def weekly_expenses(db: DBSession, year: int, month: int):
+    return expenses_controller.get_weekly_expenses(db, year, month)

@@ -40,3 +40,30 @@ class MonthlySummary(BaseModel):
     year: int
     month: int
     total_expenses_this_month: float
+
+
+class HalfSummary(BaseModel):
+    year: int
+    half: str
+    total_expenses: float
+
+
+class MonthlyTotal(BaseModel):
+    month: int
+    total: float
+
+
+class MonthwiseSummary(BaseModel):
+    year: int
+    monthly_totals: list[MonthlyTotal]
+
+
+class WeeklyTotal(BaseModel):
+    week: int
+    total: float
+
+
+class WeeklySummary(BaseModel):
+    year: int
+    month: int
+    weekly_totals: list[WeeklyTotal]
