@@ -20,7 +20,7 @@ class AddEmployeeController:
         return EmployeeRead.model_validate(emp) if emp else None
 
     def list_many(
-        self, db: Session, q: Optional[str], skip: int, limit: int
+        self, db: Session, q: Optional[str] = None, skip: int = 0, limit: Optional[int] = None
     ) -> tuple[list[EmployeeRead], int]:
         rows, total = self.service.list_employees(db, q=q, skip=skip, limit=limit)
         return [EmployeeRead.model_validate(r) for r in rows], total
@@ -31,5 +31,5 @@ class AddEmployeeController:
         emp = self.service.update_employee(db, employee_id, payload)
         return EmployeeRead.model_validate(emp) if emp else None
 
-    def delete(self, db: Session, id_: str) -> bool:
-        return self.service.delete_employee(db, id_)
+    def delete(self, db: Session, employee_id: str) -> bool:
+        return self.service.delete_employee(db, employee_id)

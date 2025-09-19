@@ -21,11 +21,11 @@ class EmployeeRepository:
     def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
         return db.execute(select(Employee).where(Employee.employee_id == code)).scalar_one_or_none()
 
-    def get_by_email(self, db: Session, email: str) -> Optional[Employee]:
-        return db.execute(select(Employee).where(Employee.email == email)).scalar_one_or_none()
+    # def get_by_email(self, db: Session, email: str) -> Optional[Employee]:
+    #     return db.execute(select(Employee).where(Employee.email == email)).scalar_one_or_none()
 
-    def get_by_phone(self, db: Session, phone: str) -> Optional[Employee]:
-        return db.execute(select(Employee).where(Employee.phone == phone)).scalar_one_or_none()
+    # def get_by_phone(self, db: Session, phone: str) -> Optional[Employee]:
+    #     return db.execute(select(Employee).where(Employee.phone == phone)).scalar_one_or_none()
 
     def list(
         self,
