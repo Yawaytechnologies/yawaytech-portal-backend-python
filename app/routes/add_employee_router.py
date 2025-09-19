@@ -1,6 +1,6 @@
 # app/routes/add_employee_router.py
 from __future__ import annotations
-from typing import Optional, Annotated, List
+from typing import Annotated, List
 from fastapi import APIRouter, Depends, HTTPException, Path, status, Body
 from sqlalchemy.orm import Session
 
@@ -26,6 +26,7 @@ def create_employee(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.get("/", response_model=List[EmployeeRead])
 def list_employees(
     db: Session = Depends(get_db),
@@ -33,6 +34,7 @@ def list_employees(
 ):
     rows, _ = ctrl.list_many(db)
     return rows
+
 
 @router.get("/{employee_id}", response_model=EmployeeRead)
 def get_employee(
@@ -84,5 +86,3 @@ def delete_employee(
     if not ok:
         raise HTTPException(status_code=404, detail="Employee not found")
     return None
-
-

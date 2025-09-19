@@ -66,9 +66,7 @@ class EmployeeUpdate(BaseModel):
     date_of_birth: Optional[date] = None
 
     # write-only on update too
-    password: Optional[str] = Field(
-        None, min_length=8, json_schema_extra={"writeOnly": True}
-    )
+    password: Optional[str] = Field(None, min_length=8, json_schema_extra={"writeOnly": True})
 
     permanent_address: Optional[str] = Field(None, min_length=5)
     designation: Optional[str] = Field(None, min_length=2, max_length=30)
