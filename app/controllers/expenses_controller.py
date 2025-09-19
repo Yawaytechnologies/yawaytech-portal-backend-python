@@ -1,5 +1,7 @@
 # app/controllers/expenses_controller.py
 
+from typing import Optional
+
 from sqlalchemy.orm import Session
 
 from app.schemas.expense import ExpenseCreate, ExpenseUpdate
@@ -43,3 +45,25 @@ def get_yearly_expenses(db: Session) -> dict:
 
 def get_monthly_expenses(db: Session) -> dict:
     return expense_summary_service.get_monthly_expenses(db)
+
+
+def get_half_year_expenses(db: Session) -> dict:
+    return expense_summary_service.get_half_year_expenses(db)
+
+
+def get_half_month_expenses(
+    db: Session, year: Optional[int] = None, month: Optional[int] = None
+) -> dict:
+    return expense_summary_service.get_half_month_expenses(db, year, month)
+
+
+def get_half_expenses(db: Session, year: int, half: str) -> dict:
+    return expense_summary_service.get_half_expenses(db, year, half)
+
+
+def get_monthwise_expenses(db: Session, year: int, month: Optional[int] = None) -> dict:
+    return expense_summary_service.get_monthwise_expenses(db, year, month)
+
+
+def get_weekly_expenses(db: Session, year: int, month: int) -> dict:
+    return expense_summary_service.get_weekly_expenses(db, year, month)
