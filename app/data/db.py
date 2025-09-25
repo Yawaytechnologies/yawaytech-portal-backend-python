@@ -5,17 +5,13 @@ from collections.abc import Generator
 from typing import Dict, Any
 
 from dotenv import load_dotenv
-load_dotenv()  # load .env before reading config/env
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
+load_dotenv()  # load .env before reading config/env
+
 # Prefer DATABASE_URL, fallback to DB_URL, then to SQLite
-DATABASE_URL = (
-    os.getenv("DATABASE_URL")
-    or os.getenv("DB_URL")
-    or "sqlite:///./dev.db"
-)
+DATABASE_URL = os.getenv("DATABASE_URL") or os.getenv("DB_URL") or "sqlite:///./dev.db"
 
 ECHO_SQL = os.getenv("DB_ECHO", "0") == "1"
 POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
@@ -41,8 +37,11 @@ engine = create_engine(
     future=True,
 )
 
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, expire_on_commit=False, future=True)
+SessionLocal = sessionmaker(
+    bind=engine, autocommit=False, autoflush=False, expire_on_commit=False, future=True
+)
 Base = declarative_base()
+
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
