@@ -67,3 +67,29 @@ class WeeklySummary(BaseModel):
     year: int
     month: int
     weekly_totals: list[WeeklyTotal]
+
+
+class CategoryTotal(BaseModel):
+    category: str
+    total: float
+
+
+class CategorywiseSummary(BaseModel):
+    year: int
+    month: int
+    category_totals: list[CategoryTotal]
+
+
+class CategoryBreakdown(BaseModel):
+    category: str
+    amount: float
+    tx_count: int
+
+
+class CategorySummaryResponse(BaseModel):
+    currency: str
+    total_amount: float
+    total_tx: int
+    start_date: str
+    end_date: str
+    breakdown: list[CategoryBreakdown]

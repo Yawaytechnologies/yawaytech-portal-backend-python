@@ -144,3 +144,59 @@ def get_half_month_expenses(
         "first_half_total": round(total1, 2),
         "second_half_total": round(total2, 2),
     }
+
+
+def get_categorywise_expenses(
+    db: Session, year: Optional[int] = None, month: Optional[int] = None
+) -> dict:
+    from datetime import date
+    from calendar import monthrange
+
+    if year is None:
+        year = date.today().year
+    if month is None:
+        month = date.today().month
+
+    # Calculate start and end dates for the month
+    start_date = date(year, month, 1)
+    _, last_day = monthrange(year, month)
+    end_date = date(year, month, last_day)
+
+    # Query for category breakdown with transaction counts
+    query = (
+        db.query(
+            Expense.category.label("category"),
+            func.sum(Expense.amount).label("total_amount"),
+            func.count(Expense.id).label("transaction_count"),
+        )
+        .filter(
+            extract("year", Expense.date) == year,
+            extract("month", Expense.date) == month,
+            Expense.category.isnot(None),  # Exclude NULL categories
+            Expense.category != "",  # Exclude empty string categories
+            Expense.category != "EMPTY",  # Exclude "EMPTY" categories
+        )
+        .group_by(Expense.category)
+        .order_by(Expense.category)
+    )
+
+    results = query.all()
+
+    # Calculate totals
+    total_amount = sum(float(total) for _, total, _ in results)
+    total_transactions = sum(int(count) for _, _, count in results)
+
+    # Create breakdown list
+    breakdown = [
+        {"category": category, "amount": float(total), "tx_count": int(count)}
+        for category, total, count in results
+    ]
+
+    return {
+        "currency": "INR",
+        "total_amount": round(total_amount, 2),
+        "total_tx": total_transactions,
+        "start_date": start_date.strftime("%Y-%m-%d"),
+        "end_date": end_date.strftime("%Y-%m-%d"),
+        "breakdown": breakdown,
+    }

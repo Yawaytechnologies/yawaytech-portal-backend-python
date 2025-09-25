@@ -8,16 +8,16 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
+from app.core.config import DB_URL
+
 load_dotenv()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# 1) DATABASE URL (required)
-#    Use Postgres (Supabase) like:
-#    postgresql+psycopg://postgres:PASS@db.xxxxx.supabase.co:5432/postgres?sslmode=require
+# 1) DATABASE URL
+#    Use DB_URL from config.py (defaults to SQLite for development)
+#    For production, set DB_URL environment variable to PostgreSQL
 # ──────────────────────────────────────────────────────────────────────────────
-DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL is None or DATABASE_URL.strip() == "":
-    raise RuntimeError("DATABASE_URL environment variable is not set")
+DATABASE_URL = DB_URL
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 2) Engine options (tune without touching code)
