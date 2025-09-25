@@ -4,9 +4,9 @@ import os
 from collections.abc import Generator
 from typing import Dict, Any
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from dotenv import load_dotenv
 
 load_dotenv()  # load .env before reading config/env
 
