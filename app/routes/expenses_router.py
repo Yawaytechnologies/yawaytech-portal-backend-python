@@ -18,6 +18,7 @@ from app.schemas.expense import (
     TotalSummary,
     WeeklySummary,
     YearlySummary,
+    CategorySummaryResponse,
 )
 
 
@@ -83,3 +84,8 @@ def monthwise_expenses(db: DBSession, year: int, month: Optional[int] = None):
 @router.get("/summary/week", response_model=WeeklySummary)
 def weekly_expenses(db: DBSession, year: int, month: int):
     return expenses_controller.get_weekly_expenses(db, year, month)
+
+
+@router.get("/summary/category", response_model=CategorySummaryResponse)
+def categorywise_expenses(db: DBSession, year: Optional[int] = None, month: Optional[int] = None):
+    return expenses_controller.get_categorywise_expenses(db, year, month)

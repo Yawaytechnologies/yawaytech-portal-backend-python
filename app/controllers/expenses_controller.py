@@ -67,3 +67,9 @@ def get_monthwise_expenses(db: Session, year: int, month: Optional[int] = None) 
 
 def get_weekly_expenses(db: Session, year: int, month: int) -> dict:
     return expense_summary_service.get_weekly_expenses(db, year, month)
+
+
+def get_categorywise_expenses(
+    db: Session, year: Optional[int] = None, month: Optional[int] = None
+) -> dict:
+    return expense_summary_service.get_categorywise_expenses(db, year, month)
