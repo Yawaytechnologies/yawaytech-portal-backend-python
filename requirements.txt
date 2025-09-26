@@ -1,23 +1,18 @@
-﻿
-fastapi
+﻿fastapi
 uvicorn[standard]
 SQLAlchemy>=2.0
 pydantic>=2
 python-dotenv
-pymysql
 psycopg[binary]
 email-validator
 python-multipart
 
-# --- CI / Dev tools ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt>=4.1.2
+
 ruff
 black
 mypy
 pytest
 pytest-cov
-
-
-# Auth
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt==3.2.0
