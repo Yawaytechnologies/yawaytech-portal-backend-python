@@ -3,25 +3,25 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import APP_NAME
-from app.data.db import engine, Base
-from starlette.exceptions import HTTPException as StarletteHTTPException
+
+# NOTE: Do NOT import Base/engine just to run create_all on startup.
+# from app.data.db import engine, Base  # ← removed
 
 # Routers
 from app.routes.expenses_router import router as expenses_router
 from app.routes.add_employee_router import router as add_employee_router
 from app.routes.dashboard_router import router as dashboard_router
 from app.routes import admin_router, proctected_example_router, employee_router
-
-# from app.routes.admin_auth_router import router as admin_auth_router
 from app.routes.attendance_router import router as attendance_router
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # Create tables at startup (use Alembic in prod)
-    Base.metadata.create_all(bind=engine)
+    # ❌ No DDL on startup. Use Alembic or one-off script against 5432 for schema.
+    # If you really want a non-fatal DB warmup ping, you can do it here—but NEVER raise.
     yield
 
 
@@ -48,8 +48,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount routers once
-# app.include_router(admin_auth_router, prefix="/api")
+# Mount routers
 app.include_router(employee_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
@@ -60,6 +59,11 @@ app.include_router(dashboard_router, prefix="/api")  # e.g. /api/dashboard
 
 
 # Health & Root
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
@@ -70,10 +74,10 @@ def root():
     return {"message": "Expense Manager API is running"}
 
 
-# ---- Optional: minimal global error handlers ----
+# ---- Minimal global error handlers ----
 @app.exception_handler(Exception)
-async def unhandled_exceptions(_: Request, exc: Exception):
-    # Avoid leaking internals; log details in real apps.
+async def unhandled_exceptions(_: Request, __: Exception):
+    # Log details internally in real apps; keep response generic
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 
