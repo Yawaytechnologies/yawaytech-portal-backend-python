@@ -24,7 +24,7 @@ POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
 MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "5"))
 POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "1800"))  # seconds
 STATEMENT_TIMEOUT_MS = os.getenv("DB_STATEMENT_TIMEOUT_MS")  # e.g. "60000"
-CONNECT_TIMEOUT = os.getenv("DB_CONNECT_TIMEOUT", "5")      # seconds, as string
+CONNECT_TIMEOUT = os.getenv("DB_CONNECT_TIMEOUT", "5")  # seconds, as string
 LOG_URL = os.getenv("DB_LOG_URL", "0") == "1"
 
 # Ensure connect_timeout is present for Postgres URLs (helps fail fast)
@@ -64,8 +64,11 @@ engine = create_engine(
     future=True,
 )
 
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, expire_on_commit=False, future=True)
+SessionLocal = sessionmaker(
+    bind=engine, autocommit=False, autoflush=False, expire_on_commit=False, future=True
+)
 Base = declarative_base()
+
 
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
