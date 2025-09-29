@@ -13,12 +13,17 @@ from sqlalchemy import text
 load_dotenv()
 
 # Import after loading env
-from app.data.db import engine, DATABASE_URL
+from app.data.db import engine
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 
 def test_connection():
     """Test basic database connection."""
     try:
-        print(f"Testing connection to: {DATABASE_URL.replace(DATABASE_URL.split('@')[0].split(':')[2], '***') if '@' in DATABASE_URL else DATABASE_URL}")
+        print(
+            f"Testing connection to: {DATABASE_URL.replace(DATABASE_URL.split('@')[0].split(':')[2], '***') if '@' in DATABASE_URL else DATABASE_URL}"
+        )
 
         # Try to connect and execute a simple query
         with engine.connect() as conn:
@@ -32,6 +37,7 @@ def test_connection():
     except Exception as e:
         print(f"Database connection test FAILED: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = test_connection()

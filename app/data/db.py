@@ -55,7 +55,9 @@ try:
         if "pooler.supabase.com" in (parsed.hostname or ""):
             engine_kwargs["poolclass"] = NullPool
 
-        print(f"[DB] parsed -> user={url.username} host={url.host} port={url.port} db={url.database}")
+        print(
+            f"[DB] parsed -> user={url.username} host={url.host} port={url.port} db={url.database}"
+        )
         engine = create_engine(url, **engine_kwargs)
 
     elif raw_url.startswith("sqlite:///"):
@@ -87,6 +89,7 @@ try:
 except Exception as e:
     print(f"[DB] startup probe error: {e}")
 
+
 # ---------- FastAPI dependency ----------
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
@@ -94,3 +97,7 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+# Enable automatic table creation on startup
+Base.metadata.create_all(bind=engine)

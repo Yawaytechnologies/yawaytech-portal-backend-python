@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 # Use local SQLite for demo seeding (comment out to use env DATABASE_URL)
-os.environ['DATABASE_URL'] = "sqlite:///dev.db"
+os.environ["DATABASE_URL"] = "sqlite:///dev.db"
 
 # Add the app directory to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -25,6 +25,7 @@ from app.core.security import hash_password
 # Print database URL for verification
 print("DATABASE_URL:", os.getenv("DATABASE_URL"))
 
+
 def seed_data():
     # Create tables if they don't exist
     Base.metadata.create_all(bind=engine)
@@ -34,10 +35,7 @@ def seed_data():
         # Seed Admin
         admin_password = hash_password("admin123")
         admin = Admin(
-            admin_id="admin",
-            password_hash=admin_password,
-            is_active=True,
-            is_super_admin=True
+            admin_id="admin", password_hash=admin_password, is_active=True, is_super_admin=True
         )
         db.add(admin)
         print("Seeded admin")
@@ -56,7 +54,7 @@ def seed_data():
                 "permanent_address": "123 Main St, City, State",
                 "designation": "Software Engineer",
                 "department": Department.IT,
-                "password": hash_password("password123")
+                "password": hash_password("password123"),
             },
             {
                 "name": "Jane Smith",
@@ -70,7 +68,7 @@ def seed_data():
                 "permanent_address": "456 Oak Ave, City, State",
                 "designation": "HR Manager",
                 "department": Department.HR,
-                "password": hash_password("password123")
+                "password": hash_password("password123"),
             },
             {
                 "name": "Bob Johnson",
@@ -84,8 +82,8 @@ def seed_data():
                 "permanent_address": "789 Pine Rd, City, State",
                 "designation": "Sales Executive",
                 "department": Department.SALES,
-                "password": hash_password("password123")
-            }
+                "password": hash_password("password123"),
+            },
         ]
 
         employees = []
@@ -104,7 +102,7 @@ def seed_data():
                 "category": "Office",
                 "date": date.today() - timedelta(days=5),
                 "description": "Bought pens and paper",
-                "added_by": "EMP001"
+                "added_by": "EMP001",
             },
             {
                 "title": "Team Lunch",
@@ -112,7 +110,7 @@ def seed_data():
                 "category": "Food",
                 "date": date.today() - timedelta(days=3),
                 "description": "Lunch for project team",
-                "added_by": "EMP002"
+                "added_by": "EMP002",
             },
             {
                 "title": "Travel to Conference",
@@ -120,7 +118,7 @@ def seed_data():
                 "category": "Travel",
                 "date": date.today() - timedelta(days=10),
                 "description": "Flight and hotel",
-                "added_by": "EMP001"
+                "added_by": "EMP001",
             },
             {
                 "title": "Software License",
@@ -128,8 +126,8 @@ def seed_data():
                 "category": "Software",
                 "date": date.today() - timedelta(days=7),
                 "description": "Annual license renewal",
-                "added_by": "EMP003"
-            }
+                "added_by": "EMP003",
+            },
         ]
 
         for exp_data in expenses_data:
@@ -148,22 +146,30 @@ def seed_data():
                 "employee_id": "EMP001",
                 "check_in_utc": datetime.combine(today, datetime.min.time().replace(hour=9)),
                 "check_out_utc": datetime.combine(today, datetime.min.time().replace(hour=17)),
-                "work_date_local": today
+                "work_date_local": today,
             },
             # Jane Smith - today
             {
                 "employee_id": "EMP002",
-                "check_in_utc": datetime.combine(today, datetime.min.time().replace(hour=8, minute=30)),
-                "check_out_utc": datetime.combine(today, datetime.min.time().replace(hour=16, minute=30)),
-                "work_date_local": today
+                "check_in_utc": datetime.combine(
+                    today, datetime.min.time().replace(hour=8, minute=30)
+                ),
+                "check_out_utc": datetime.combine(
+                    today, datetime.min.time().replace(hour=16, minute=30)
+                ),
+                "work_date_local": today,
             },
             # Bob Johnson - yesterday
             {
                 "employee_id": "EMP003",
-                "check_in_utc": datetime.combine(yesterday, datetime.min.time().replace(hour=9, minute=15)),
-                "check_out_utc": datetime.combine(yesterday, datetime.min.time().replace(hour=17, minute=45)),
-                "work_date_local": yesterday
-            }
+                "check_in_utc": datetime.combine(
+                    yesterday, datetime.min.time().replace(hour=9, minute=15)
+                ),
+                "check_out_utc": datetime.combine(
+                    yesterday, datetime.min.time().replace(hour=17, minute=45)
+                ),
+                "work_date_local": yesterday,
+            },
         ]
 
         for att_data in attendance_data:
@@ -179,7 +185,7 @@ def seed_data():
             seconds_worked=8 * 3600,  # 8 hours
             first_check_in_utc=datetime.combine(today, datetime.min.time().replace(hour=9)),
             last_check_out_utc=datetime.combine(today, datetime.min.time().replace(hour=17)),
-            status="PRESENT"
+            status="PRESENT",
         )
         db.add(day_today)
 
@@ -187,9 +193,13 @@ def seed_data():
             employee_id="EMP002",
             work_date_local=today,
             seconds_worked=8 * 3600,
-            first_check_in_utc=datetime.combine(today, datetime.min.time().replace(hour=8, minute=30)),
-            last_check_out_utc=datetime.combine(today, datetime.min.time().replace(hour=16, minute=30)),
-            status="PRESENT"
+            first_check_in_utc=datetime.combine(
+                today, datetime.min.time().replace(hour=8, minute=30)
+            ),
+            last_check_out_utc=datetime.combine(
+                today, datetime.min.time().replace(hour=16, minute=30)
+            ),
+            status="PRESENT",
         )
         db.add(day_today2)
 
@@ -198,9 +208,13 @@ def seed_data():
             employee_id="EMP003",
             work_date_local=yesterday,
             seconds_worked=8 * 3600 + 30 * 60,  # approx
-            first_check_in_utc=datetime.combine(yesterday, datetime.min.time().replace(hour=9, minute=15)),
-            last_check_out_utc=datetime.combine(yesterday, datetime.min.time().replace(hour=17, minute=45)),
-            status="PRESENT"
+            first_check_in_utc=datetime.combine(
+                yesterday, datetime.min.time().replace(hour=9, minute=15)
+            ),
+            last_check_out_utc=datetime.combine(
+                yesterday, datetime.min.time().replace(hour=17, minute=45)
+            ),
+            status="PRESENT",
         )
         db.add(day_yesterday)
 
@@ -215,6 +229,7 @@ def seed_data():
         raise
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_data()

@@ -61,8 +61,8 @@ def build_engine(url_str: str):
         url = url.set(query=q)
 
         connect_args = {
-            "sslmode": q["sslmode"],
-            "connect_timeout": int(q["connect_timeout"]),
+            "sslmode": q.get("sslmode", ["require"])[0],
+            "connect_timeout": int(q.get("connect_timeout", ["30"])[0]),
         }
         return create_engine(url, connect_args=connect_args, **pool_kwargs), url
 

@@ -14,8 +14,13 @@ print(f"Trying {u}@{h}/" + (n or ""))
 
 # Connect directly (bypasses SQLAlchemy)
 conn = psycopg.connect(
-    host=h, port=5432, dbname=n, user=u, password=p,
-    sslmode="require", connect_timeout=10,
+    host=h,
+    port=5432,
+    dbname=n,
+    user=u,
+    password=p,
+    sslmode="require",
+    connect_timeout=10,
 )
 
 with conn.cursor() as cur:

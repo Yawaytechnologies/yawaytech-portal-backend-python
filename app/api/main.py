@@ -20,6 +20,7 @@ from app.routes import admin_router, proctected_example_router, employee_router
 from app.routes.attendance_router import router as attendance_router
 from app.data.models import admin, expenses, attendance, add_employee
 
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     try:
@@ -39,7 +40,6 @@ async def lifespan(_: FastAPI):
         print(f"[DB] startup identity check failed: {e}")
     finally:
         yield  # ✅ Always yield, even if errors occurred
-
 
 
 app = FastAPI(
@@ -74,18 +74,22 @@ app.include_router(add_employee_router, prefix="/api")
 app.include_router(attendance_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
 
+
 # Health & Root
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
 @app.get("/")
 def root():
     return {"message": "Expense Manager API is running"}
+
 
 # Debug DB connection
 @app.get("/debug/db")
@@ -96,10 +100,12 @@ def debug_db(db: Session = Depends(get_db)):
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
+
 # Global error handlers
 @app.exception_handler(Exception)
 async def unhandled_exceptions(_: Request, __: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):
