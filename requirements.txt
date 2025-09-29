@@ -3,14 +3,11 @@ uvicorn[standard]
 SQLAlchemy>=2.0
 pydantic>=2
 python-dotenv
-psycopg[binary]
-email-validator
-python-multipart
+pymysql
+psycopg2-binary
+passlib[bcrypt]
 
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]>=1.7.4
-bcrypt>=4.1.2
-
+# --- CI / Dev tools ---
 ruff
 black
 mypy

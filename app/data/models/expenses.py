@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Date, Float, Integer, String, Text
+from __future__ import annotations
+from sqlalchemy import Column, Date, Float, Integer, String, Text, DateTime, func
 
 from app.data.db import Base
 
@@ -13,3 +14,6 @@ class Expense(Base):
     date = Column(Date, nullable=False)
     description = Column(Text, nullable=True)  # Text is better for longer content
     added_by = Column(String(100), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+

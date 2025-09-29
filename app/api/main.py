@@ -1,14 +1,16 @@
-# app/api/main.py
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.core.config import APP_NAME
+from app.data.db import engine, Base, get_db
 
-# NOTE: Do NOT import Base/engine just to run create_all on startup.
-# from app.data.db import engine, Base  # ← removed
+# Import all models to register them before create_all (for dev only)
+from app.data.models import add_employee, expenses, attendance, admin
 
 # Routers
 from app.routes.expenses_router import router as expenses_router
@@ -16,13 +18,28 @@ from app.routes.add_employee_router import router as add_employee_router
 from app.routes.dashboard_router import router as dashboard_router
 from app.routes import admin_router, proctected_example_router, employee_router
 from app.routes.attendance_router import router as attendance_router
-
+from app.data.models import admin, expenses, attendance, add_employee
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    # ❌ No DDL on startup. Use Alembic or one-off script against 5432 for schema.
-    # If you really want a non-fatal DB warmup ping, you can do it here—but NEVER raise.
-    yield
+    try:
+        with engine.connect() as conn:
+            try:
+                who = conn.execute(text("select current_user")).scalar()
+            except Exception as e:
+                who = f"error: {e}"
+
+            try:
+                ssl = conn.execute(text("show ssl")).scalar()
+            except Exception:
+                ssl = "N/A"
+
+            print(f"[DB] current_user at startup: {who} | ssl={ssl}")
+    except Exception as e:
+        print(f"[DB] startup identity check failed: {e}")
+    finally:
+        yield  # ✅ Always yield, even if errors occurred
+
 
 
 app = FastAPI(
@@ -52,34 +69,37 @@ app.add_middleware(
 app.include_router(employee_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
-app.include_router(expenses_router, prefix="")  # e.g. /expenses
-app.include_router(add_employee_router, prefix="/api")  # -> /api/employees
+app.include_router(expenses_router, prefix="")
+app.include_router(add_employee_router, prefix="/api")
 app.include_router(attendance_router, prefix="/api")
-app.include_router(dashboard_router, prefix="/api")  # e.g. /api/dashboard
-
+app.include_router(dashboard_router, prefix="/api")
 
 # Health & Root
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
 
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
 
 @app.get("/")
 def root():
     return {"message": "Expense Manager API is running"}
 
+# Debug DB connection
+@app.get("/debug/db")
+def debug_db(db: Session = Depends(get_db)):
+    try:
+        who = db.execute(text("select current_user")).scalar()
+        return {"connected": True, "current_user": who}
+    except Exception as e:
+        return {"connected": False, "error": str(e)}
 
-# ---- Minimal global error handlers ----
+# Global error handlers
 @app.exception_handler(Exception)
 async def unhandled_exceptions(_: Request, __: Exception):
-    # Log details internally in real apps; keep response generic
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
-
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):
