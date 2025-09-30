@@ -27,6 +27,7 @@ conn_params = {
     "password": parsed.password,
 }
 
+
 def test_psycopg2_connection():
     """Test direct psycopg2 connection to the database."""
     try:
