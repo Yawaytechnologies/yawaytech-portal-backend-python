@@ -5,7 +5,8 @@ services:
     plan: free
     region: singapore       # pick what's closest to your users
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.api.main:app --reload   
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT
+   
     healthCheckPath: /health
     autoDeploy: true
     envVars:
