@@ -7,14 +7,14 @@ import os
 from dotenv import load_dotenv
 import psycopg2
 from urllib.parse import urlparse
+import pytest
 
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    print("No DATABASE_URL found in .env")
-    exit(1)
+    pytest.skip("No DATABASE_URL found in .env")
 
 # Parse the URL
 parsed = urlparse(DATABASE_URL)
