@@ -1,124 +1,103 @@
-# app/data/db.py
 from __future__ import annotations
-
 import os
-from typing import Any, Dict, Generator
+from pathlib import Path
+from typing import Generator, Any, Dict
 
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.engine import make_url
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import URL
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.pool import NullPool
 
-# --------------------------------------------------------------------------
-# Load environment
-# (On Render, env vars come from the dashboard; locally we use .env.)
-# --------------------------------------------------------------------------
-load_dotenv()
+# ---------- Load .env ----------
+from dotenv import load_dotenv
 
-# Prefer DATABASE_URL, else allow DB_URL (e.g., sqlite for dev)
-DATABASE_URL = (os.getenv("DATABASE_URL") or os.getenv("DB_URL") or "").strip()
-if not DATABASE_URL:
-    # Local-only fallback so dev still runs without a Postgres URL
-    DATABASE_URL = "sqlite:///./dev.db"
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+ENV_PATH = PROJECT_ROOT / ".env"
+load_dotenv(dotenv_path=ENV_PATH)
+print(f"[DB] loaded .env from {ENV_PATH}")
 
-# --------------------------------------------------------------------------
-# Tuning knobs (all optional)
-# --------------------------------------------------------------------------
-ECHO_SQL = os.getenv("DB_ECHO", "0") == "1"
-POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
-MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "5"))
-POOL_RECYCLE = int(os.getenv("DB_POOL_RECYCLE", "1800"))  # seconds
-STATEMENT_TIMEOUT_MS = os.getenv("DB_STATEMENT_TIMEOUT_MS")  # e.g. "60000"
-CONNECT_TIMEOUT = os.getenv("DB_CONNECT_TIMEOUT", "5")  # seconds (string)
-LOG_URL = os.getenv("DB_LOG_URL", "0") == "1"
+# ---------- Read DATABASE_URL ----------
+raw_url = os.getenv("DATABASE_URL")
+print(f"[DB] raw DATABASE_URL: {raw_url!r}")
 
-# --------------------------------------------------------------------------
-# Normalize URL, detect PgBouncer, set SSL + connect_timeout
-# --------------------------------------------------------------------------
-connect_args: Dict[str, Any] = {}
-is_postgres = False
-is_pgbouncer = False
+# ---------- Fallback to SQLite if missing or invalid ----------
+if not raw_url or not raw_url.startswith("postgres"):
+    dev_db_path = PROJECT_ROOT.parent / "dev.db"
+    raw_url = f"sqlite:///{dev_db_path}"
+    print(f"[DB] Using fallback SQLite: {raw_url}")
+
+# ---------- Normalize and configure ----------
+engine_kwargs: Dict[str, Any] = dict(pool_pre_ping=True)
 
 try:
-    url = make_url(DATABASE_URL)
-    backend = url.get_backend_name()
-    is_postgres = backend.startswith("postgresql")
+    if raw_url.startswith("postgres://"):
+        raw_url = raw_url.replace("postgres://", "postgresql+psycopg2://")
 
-    if is_postgres:
-        # Detect PgBouncer (Supabase pooler)
-        host = (url.host or "").lower()
-        is_pgbouncer = ("pooler.supabase.com" in host) or (url.port == 6543)
+    if raw_url.startswith("postgresql+psycopg2://"):
+        from urllib.parse import urlparse, parse_qs
 
-        # Enforce SSL + connect_timeout
-        q = dict(url.query)
-        q.setdefault("sslmode", "require")
-        q.setdefault("connect_timeout", CONNECT_TIMEOUT)
-        url = url.set(query=q)
-        DATABASE_URL = str(url)
+        parsed = urlparse(raw_url)
+        query = parse_qs(parsed.query)
 
-except Exception:
-    # Leave DATABASE_URL as-is; engine will raise at runtime if invalid
-    pass
+        url = URL.create(
+            drivername="postgresql+psycopg2",
+            username=parsed.username,
+            password=parsed.password,
+            host=parsed.hostname,
+            port=parsed.port,
+            database=parsed.path.lstrip("/"),
+            query={
+                "sslmode": query.get("sslmode", ["require"])[0],
+                "connect_timeout": query.get("connect_timeout", ["30"])[0],
+            },
+        )
 
-if LOG_URL:
-    try:
-        safe = make_url(DATABASE_URL).render_as_string(hide_password=True)
-        print("DB URL in use:", safe)
-    except Exception:
-        print("DB URL in use:", DATABASE_URL.split("@")[0] + "@***")
+        if "pooler.supabase.com" in (parsed.hostname or ""):
+            engine_kwargs["poolclass"] = NullPool
 
-# psycopg v3 specific connection args (harmless if not psycopg v3)
-if DATABASE_URL.startswith("postgresql+psycopg"):
-    opts = ["-c timezone=utc"]
-    if STATEMENT_TIMEOUT_MS and STATEMENT_TIMEOUT_MS.isdigit():
-        opts.append(f"-c statement_timeout={STATEMENT_TIMEOUT_MS}")
-    connect_args["options"] = " ".join(opts)
+        print(
+            f"[DB] parsed -> user={url.username} host={url.host} port={url.port} db={url.database}"
+        )
+        engine = create_engine(url, **engine_kwargs)
 
-# --------------------------------------------------------------------------
-# Create engine
-# IMPORTANT: With PgBouncer (6543), disable SQLAlchemy pooling (NullPool).
-#            With direct Postgres (e.g., 5432), use normal pooling.
-# --------------------------------------------------------------------------
-engine_kwargs: Dict[str, Any] = dict(
-    echo=ECHO_SQL,
-    future=True,
-    pool_pre_ping=True,
-    connect_args=connect_args,
-)
+    elif raw_url.startswith("sqlite:///"):
+        engine_kwargs["poolclass"] = NullPool
+        engine_kwargs["connect_args"] = {"check_same_thread": False}
+        engine = create_engine(raw_url, **engine_kwargs)
 
-if is_pgbouncer:
-    # PgBouncer → no ORM-side pooling
-    engine_kwargs["poolclass"] = NullPool
-else:
-    # Direct DB → normal pooling is fine
-    engine_kwargs.update(
-        pool_size=POOL_SIZE,
-        max_overflow=MAX_OVERFLOW,
-        pool_recycle=POOL_RECYCLE,
-    )
+    else:
+        raise ValueError(f"Unsupported database backend: {raw_url}")
 
-engine = create_engine(DATABASE_URL, **engine_kwargs)
+except Exception as e:
+    print(f"[DB] URL parse/normalize failed: {e}")
+    engine = create_engine(raw_url, **engine_kwargs)
 
-# --------------------------------------------------------------------------
-# Session / Base
-# --------------------------------------------------------------------------
-SessionLocal = sessionmaker(
-    bind=engine,
-    autocommit=False,
-    autoflush=False,
-    expire_on_commit=False,
-    future=True,
-)
+# ---------- Create session and base ----------
 Base = declarative_base()
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+# ---------- Startup probe ----------
+try:
+    with engine.connect() as conn:
+        try:
+            who = conn.execute(text("select current_user")).scalar()
+            ssl = conn.execute(text("show ssl")).scalar()
+            print(f"[DB] current_user: {who} | ssl={ssl}")
+        except Exception:
+            one = conn.execute(text("select 1")).scalar()
+            print(f"[DB] sqlite probe -> SELECT 1 = {one}")
+except Exception as e:
+    print(f"[DB] startup probe error: {e}")
 
 
-# --------------------------------------------------------------------------
-# Dependency for FastAPI routes
-# --------------------------------------------------------------------------
+# ---------- FastAPI dependency ----------
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+
+# Enable automatic table creation on startup
+Base.metadata.create_all(bind=engine)

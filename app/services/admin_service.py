@@ -22,16 +22,18 @@ class AdminService:
     def bootstrap_super_admin(
         self, db: Session, *, admin_id: str, password: str, bootstrap_token: str
     ) -> Admin:
-        # env gate
-        if os.getenv("ENABLE_BOOTSTRAP", "false").lower() != "true":
+        # Allow bootstrap if no admin exists or ENABLE_BOOTSTRAP is true
+        enable_bootstrap = os.getenv("ENABLE_BOOTSTRAP", "false").lower() == "true"
+        has_admin = self.repo.count_admins(db) >= 1
+        if not enable_bootstrap and has_admin:
             raise HTTPException(status_code=403, detail="Bootstrap disabled")
 
         expected = os.getenv("ADMIN_BOOTSTRAP_TOKEN")
-        if not expected or expected != bootstrap_token:
+        if expected and expected != bootstrap_token:
             raise HTTPException(status_code=403, detail="Invalid bootstrap token")
 
         # single admin hard check
-        if self.repo.count_admins(db) >= 1:
+        if has_admin:
             raise HTTPException(status_code=400, detail="Only one admin is allowed")
 
         obj = Admin(
