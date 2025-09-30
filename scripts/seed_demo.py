@@ -9,18 +9,18 @@ import os
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-# Use local SQLite for demo seeding (comment out to use env DATABASE_URL)
-os.environ["DATABASE_URL"] = "sqlite:///dev.db"
-
-# Add the app directory to the Python path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from app.data.db import engine, Base, SessionLocal
 from app.data.models.add_employee import Employee, MaritalStatus, Department
 from app.data.models.expenses import Expense
 from app.data.models.admin import Admin
 from app.data.models.attendance import AttendanceSession, AttendanceDay
 from app.core.security import hash_password
+
+# Use local SQLite for demo seeding (comment out to use env DATABASE_URL)
+os.environ["DATABASE_URL"] = "sqlite:///dev.db"
+
+# Add the app directory to the Python path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Print database URL for verification
 print("DATABASE_URL:", os.getenv("DATABASE_URL"))
