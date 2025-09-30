@@ -14,7 +14,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    pytest.skip("No DATABASE_URL found in .env")
+    pytest.skip("No DATABASE_URL found in .env", allow_module_level=True)
 
 # Parse the URL
 parsed = urlparse(DATABASE_URL)
