@@ -27,17 +27,15 @@ conn_params = {
     "password": parsed.password,
 }
 
-print(f"Attempting connection with params: {conn_params}")
-
-try:
-    conn = psycopg2.connect(**conn_params)
-    print("Direct psycopg2 connection successful!")
-    cur = conn.cursor()
-    cur.execute("SELECT 1")
-    result = cur.fetchone()
-    print(f"Test query result: {result[0]}")
-    cur.close()
-    conn.close()
-    print("Test PASSED.")
-except Exception as e:
-    print(f"Test FAILED: {e}")
+def test_psycopg2_connection():
+    """Test direct psycopg2 connection to the database."""
+    try:
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        result = cur.fetchone()
+        assert result[0] == 1, f"Expected 1, got {result[0]}"
+        cur.close()
+        conn.close()
+    except Exception as e:
+        pytest.fail(f"Database connection failed: {e}")
