@@ -5,7 +5,7 @@ Simple test using psycopg2 directly to isolate connection issues.
 
 import os
 from dotenv import load_dotenv
-import psycopg2
+import psycopg as psycopg2
 from urllib.parse import urlparse
 import pytest
 
