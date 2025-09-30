@@ -2,8 +2,9 @@ import sys
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool, create_engine
+from sqlalchemy import pool, create_engine
 from alembic import context
+from app.data.db import Base
 
 
 # ─── Ensure Alembic can find your app ───────────────────────────────────────────
@@ -17,14 +18,6 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # ─── Import your models and metadata ────────────────────────────────────────────
-from app.data.db import Base
-from app.data.models import (
-    add_employee,
-    expenses,
-    attendance,
-    admin,
-    dashboard,
-)  # 👈 registers all models
 
 target_metadata = Base.metadata
 

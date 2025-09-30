@@ -8,12 +8,10 @@ import os
 import sys
 from dotenv import load_dotenv
 from sqlalchemy import text
+from app.data.db import engine
 
 # Load environment
 load_dotenv()
-
-# Import after loading env
-from app.data.db import engine
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 

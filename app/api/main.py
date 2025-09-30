@@ -7,10 +7,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import APP_NAME
-from app.data.db import engine, Base, get_db
+from app.data.db import engine, get_db
 
 # Import all models to register them before create_all (for dev only)
-from app.data.models import add_employee, expenses, attendance, admin
 
 # Routers
 from app.routes.expenses_router import router as expenses_router
@@ -18,7 +17,6 @@ from app.routes.add_employee_router import router as add_employee_router
 from app.routes.dashboard_router import router as dashboard_router
 from app.routes import admin_router, proctected_example_router, employee_router
 from app.routes.attendance_router import router as attendance_router
-from app.data.models import admin, expenses, attendance, add_employee
 
 
 @asynccontextmanager

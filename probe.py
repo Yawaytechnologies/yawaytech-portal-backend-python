@@ -1,5 +1,6 @@
 # probe.py (place in project root)
-import os, psycopg
+import os
+import psycopg
 from dotenv import load_dotenv
 
 # Load .env from this folder

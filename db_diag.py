@@ -11,7 +11,6 @@ db_diag.py — Robust database connectivity diagnostic (Postgres/SQLite).
 from __future__ import annotations
 import os
 import sys
-from typing import Optional
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
