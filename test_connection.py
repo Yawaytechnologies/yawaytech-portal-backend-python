@@ -30,7 +30,7 @@ def test_connection():
             print(f"Connection successful! Test query result: {row[0]}")
 
         print("Database connection test PASSED.")
-        return True
+        assert True
 
     except Exception as e:
         print(f"Database connection test FAILED: {e}")
