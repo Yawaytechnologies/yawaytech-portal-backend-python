@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -35,7 +36,6 @@ def update_worklog(worklog_id: int, worklog_update: WorklogUpdate, db: Session =
         raise HTTPException(status_code=404, detail="Worklog not found")
     return worklog
 
-from datetime import datetime
 
 @router.put("/{worklog_id}/times", response_model=Worklog)
 def update_work_times(worklog_id: int, start_time: datetime, end_time: datetime, db: Session = Depends(get_db)):
