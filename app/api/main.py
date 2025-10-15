@@ -17,6 +17,7 @@ from app.routes.add_employee_router import router as add_employee_router
 from app.routes.dashboard_router import router as dashboard_router
 from app.routes import admin_router, proctected_example_router, employee_router
 from app.routes.attendance_router import router as attendance_router
+from app.routes.worklog_router import router as worklog_router
 
 
 @asynccontextmanager
@@ -72,6 +73,7 @@ app.include_router(expenses_router, prefix="")
 app.include_router(add_employee_router, prefix="/api")
 app.include_router(attendance_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
+app.include_router(worklog_router, prefix="/api")
 
 
 # Health & Root
