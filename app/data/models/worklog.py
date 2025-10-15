@@ -47,9 +47,9 @@ class Worklog(Base):
 
     work_type: Mapped[WorkType | None] = mapped_column(SAEnum(WorkType), nullable=True)
 
-    status: Mapped[WorklogStatus] = mapped_column(SAEnum(WorklogStatus), default=WorklogStatus.TODO, nullable=False)
-
-
+    status: Mapped[WorklogStatus] = mapped_column(
+        SAEnum(WorklogStatus), default=WorklogStatus.TODO, nullable=False
+    )
 
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
