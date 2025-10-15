@@ -11,6 +11,10 @@ class ExpenseCategory(str, Enum):
     UTILITIES = "Utilities"
     ENTERTAINMENT = "Entertainment"
     PROGRESS = "Progress"
+    OFFICE = "Office"
+    TRAVEL = "Travel"
+    SOFTWARE = "Software"
+    HEALTH = "Health"
     OTHER = "Other"  # Optional catch-all category
 
 
