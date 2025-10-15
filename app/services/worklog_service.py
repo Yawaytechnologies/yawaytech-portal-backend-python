@@ -83,7 +83,8 @@ class WorklogService:
             return None
         worklog.end_time = datetime.utcnow()
         worklog.status = WorklogStatus.DONE
-        worklog.duration_hours = (worklog.end_time - worklog.start_time).total_seconds() / 3600.0
+        if worklog.start_time:
+            worklog.duration_hours = (worklog.end_time - worklog.start_time).total_seconds() / 3600.0
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
 

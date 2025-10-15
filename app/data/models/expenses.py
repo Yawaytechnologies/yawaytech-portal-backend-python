@@ -1,6 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from sqlalchemy import Column, Date, Float, Integer, String, Text, DateTime, Enum as SqlEnum, func
+from sqlalchemy.orm import Mapped
 
 from app.data.db import Base
 
@@ -24,7 +25,7 @@ class Expense(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(100), nullable=False)
     amount = Column(Float, nullable=False)
-    category = Column(SqlEnum(ExpenseCategory, name="expense_category"), nullable=False)
+    category: Mapped[ExpenseCategory] = Column(SqlEnum(ExpenseCategory, name="expense_category"), nullable=False)  # type: ignore[assignment]
 
     date = Column(Date, nullable=False)
     description = Column(Text, nullable=True)  # Text is better for longer content
