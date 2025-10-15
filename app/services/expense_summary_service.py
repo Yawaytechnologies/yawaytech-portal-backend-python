@@ -172,7 +172,7 @@ def get_categorywise_expenses(
         .filter(
             extract("year", Expense.date) == year,
             extract("month", Expense.date) == month,
-            Expense.category != None,  # Exclude NULL categories
+            Expense.category.isnot(None),  # Exclude NULL categories
         )
         .group_by(Expense.category)
         .order_by(Expense.category)

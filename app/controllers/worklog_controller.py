@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 
 from app.services.worklog_service import WorklogService
 from app.schemas.worklog import Worklog, WorklogCreate, WorklogUpdate, WorklogSummary
-from app.data.models.worklog import Worklog as WorklogModel
 
 
 class WorklogController:
