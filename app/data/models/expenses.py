@@ -18,7 +18,6 @@ class ExpenseCategory(str, Enum):
     OTHER = "Other"  # Optional catch-all category
 
 
-
 class Expense(Base):
     __tablename__ = "expenses"
 

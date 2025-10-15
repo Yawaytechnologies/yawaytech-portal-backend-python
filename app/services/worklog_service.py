@@ -16,7 +16,9 @@ class WorklogService:
     def create_worklog(self, worklog_create: WorklogCreate) -> Worklog:
         duration = None
         if worklog_create.start_time and worklog_create.end_time:
-            duration = (worklog_create.end_time - worklog_create.start_time).total_seconds() / 3600.0
+            duration = (
+                worklog_create.end_time - worklog_create.start_time
+            ).total_seconds() / 3600.0
         worklog = Worklog(
             employee_id=worklog_create.employee_id,
             work_date=worklog_create.work_date,
@@ -35,7 +37,9 @@ class WorklogService:
     def get_worklog(self, worklog_id: int) -> Optional[Worklog]:
         return self.repo.get_by_id(self.db, worklog_id)
 
-    def get_worklogs_for_employee(self, employee_id: str, skip: int = 0, limit: int = 100) -> List[Worklog]:
+    def get_worklogs_for_employee(
+        self, employee_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Worklog]:
         return self.repo.get_by_employee(self.db, employee_id, skip, limit)
 
     def update_worklog(self, worklog_id: int, worklog_update: WorklogUpdate) -> Optional[Worklog]:
@@ -47,7 +51,9 @@ class WorklogService:
             setattr(worklog, field, value)
 
         if worklog.start_time and worklog.end_time:
-            worklog.duration_hours = (worklog.end_time - worklog.start_time).total_seconds() / 3600.0
+            worklog.duration_hours = (
+                worklog.end_time - worklog.start_time
+            ).total_seconds() / 3600.0
 
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
@@ -89,7 +95,9 @@ class WorklogService:
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
 
-    def update_work_times(self, worklog_id: int, start_time: datetime, end_time: datetime) -> Optional[Worklog]:
+    def update_work_times(
+        self, worklog_id: int, start_time: datetime, end_time: datetime
+    ) -> Optional[Worklog]:
         worklog = self.repo.get_by_id(self.db, worklog_id)
         if not worklog:
             return None

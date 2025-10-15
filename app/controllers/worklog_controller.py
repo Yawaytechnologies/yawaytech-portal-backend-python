@@ -25,7 +25,9 @@ class WorklogController:
         service = WorklogService(db)
         return service.get_worklogs_for_employee(employee_id, skip, limit)
 
-    def update_worklog(self, db: Session, worklog_id: int, worklog_update: WorklogUpdate) -> Optional[Worklog]:
+    def update_worklog(
+        self, db: Session, worklog_id: int, worklog_update: WorklogUpdate
+    ) -> Optional[Worklog]:
         service = WorklogService(db)
         return service.update_worklog(worklog_id, worklog_update)
 
@@ -50,6 +52,8 @@ class WorklogController:
         service = WorklogService(db)
         return service.start_progress_worklog(worklog_id)
 
-    def update_work_times(self, db: Session, worklog_id: int, start_time: datetime, end_time: datetime) -> Optional[Worklog]:
+    def update_work_times(
+        self, db: Session, worklog_id: int, start_time: datetime, end_time: datetime
+    ) -> Optional[Worklog]:
         service = WorklogService(db)
         return service.update_work_times(worklog_id, start_time, end_time)

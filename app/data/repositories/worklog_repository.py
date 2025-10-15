@@ -17,7 +17,9 @@ class WorklogRepository:
     def get_by_id(self, db: Session, worklog_id: int) -> Optional[Worklog]:
         return db.query(Worklog).filter(Worklog.id == worklog_id).first()
 
-    def get_by_employee(self, db: Session, employee_id: str, skip: int = 0, limit: int = 100) -> List[Worklog]:
+    def get_by_employee(
+        self, db: Session, employee_id: str, skip: int = 0, limit: int = 100
+    ) -> List[Worklog]:
         return (
             db.query(Worklog)
             .filter(Worklog.employee_id == employee_id)
@@ -42,11 +44,7 @@ class WorklogRepository:
             .filter(Worklog.employee_id == employee_id)
             .scalar()
         )
-        count = (
-            db.query(func.count(Worklog.id))
-            .filter(Worklog.employee_id == employee_id)
-            .scalar()
-        )
+        count = db.query(func.count(Worklog.id)).filter(Worklog.employee_id == employee_id).scalar()
         return {"total_hours": total_hours or 0, "worklogs_count": count or 0}
 
     # Removed get_pending_approvals method as reviewer_id is removed

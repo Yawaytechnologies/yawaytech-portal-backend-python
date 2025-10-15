@@ -5,14 +5,15 @@ Revises: 999999999999
 Create Date: 2025-10-15 12:01:43.327206
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision: str = '7cdf83f5cdac'
-down_revision: Union[str, Sequence[str], None] = '999999999999'
+revision: str = "7cdf83f5cdac"
+down_revision: Union[str, Sequence[str], None] = "999999999999"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
