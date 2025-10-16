@@ -12,6 +12,7 @@ from app.schemas.attendance import (
     EmployeeAttendanceResponse,
     EmployeeYearlyAttendanceResponse,
     EmployeeMonthlyAttendanceResponse,
+    EmployeeCheckInMonitoringResponse,
 )
 
 router = APIRouter(prefix="/attendance", tags=["Attendance"])
@@ -91,6 +92,23 @@ def get_employee_attendance_months(
             working_days_only=working_days_only,
             cap_to_today=cap_to_today,
         )
+    except LookupError:
+        raise HTTPException(status_code=404, detail="Employee not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get(
+    "/{employee_id}/monitoring",
+    response_model=EmployeeCheckInMonitoringResponse,
+    summary="Get check-in monitoring data for an employee",
+)
+def get_employee_checkin_monitoring(
+    employee_id: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        return controller.get_employee_checkin_monitoring(db, employee_id)
     except LookupError:
         raise HTTPException(status_code=404, detail="Employee not found")
     except ValueError as e:

@@ -1,42 +1,35 @@
-from __future__ import annotations
+from typing import Dict, List
 from datetime import datetime, timedelta, date
-from typing import List, Dict
 import calendar
+import platform
+import os
+import sqlite3
+from pathlib import Path
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from app.core.timeutils import now_utc, to_local_date_ist, IST
+
 from app.data.repositories.attendance_repository import AttendanceRepository
-from app.data.models.add_employee import Employee  # to ensure employee exists
-
+from app.data.models.add_employee import Employee
 from app.schemas.attendance import (
-    AttendanceDayItem,
     EmployeeAttendanceResponse,
-    MonthlyAttendanceItem,
+    AttendanceDayItem,
     EmployeeYearlyAttendanceResponse,
+    MonthlyAttendanceItem,
     EmployeeMonthlyAttendanceResponse,
+    EmployeeCheckInMonitoringResponse,
+    CheckInMonitoringItem,
+    VisitedSite,
 )
-
-
-def _to_hours_minutes(seconds: int) -> str:
-    # rounds down to the minute
-    minutes = seconds // 60
-    return f"{minutes // 60:02d}:{minutes % 60:02d}"
-
-
-def _last_day_of_month(y: int, m: int) -> int:
-    return calendar.monthrange(y, m)[1]
-
-
-def _is_weekend(d: date) -> bool:
-    # Mon=0 ... Sun=6
-    return d.weekday() >= 5
-
-
-def _avg_hhmm(total_seconds: int, denom_days: int) -> str:
-    if denom_days <= 0:
-        return "00:00"
-    minutes = (total_seconds // 60) // denom_days
-    return f"{minutes // 60:02d}:{minutes % 60:02d}"
+from app.core.timeutils import (
+    now_utc,
+    to_local_date_ist,
+    IST,
+    _to_hours_minutes,
+    _last_day_of_month,
+    _is_weekend,
+    _avg_hhmm,
+)
 
 
 class AttendanceService:
@@ -61,6 +54,10 @@ class AttendanceService:
         t0 = now_utc()
         wdate = to_local_date_ist(t0)
         sess = self.repo.create_session(db, employee_id, t0, wdate)
+
+        # Capture monitoring data
+        self.capture_checkin_monitoring(db, sess.id)
+
         db.commit()
         db.refresh(sess)
         return sess
@@ -416,4 +413,275 @@ class AttendanceService:
             total_hours_worked=_to_hours_minutes(total_seconds),
             avg_hours_per_present_day=_avg_hhmm(total_seconds, present_days),
             items=items,
+        )
+
+    def get_employee_checkin_monitoring(
+        self, db: Session, employee_id: str
+    ) -> EmployeeCheckInMonitoringResponse:
+        """
+        Returns monitoring data for an employee.
+        """
+        emp = self.repo.get_employee_basic(db, employee_id)
+        if not emp:
+            raise LookupError("Employee not found")
+
+        monitoring_rows = self.repo.get_monitoring_for_employee(db, employee_id)
+
+        items = []
+        for m in monitoring_rows:
+            visited_sites = [
+                VisitedSite(
+                    url=site["url"],
+                    title=site["title"],
+                    visited_at=site["visited_at"],
+                )
+                for site in m.visited_sites
+            ]
+            items.append(
+                CheckInMonitoringItem(
+                    id=m.id,
+                    session_id=m.session_id,
+                    monitored_at_utc=m.monitored_at_utc,
+                    cpu_percent=m.cpu_percent,
+                    memory_percent=m.memory_percent,
+                    active_apps=m.active_apps,
+                    visited_sites=visited_sites,
+                )
+            )
+
+        return EmployeeCheckInMonitoringResponse(
+            employee_id=employee_id,
+            employee_name=getattr(emp, "name", None),
+            items=items,
+        )
+
+    def _get_browser_history(self, hours_back: int = 24):
+        """
+        Retrieves browser history from common browsers within the last N hours.
+        Returns list of dicts with 'url', 'title', 'visited_at'.
+        """
+        visited_sites = []
+        now = datetime.now()
+        cutoff_time = now - timedelta(hours=hours_back)
+
+        # Browser history paths for different OS
+        history_paths = []
+
+        if platform.system() == "Windows":
+            # Chrome
+            chrome_path = (
+                Path(os.environ.get("LOCALAPPDATA", ""))
+                / "Google"
+                / "Chrome"
+                / "User Data"
+                / "Default"
+                / "History"
+            )
+            history_paths.append((chrome_path, "Chrome"))
+
+            # Firefox
+            firefox_path = Path(os.environ.get("APPDATA", "")) / "Mozilla" / "Firefox" / "Profiles"
+            if firefox_path.exists():
+                for profile_dir in firefox_path.iterdir():
+                    if profile_dir.is_dir():
+                        places_path = profile_dir / "places.sqlite"
+                        if places_path.exists():
+                            history_paths.append((places_path, "Firefox"))
+                            break
+
+            # Edge
+            edge_path = (
+                Path(os.environ.get("LOCALAPPDATA", ""))
+                / "Microsoft"
+                / "Edge"
+                / "User Data"
+                / "Default"
+                / "History"
+            )
+            history_paths.append((edge_path, "Edge"))
+
+        elif platform.system() == "Darwin":  # macOS
+            # Chrome
+            chrome_path = (
+                Path.home()
+                / "Library"
+                / "Application Support"
+                / "Google"
+                / "Chrome"
+                / "Default"
+                / "History"
+            )
+            history_paths.append((chrome_path, "Chrome"))
+
+            # Firefox
+            firefox_path = Path.home() / "Library" / "Application Support" / "Firefox" / "Profiles"
+            if firefox_path.exists():
+                for profile_dir in firefox_path.iterdir():
+                    if profile_dir.is_dir() and profile_dir.name.endswith(".default"):
+                        places_path = profile_dir / "places.sqlite"
+                        if places_path.exists():
+                            history_paths.append((places_path, "Firefox"))
+                            break
+
+            # Safari (different format)
+            safari_path = Path.home() / "Library" / "Safari" / "History.db"
+            history_paths.append((safari_path, "Safari"))
+
+        elif platform.system() == "Linux":
+            # Chrome/Chromium
+            chrome_path = Path.home() / ".config" / "google-chrome" / "Default" / "History"
+            history_paths.append((chrome_path, "Chrome"))
+
+            # Firefox
+            firefox_path = Path.home() / ".mozilla" / "firefox"
+            if firefox_path.exists():
+                for profile_dir in firefox_path.iterdir():
+                    if profile_dir.is_dir() and profile_dir.name.endswith(".default"):
+                        places_path = profile_dir / "places.sqlite"
+                        if places_path.exists():
+                            history_paths.append((places_path, "Firefox"))
+                            break
+
+        # Extract history from each browser
+        for history_path, browser_name in history_paths:
+            try:
+                if not history_path.exists():
+                    continue
+
+                # Copy the history file to avoid locking issues
+                import tempfile
+                import shutil
+
+                with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                    temp_path = temp_file.name
+
+                shutil.copy2(history_path, temp_path)
+
+                try:
+                    conn = sqlite3.connect(f"file:{temp_path}?mode=ro", uri=True)
+                    cursor = conn.cursor()
+
+                    if browser_name in ["Chrome", "Edge"]:
+                        # Chrome/Edge history query
+                        cursor.execute(
+                            """
+                            SELECT url, title, last_visit_time
+                            FROM urls
+                            WHERE last_visit_time > ?
+                            ORDER BY last_visit_time DESC
+                            LIMIT 50
+                        """,
+                            (int(cutoff_time.timestamp() * 1000000),),
+                        )  # Chrome uses microseconds
+
+                        for row in cursor.fetchall():
+                            url, title, timestamp = row
+                            visited_at = datetime.fromtimestamp(timestamp / 1000000).isoformat()
+                            visited_sites.append(
+                                {"url": url, "title": title or "No Title", "visited_at": visited_at}
+                            )
+
+                    elif browser_name == "Firefox":
+                        # Firefox history query
+                        cursor.execute(
+                            """
+                            SELECT p.url, p.title, h.visit_date
+                            FROM moz_places p
+                            JOIN moz_historyvisits h ON p.id = h.place_id
+                            WHERE h.visit_date > ?
+                            ORDER BY h.visit_date DESC
+                            LIMIT 50
+                        """,
+                            (int(cutoff_time.timestamp() * 1000000),),
+                        )  # Firefox uses microseconds
+
+                        for row in cursor.fetchall():
+                            url, title, timestamp = row
+                            visited_at = datetime.fromtimestamp(timestamp / 1000000).isoformat()
+                            visited_sites.append(
+                                {"url": url, "title": title or "No Title", "visited_at": visited_at}
+                            )
+
+                    elif browser_name == "Safari":
+                        # Safari history query (different schema)
+                        cursor.execute(
+                            """
+                            SELECT i.url, v.title, v.visit_time + 978307200
+                            FROM history_items i
+                            JOIN history_visits v ON i.id = v.history_item
+                            WHERE v.visit_time + 978307200 > ?
+                            ORDER BY v.visit_time DESC
+                            LIMIT 50
+                        """,
+                            (cutoff_time.timestamp(),),
+                        )  # Safari uses seconds since 2001-01-01
+
+                        for row in cursor.fetchall():
+                            url, title, timestamp = row
+                            visited_at = datetime.fromtimestamp(timestamp).isoformat()
+                            visited_sites.append(
+                                {"url": url, "title": title or "No Title", "visited_at": visited_at}
+                            )
+
+                    conn.close()
+
+                finally:
+                    # Clean up temp file
+                    try:
+                        os.unlink(temp_path)
+                    except Exception:
+                        pass
+
+            except Exception:
+                # Silently continue if browser history access fails
+                continue
+
+        # Remove duplicates and limit to most recent 20 sites
+        seen_urls = set()
+        unique_sites = []
+        for site in visited_sites:
+            if site["url"] not in seen_urls:
+                unique_sites.append(site)
+                seen_urls.add(site["url"])
+                if len(unique_sites) >= 20:
+                    break
+
+        return unique_sites
+
+    def capture_checkin_monitoring(self, db: Session, session_id: int):
+        """
+        Captures system monitoring data at check-in time.
+        """
+        import psutil
+
+        monitored_at = now_utc()
+
+        # Get CPU and memory usage
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory_percent = psutil.virtual_memory().percent
+
+        # Get active applications (running processes)
+        active_apps = []
+        for proc in psutil.process_iter(["pid", "name", "username"]):
+            try:
+                if proc.info["username"] and "system" not in proc.info["username"].lower():
+                    active_apps.append(proc.info["name"])
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+
+        # Limit to top 10 active apps
+        active_apps = list(set(active_apps))[:10]
+
+        # Get browser history
+        visited_sites = self._get_browser_history(hours_back=24)
+
+        # Save to database
+        self.repo.create_monitoring(
+            db=db,
+            session_id=session_id,
+            monitored_at_utc=monitored_at,
+            cpu_percent=cpu_percent,
+            memory_percent=memory_percent,
+            active_apps=active_apps,
+            visited_sites=visited_sites,
         )

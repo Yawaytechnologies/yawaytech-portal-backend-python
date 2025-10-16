@@ -1,8 +1,18 @@
 from __future__ import annotations
-from datetime import date, datetime
+from datetime import date, datetime, time
 from enum import Enum
 
-from sqlalchemy import Date, DateTime, Enum as SAEnum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Date,
+    DateTime,
+    Enum as SAEnum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Time,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.data.db import Base
 from app.data.models.add_employee import Employee
@@ -40,8 +50,8 @@ class Worklog(Base):
     task: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
 
-    start_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    end_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
+    end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
 
     duration_hours: Mapped[float | None] = mapped_column(Float, nullable=True)  # Auto-calculated
 

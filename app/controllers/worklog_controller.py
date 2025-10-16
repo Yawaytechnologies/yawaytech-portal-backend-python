@@ -1,5 +1,5 @@
 from __future__ import annotations
-from datetime import datetime
+from datetime import time
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
@@ -60,7 +60,7 @@ class WorklogController:
         return Worklog.from_orm(worklog_model) if worklog_model else None
 
     def update_work_times(
-        self, db: Session, worklog_id: int, start_time: datetime, end_time: datetime
+        self, db: Session, worklog_id: int, start_time: time, end_time: time
     ) -> Optional[Worklog]:
         service = WorklogService(db)
         worklog_model = service.update_work_times(worklog_id, start_time, end_time)

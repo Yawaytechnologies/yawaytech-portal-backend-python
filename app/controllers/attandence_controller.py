@@ -9,6 +9,7 @@ from app.schemas.attendance import (
     MonthDay,
     EmployeeAttendanceResponse,
     EmployeeMonthlyAttendanceResponse,
+    EmployeeCheckInMonitoringResponse,
 )
 
 
@@ -77,3 +78,8 @@ class AttendanceController:
             working_days_only=working_days_only,
             cap_to_today=cap_to_today,
         )
+
+    def get_employee_checkin_monitoring(
+        self, db: Session, employee_id: str
+    ) -> EmployeeCheckInMonitoringResponse:
+        return self.service.get_employee_checkin_monitoring(db, employee_id)

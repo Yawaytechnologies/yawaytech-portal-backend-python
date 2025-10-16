@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
@@ -16,9 +16,10 @@ class WorklogService:
     def create_worklog(self, worklog_create: WorklogCreate) -> Worklog:
         duration = None
         if worklog_create.start_time and worklog_create.end_time:
-            duration = (
-                worklog_create.end_time - worklog_create.start_time
-            ).total_seconds() / 3600.0
+            # Calculate duration by combining times with a dummy date
+            start_dt = datetime.combine(datetime.min.date(), worklog_create.start_time)
+            end_dt = datetime.combine(datetime.min.date(), worklog_create.end_time)
+            duration = (end_dt - start_dt).total_seconds() / 3600.0
         worklog = Worklog(
             employee_id=worklog_create.employee_id,
             work_date=worklog_create.work_date,
@@ -51,9 +52,10 @@ class WorklogService:
             setattr(worklog, field, value)
 
         if worklog.start_time and worklog.end_time:
-            worklog.duration_hours = (
-                worklog.end_time - worklog.start_time
-            ).total_seconds() / 3600.0
+            # Calculate duration by combining times with a dummy date
+            start_dt = datetime.combine(datetime.min.date(), worklog.start_time)
+            end_dt = datetime.combine(datetime.min.date(), worklog.end_time)
+            worklog.duration_hours = (end_dt - start_dt).total_seconds() / 3600.0
 
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
@@ -72,7 +74,7 @@ class WorklogService:
         worklog = self.repo.get_by_id(self.db, worklog_id)
         if not worklog:
             return None
-        worklog.start_time = datetime.utcnow()
+        worklog.start_time = datetime.utcnow().time()
         worklog.status = WorklogStatus.TODO
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
@@ -81,12 +83,13 @@ class WorklogService:
         worklog = self.repo.get_by_id(self.db, worklog_id)
         if not worklog:
             return None
-        worklog.end_time = datetime.utcnow()
+        worklog.end_time = datetime.utcnow().time()
         worklog.status = WorklogStatus.DONE
         if worklog.start_time:
-            worklog.duration_hours = (
-                worklog.end_time - worklog.start_time
-            ).total_seconds() / 3600.0
+            # Calculate duration by combining times with a dummy date
+            start_dt = datetime.combine(datetime.min.date(), worklog.start_time)
+            end_dt = datetime.combine(datetime.min.date(), worklog.end_time)
+            worklog.duration_hours = (end_dt - start_dt).total_seconds() / 3600.0
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
 
@@ -99,7 +102,7 @@ class WorklogService:
         return self.repo.update(self.db, worklog)
 
     def update_work_times(
-        self, worklog_id: int, start_time: datetime, end_time: datetime
+        self, worklog_id: int, start_time: time, end_time: time
     ) -> Optional[Worklog]:
         worklog = self.repo.get_by_id(self.db, worklog_id)
         if not worklog:
@@ -107,6 +110,9 @@ class WorklogService:
         worklog.start_time = start_time
         worklog.end_time = end_time
         worklog.status = WorklogStatus.IN_PROGRESS
-        worklog.duration_hours = (end_time - start_time).total_seconds() / 3600.0
+        # Calculate duration by combining times with a dummy date
+        start_dt = datetime.combine(datetime.min.date(), start_time)
+        end_dt = datetime.combine(datetime.min.date(), end_time)
+        worklog.duration_hours = (end_dt - start_dt).total_seconds() / 3600.0
         worklog.updated_at = datetime.utcnow()
         return self.repo.update(self.db, worklog)
