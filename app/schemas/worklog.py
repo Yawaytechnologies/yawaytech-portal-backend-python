@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from enum import Enum
 from typing import Optional
 
@@ -25,8 +25,8 @@ class WorklogBase(BaseModel):
     work_date: Optional[date] = None
     task: str = Field(..., max_length=100)
     description: str
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
     work_type: Optional[WorkType] = None
     status: WorklogStatus = WorklogStatus.TODO
 
@@ -43,8 +43,8 @@ class WorklogCreate(BaseModel):
     description: str
     work_date: date
     work_type: WorkType
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
 
     @validator("end_time")
     def end_time_must_be_after_start_time(cls, v, values):
@@ -56,8 +56,8 @@ class WorklogCreate(BaseModel):
 class WorklogUpdate(BaseModel):
     task: Optional[str] = Field(None, max_length=100)
     description: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
+    start_time: Optional[time] = None
+    end_time: Optional[time] = None
     work_type: Optional[WorkType] = None
     status: Optional[WorklogStatus] = None
 

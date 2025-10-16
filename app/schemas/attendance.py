@@ -89,3 +89,25 @@ class EmployeeMonthlyAttendanceResponse(BaseModel):
     total_hours_worked: str = Field(..., description="HH:MM")
     avg_hours_per_present_day: str = Field(..., description="HH:MM")
     items: List[AttendanceDayItem]
+
+
+class VisitedSite(BaseModel):
+    url: str
+    title: str
+    visited_at: str  # ISO format datetime string
+
+
+class CheckInMonitoringItem(BaseModel):
+    id: int
+    session_id: int
+    monitored_at_utc: datetime
+    cpu_percent: float | None = None
+    memory_percent: float | None = None
+    active_apps: List[str]
+    visited_sites: List[VisitedSite]
+
+
+class EmployeeCheckInMonitoringResponse(BaseModel):
+    employee_id: str
+    employee_name: str | None = None
+    items: List[CheckInMonitoringItem]

@@ -9,6 +9,8 @@ from sqlalchemy import (
     UniqueConstraint,
     Index,
     CheckConstraint,
+    JSON,
+    Float,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.data.db import Base
@@ -74,3 +76,34 @@ class AttendanceDay(Base):
         Index("ix_attendance_day_emp_month", "employee_id", "work_date_local"),
         CheckConstraint("seconds_worked >= 0", name="ck_day_nonnegative"),
     )
+
+
+# Monitoring data captured at check-in
+class CheckInMonitoring(Base):
+    __tablename__ = "checkin_monitoring"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    # FK to attendance_sessions
+    session_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("attendance_sessions.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+
+    # Timestamp of monitoring (UTC)
+    monitored_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    # System metrics
+    cpu_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
+    memory_percent: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # Active processes (list of exe names)
+    active_apps: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+
+    # Visited sites (list of dicts with url, title, visited_at)
+    visited_sites: Mapped[list[dict]] = mapped_column(JSON, nullable=False, default=list)
+
+    # ORM relation
+    session: Mapped["AttendanceSession"] = relationship("AttendanceSession", viewonly=True)

@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 from calendar import monthrange
-from app.data.models.attendance import AttendanceSession, AttendanceDay
+from app.data.models.attendance import AttendanceSession, AttendanceDay, CheckInMonitoring
 from app.data.models.add_employee import Employee
 
 
@@ -112,5 +112,40 @@ class AttendanceRepository:
                 )
             )
             .order_by(AttendanceDay.work_date_local.asc())
+        )
+        return list(db.execute(stmt).scalars().all())
+
+    # Monitoring
+    def create_monitoring(
+        self,
+        db: Session,
+        session_id: int,
+        monitored_at_utc: datetime,
+        cpu_percent: float | None,
+        memory_percent: float | None,
+        active_apps: list[str],
+        visited_sites: list[dict],
+    ) -> CheckInMonitoring:
+        m = CheckInMonitoring(
+            session_id=session_id,
+            monitored_at_utc=monitored_at_utc,
+            cpu_percent=cpu_percent,
+            memory_percent=memory_percent,
+            active_apps=active_apps,
+            visited_sites=visited_sites,
+        )
+        db.add(m)
+        db.flush()
+        return m
+
+    def get_monitoring_for_employee(self, db: Session, employee_id: str) -> List[CheckInMonitoring]:
+        """
+        Returns all monitoring records for an employee.
+        """
+        stmt = (
+            select(CheckInMonitoring)
+            .join(AttendanceSession, CheckInMonitoring.session_id == AttendanceSession.id)
+            .where(AttendanceSession.employee_id == employee_id)
+            .order_by(CheckInMonitoring.monitored_at_utc.desc())
         )
         return list(db.execute(stmt).scalars().all())

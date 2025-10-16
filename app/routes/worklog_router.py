@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import time
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
@@ -41,7 +41,7 @@ def update_worklog(worklog_id: int, worklog_update: WorklogUpdate, db: Session =
 
 @router.put("/{worklog_id}/times", response_model=Worklog)
 def update_work_times(
-    worklog_id: int, start_time: datetime, end_time: datetime, db: Session = Depends(get_db)
+    worklog_id: int, start_time: time, end_time: time, db: Session = Depends(get_db)
 ):
     worklog = controller.update_work_times(db, worklog_id, start_time, end_time)
     if not worklog:
