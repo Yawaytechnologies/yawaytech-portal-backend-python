@@ -21,8 +21,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # Drop the activity_log table
-    op.drop_table("activity_log")
+    # Drop the activity_log table if it exists
+    op.execute("DROP TABLE IF EXISTS activity_log")
 
 
 def downgrade() -> None:
