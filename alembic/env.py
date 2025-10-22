@@ -2,10 +2,9 @@ import sys
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import pool, create_engine
-from alembic import context  # type: ignore[attr-defined]
+from sqlalchemy import create_engine, pool
+from alembic import context
 from app.data.db import Base
-
 
 # ─── Ensure Alembic can find your app ───────────────────────────────────────────
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -18,6 +17,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # ─── Import your models and metadata ────────────────────────────────────────────
+
+# Explicitly import all models so Alembic can detect them
 
 target_metadata = Base.metadata
 
