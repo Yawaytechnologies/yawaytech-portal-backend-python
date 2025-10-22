@@ -3,7 +3,7 @@ import os
 from logging.config import fileConfig
 
 from sqlalchemy import create_engine, pool
-from alembic import context
+from alembic import context  # type: ignore[attr-defined]
 from app.data.db import Base
 
 # ─── Ensure Alembic can find your app ───────────────────────────────────────────
