@@ -2,10 +2,8 @@ import sys
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import pool, create_engine
-from alembic import context  # type: ignore[attr-defined]
-from app.data.db import Base
-
+from sqlalchemy import create_engine, pool
+from alembic import context
 
 # ─── Ensure Alembic can find your app ───────────────────────────────────────────
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -18,9 +16,16 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # ─── Import your models and metadata ────────────────────────────────────────────
+from app.data.db import Base
+
+# Explicitly import all models so Alembic can detect them
+from app.data.models.expenses import Expense
+from app.data.models.add_employee import Employee
+from app.data.models.worklog import Worklog
+from app.data.models.admin import Admin
+from app.data.models.attendance import AttendanceDay, AttendanceSession, CheckInMonitoring
 
 target_metadata = Base.metadata
-
 
 # ─── Offline Migrations ─────────────────────────────────────────────────────────
 def run_migrations_offline() -> None:
@@ -36,7 +41,6 @@ def run_migrations_offline() -> None:
 
     with context.begin_transaction():
         context.run_migrations()
-
 
 # ─── Online Migrations ──────────────────────────────────────────────────────────
 def run_migrations_online() -> None:
@@ -54,7 +58,6 @@ def run_migrations_online() -> None:
 
         with context.begin_transaction():
             context.run_migrations()
-
 
 # ─── Entry Point ────────────────────────────────────────────────────────────────
 if context.is_offline_mode():

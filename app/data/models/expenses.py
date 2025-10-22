@@ -16,6 +16,7 @@ class ExpenseCategory(str, Enum):
     TRAVEL = "Travel"
     SOFTWARE = "Software"
     HEALTH = "Health"
+    SHOPPING = "Shopping"
     OTHER = "Other"  # Optional catch-all category
 
 
