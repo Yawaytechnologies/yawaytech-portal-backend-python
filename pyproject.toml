@@ -11,3 +11,7 @@ python_version = "3.13"
 ignore_missing_imports = true
 strict = false
 exclude = ["alembic/versions/"]
+
+[[tool.mypy.overrides]]
+module = "alembic.*"
+ignore_errors = true
