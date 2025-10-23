@@ -461,6 +461,7 @@ class AttendanceService:
         Returns list of dicts with 'url', 'title', 'visited_at'.
         """
         import logging
+
         logger = logging.getLogger(__name__)
         visited_sites = []
         now = datetime.now()
@@ -506,10 +507,7 @@ class AttendanceService:
 
             # Opera
             opera_path = (
-                Path(os.environ.get("APPDATA", ""))
-                / "Opera Software"
-                / "Opera Stable"
-                / "History"
+                Path(os.environ.get("APPDATA", "")) / "Opera Software" / "Opera Stable" / "History"
             )
             history_paths.append((opera_path, "Opera"))
 
@@ -566,13 +564,17 @@ class AttendanceService:
                             history_paths.append((places_path, "Firefox"))
                             break
 
-        logger.info(f"Found {len(history_paths)} potential browser history paths: {[str(p[0]) for p in history_paths]}")
+        logger.info(
+            f"Found {len(history_paths)} potential browser history paths: {[str(p[0]) for p in history_paths]}"
+        )
 
         # Extract history from each browser
         for history_path, browser_name in history_paths:
             try:
                 if not history_path.exists():
-                    logger.warning(f"Browser history path does not exist: {history_path} for {browser_name}")
+                    logger.warning(
+                        f"Browser history path does not exist: {history_path} for {browser_name}"
+                    )
                     continue
 
                 logger.info(f"Processing {browser_name} history at {history_path}")
@@ -595,7 +597,9 @@ class AttendanceService:
                         # Chrome/Edge history query
                         # Chrome stores timestamps as microseconds since 1601-01-01
                         chrome_epoch_offset = 11644473600  # seconds from 1601-01-01 to 1970-01-01
-                        cutoff_microseconds = int((cutoff_time.timestamp() + chrome_epoch_offset) * 1000000)
+                        cutoff_microseconds = int(
+                            (cutoff_time.timestamp() + chrome_epoch_offset) * 1000000
+                        )
 
                         cursor.execute(
                             """
