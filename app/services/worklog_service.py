@@ -16,6 +16,8 @@ class WorklogService:
     def create_worklog(self, worklog_create: WorklogCreate) -> Worklog:
         duration = None
         if worklog_create.start_time and worklog_create.end_time:
+            if worklog_create.end_time <= worklog_create.start_time:
+                raise ValueError("end_time must be after start_time")
             # Calculate duration by combining times with a dummy date
             start_dt = datetime.combine(datetime.min.date(), worklog_create.start_time)
             end_dt = datetime.combine(datetime.min.date(), worklog_create.end_time)
@@ -52,6 +54,8 @@ class WorklogService:
             setattr(worklog, field, value)
 
         if worklog.start_time and worklog.end_time:
+            if worklog.end_time <= worklog.start_time:
+                raise ValueError("end_time must be after start_time")
             # Calculate duration by combining times with a dummy date
             start_dt = datetime.combine(datetime.min.date(), worklog.start_time)
             end_dt = datetime.combine(datetime.min.date(), worklog.end_time)
@@ -104,6 +108,8 @@ class WorklogService:
     def update_work_times(
         self, worklog_id: int, start_time: time, end_time: time
     ) -> Optional[Worklog]:
+        if end_time <= start_time:
+            raise ValueError("end_time must be after start_time")
         worklog = self.repo.get_by_id(self.db, worklog_id)
         if not worklog:
             return None
