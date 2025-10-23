@@ -460,9 +460,13 @@ class AttendanceService:
         Retrieves browser history from common browsers within the last N hours.
         Returns list of dicts with 'url', 'title', 'visited_at'.
         """
+        import logging
+        logger = logging.getLogger(__name__)
         visited_sites = []
         now = datetime.now()
         cutoff_time = now - timedelta(hours=hours_back)
+
+        logger.info(f"Starting browser history retrieval for platform: {platform.system()}")
 
         # Browser history paths for different OS
         history_paths = []
@@ -499,6 +503,26 @@ class AttendanceService:
                 / "History"
             )
             history_paths.append((edge_path, "Edge"))
+
+            # Opera
+            opera_path = (
+                Path(os.environ.get("APPDATA", ""))
+                / "Opera Software"
+                / "Opera Stable"
+                / "History"
+            )
+            history_paths.append((opera_path, "Opera"))
+
+            # Brave
+            brave_path = (
+                Path(os.environ.get("LOCALAPPDATA", ""))
+                / "BraveSoftware"
+                / "Brave-Browser"
+                / "User Data"
+                / "Default"
+                / "History"
+            )
+            history_paths.append((brave_path, "Brave"))
 
         elif platform.system() == "Darwin":  # macOS
             # Chrome
@@ -542,11 +566,16 @@ class AttendanceService:
                             history_paths.append((places_path, "Firefox"))
                             break
 
+        logger.info(f"Found {len(history_paths)} potential browser history paths: {[str(p[0]) for p in history_paths]}")
+
         # Extract history from each browser
         for history_path, browser_name in history_paths:
             try:
                 if not history_path.exists():
+                    logger.warning(f"Browser history path does not exist: {history_path} for {browser_name}")
                     continue
+
+                logger.info(f"Processing {browser_name} history at {history_path}")
 
                 # Copy the history file to avoid locking issues
                 import tempfile
@@ -556,6 +585,7 @@ class AttendanceService:
                     temp_path = temp_file.name
 
                 shutil.copy2(history_path, temp_path)
+                logger.info(f"Copied history file to temp: {temp_path}")
 
                 try:
                     conn = sqlite3.connect(f"file:{temp_path}?mode=ro", uri=True)
@@ -563,6 +593,10 @@ class AttendanceService:
 
                     if browser_name in ["Chrome", "Edge"]:
                         # Chrome/Edge history query
+                        # Chrome stores timestamps as microseconds since 1601-01-01
+                        chrome_epoch_offset = 11644473600  # seconds from 1601-01-01 to 1970-01-01
+                        cutoff_microseconds = int((cutoff_time.timestamp() + chrome_epoch_offset) * 1000000)
+
                         cursor.execute(
                             """
                             SELECT url, title, last_visit_time
@@ -571,12 +605,16 @@ class AttendanceService:
                             ORDER BY last_visit_time DESC
                             LIMIT 50
                         """,
-                            (int(cutoff_time.timestamp() * 1000000),),
-                        )  # Chrome uses microseconds
+                            (cutoff_microseconds,),
+                        )
 
-                        for row in cursor.fetchall():
+                        rows = cursor.fetchall()
+                        logger.info(f"Retrieved {len(rows)} rows from {browser_name} history")
+                        for row in rows:
                             url, title, timestamp = row
-                            visited_at = datetime.fromtimestamp(timestamp / 1000000).isoformat()
+                            # Convert Chrome timestamp to Unix timestamp
+                            unix_timestamp = (timestamp / 1000000) - chrome_epoch_offset
+                            visited_at = datetime.fromtimestamp(unix_timestamp).isoformat()
                             visited_sites.append(
                                 {"url": url, "title": title or "No Title", "visited_at": visited_at}
                             )
@@ -595,7 +633,9 @@ class AttendanceService:
                             (int(cutoff_time.timestamp() * 1000000),),
                         )  # Firefox uses microseconds
 
-                        for row in cursor.fetchall():
+                        rows = cursor.fetchall()
+                        logger.info(f"Retrieved {len(rows)} rows from {browser_name} history")
+                        for row in rows:
                             url, title, timestamp = row
                             visited_at = datetime.fromtimestamp(timestamp / 1000000).isoformat()
                             visited_sites.append(
@@ -616,7 +656,9 @@ class AttendanceService:
                             (cutoff_time.timestamp(),),
                         )  # Safari uses seconds since 2001-01-01
 
-                        for row in cursor.fetchall():
+                        rows = cursor.fetchall()
+                        logger.info(f"Retrieved {len(rows)} rows from {browser_name} history")
+                        for row in rows:
                             url, title, timestamp = row
                             visited_at = datetime.fromtimestamp(timestamp).isoformat()
                             visited_sites.append(
@@ -632,9 +674,11 @@ class AttendanceService:
                     except Exception:
                         pass
 
-            except Exception:
-                # Silently continue if browser history access fails
+            except Exception as e:
+                logger.error(f"Error processing {browser_name} history: {e}")
                 continue
+
+        logger.info(f"Total visited sites before deduplication: {len(visited_sites)}")
 
         # Remove duplicates and limit to most recent 20 sites
         seen_urls = set()
@@ -646,6 +690,7 @@ class AttendanceService:
                 if len(unique_sites) >= 20:
                     break
 
+        logger.info(f"Final unique sites: {len(unique_sites)}")
         return unique_sites
 
     def capture_checkin_monitoring(self, db: Session, session_id: int):
