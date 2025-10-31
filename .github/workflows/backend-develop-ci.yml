@@ -1,0 +1,77 @@
+name: backend-ci (develop)
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'app/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/backend-develop-ci.yml'
+      - 'render.yaml'
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'app/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/backend-develop-ci.yml'
+      - 'render.yaml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-develop
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint • Format • Types • Tests
+    runs-on: ubuntu-latest
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt', 'pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          # keep CI tools even if they get removed from requirements later
+          pip install ruff black mypy pytest pytest-cov
+
+      - name: Ruff (lint)
+        run: ruff check .
+
+      - name: Black (format check)
+        run: black --check --diff .
+
+      - name: MyPy (type check)
+        run: mypy .
+
+      - name: Pytest (skip if no tests/)
+        run: |
+          if [ -d tests ]; then
+            pytest --cov=. --cov-report=term-missing
+          else
+            echo "No tests/ directory. Skipping pytest."
+          fi

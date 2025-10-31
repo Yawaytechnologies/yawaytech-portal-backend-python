@@ -1,0 +1,17 @@
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+strict = false
+exclude = ["alembic/versions/"]
+
+[[tool.mypy.overrides]]
+module = "alembic.*"
+ignore_errors = true
