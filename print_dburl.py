@@ -1,4 +1,4 @@
-﻿import os
+import os
 from sqlalchemy.engine import make_url
 from dotenv import load_dotenv
 
