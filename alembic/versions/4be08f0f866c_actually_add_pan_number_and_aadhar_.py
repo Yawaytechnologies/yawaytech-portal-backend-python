@@ -8,9 +8,11 @@ down_revision: Union[str, Sequence[str], None] = "0f318daf3de7"  # keep your rea
 branch_labels = None
 depends_on = None
 
+
 def upgrade() -> None:
     op.add_column("employees", sa.Column("pan_number", sa.String(10), nullable=True))
     op.add_column("employees", sa.Column("aadhar_number", sa.String(12), nullable=True))
+
 
 def downgrade() -> None:
     op.drop_column("employees", "aadhar_number")

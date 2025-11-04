@@ -199,7 +199,7 @@ class EmployeeCreateForm:
             email=self.email,
             mobile_number=self.mobile_number,
             pan_number=self.pan_number,
-            aadhar_number=self.aadhar_number,   
+            aadhar_number=self.aadhar_number,
             marital_status=MaritalStatus(self.marital_status),
             permanent_address=self.permanent_address,
             designation=self.designation,

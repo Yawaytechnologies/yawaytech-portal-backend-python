@@ -4,6 +4,7 @@ Revision ID: 0f318daf3de7
 Revises: 126692acd489
 Create Date: 2025-11-03 11:19:48.154363
 """
+
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
@@ -30,7 +31,6 @@ def upgrade() -> None:
     # op.create_index("ix_employees_aadhar_number", "employees", ["aadhar_number"], unique=True)
     op.create_index(op.f("ix_aadhar_number"), "employees", ["aadhar_number"], unique=False),
     op.create_index(op.f("ix_pan_number"), "employees", ["pan"], unique=False),
-
 
 
 def downgrade() -> None:
