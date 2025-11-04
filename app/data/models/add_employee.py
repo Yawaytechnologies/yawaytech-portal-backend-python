@@ -36,6 +36,12 @@ class Employee(Base):
 
     email: Mapped[str] = mapped_column(String(30), nullable=False, unique=True, index=True)
     mobile_number: Mapped[str] = mapped_column(String(10), nullable=False)
+    pan_number: Mapped[str | None] = mapped_column(
+        String(10), unique=True, index=True, nullable=True
+    )
+    aadhar_number: Mapped[str | None] = mapped_column(
+        String(12), unique=True, index=True, nullable=True
+    )
 
     marital_status: Mapped[MaritalStatus] = mapped_column(SAEnum(MaritalStatus), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
@@ -55,6 +61,8 @@ class Employee(Base):
     __table_args__ = (
         UniqueConstraint("employee_id", name="uq_employee_employee_id"),
         UniqueConstraint("email", name="uq_employee_email"),
+        UniqueConstraint("pan_number", name="uq_employee_pan_number"),
+        UniqueConstraint("aadhar_number", name="uq_employee_aadhar_number"),
         UniqueConstraint("mobile_number", name="uq_employee_mobile_number"),
     )
 
