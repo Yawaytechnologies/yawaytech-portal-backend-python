@@ -29,5 +29,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     # Change start_time and end_time back to TIMESTAMP
-    op.alter_column("worklogs", "start_time", type_=sa.DateTime(), existing_nullable=True)
+    op.alter_column(
+        "worklogs", "start_time", type_=sa.DateTime(), existing_nullable=True
+    )
     op.alter_column("worklogs", "end_time", type_=sa.DateTime(), existing_nullable=True)

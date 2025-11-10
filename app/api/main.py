@@ -7,7 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.config import APP_NAME
-from app.data.db import engine, get_db
+from app.data.db import get_db
 
 # Import all models to register them before create_all (for dev only)
 

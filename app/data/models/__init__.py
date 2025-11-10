@@ -6,13 +6,26 @@ from app.data.models.leave import LeaveType, LeaveRequest, LeaveBalance
 from app.data.models.payroll import EmployeeSalary, PayPeriod, PayrollRun, PayrollItem
 
 # Re-export attendance models from the features module
-from app.data.models.attendance import AttendanceSession, AttendanceDay, CheckInMonitoring
+from app.data.models.attendance import (
+    AttendanceSession,
+    AttendanceDay,
+    CheckInMonitoring,
+)
 
 __all__ = [
     "Employee",
-    "WorkweekPolicy", "HolidayCalendar",
-    "Shift", "EmployeeShiftAssignment",
-    "LeaveType", "LeaveRequest", "LeaveBalance",
-    "EmployeeSalary", "PayPeriod", "PayrollRun", "PayrollItem",
-    "AttendanceSession", "AttendanceDay", "CheckInMonitoring",
+    "WorkweekPolicy",
+    "HolidayCalendar",
+    "Shift",
+    "EmployeeShiftAssignment",
+    "LeaveType",
+    "LeaveRequest",
+    "LeaveBalance",
+    "EmployeeSalary",
+    "PayPeriod",
+    "PayrollRun",
+    "PayrollItem",
+    "AttendanceSession",
+    "AttendanceDay",
+    "CheckInMonitoring",
 ]

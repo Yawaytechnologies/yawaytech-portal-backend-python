@@ -20,7 +20,6 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    Text,
     UniqueConstraint,
     func,
 )
@@ -28,7 +27,9 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, Session
 
 from app.data.db import Base, SessionLocal
-from app.data.models.add_employee import Employee  # uses employees.employee_id as business key
+from app.data.models.add_employee import (
+    Employee,
+)  # uses employees.employee_id as business key
 from app.data.models.policy import WorkweekPolicy, HolidayCalendar
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -36,6 +37,7 @@ IST = ZoneInfo("Asia/Kolkata")
 # ──────────────────────────────────────────────────────────────────────────────
 # Enums
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class PunchType(str, Enum):
     IN = "IN"
@@ -50,16 +52,16 @@ class DayStatus(str, Enum):
     WEEKEND = "Weekend"
 
 
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Attendance models
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 class AttendanceSession(Base):
     """
     Raw work block (IN .. OUT). Never delete in normal flow.
     """
+
     __tablename__ = "attendance_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -72,21 +74,35 @@ class AttendanceSession(Base):
         nullable=False,
     )
 
-    check_in_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    check_out_utc: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    check_in_utc: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    check_out_utc: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Local date (IST) at check-in; used for grouping/calendar
     work_date_local: Mapped[date] = mapped_column(Date, index=True, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     employee: Mapped["Employee"] = relationship("Employee", viewonly=True)
 
     __table_args__ = (
         Index("ix_session_emp_open", "employee_id", "check_out_utc"),
         Index("ix_session_emp_date", "employee_id", "work_date_local"),
-        CheckConstraint("(check_out_utc IS NULL) OR (check_out_utc >= check_in_utc)", name="ck_session_chronology"),
+        CheckConstraint(
+            "(check_out_utc IS NULL) OR (check_out_utc >= check_in_utc)",
+            name="ck_session_chronology",
+        ),
     )
     # NOTE (migration): add a generated tstzrange and an exclusion constraint to prevent overlap:
     #   ALTER TABLE attendance_sessions
@@ -102,6 +118,7 @@ class AttendanceDay(Base):
     """
     One row per employee per local date – canonical truth for payroll.
     """
+
     __tablename__ = "attendance_days"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -116,14 +133,20 @@ class AttendanceDay(Base):
 
     # Rollup metrics
     seconds_worked: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    expected_seconds: Mapped[int] = mapped_column(Integer, default=28800, nullable=False)  # 8h
+    expected_seconds: Mapped[int] = mapped_column(
+        Integer, default=28800, nullable=False
+    )  # 8h
     paid_leave_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     overtime_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     underwork_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     unpaid_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    first_check_in_utc: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
-    last_check_out_utc: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    first_check_in_utc: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True)
+    )
+    last_check_out_utc: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True)
+    )
 
     leave_type_code: Mapped[Optional[str]] = mapped_column(String(16))
     # Use the enum's values (e.g. "Present") as the database labels so PostgreSQL
@@ -144,13 +167,22 @@ class AttendanceDay(Base):
 
     lock_flag: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     employee: Mapped["Employee"] = relationship("Employee", viewonly=True)
 
     __table_args__ = (
-        UniqueConstraint("employee_id", "work_date_local", name="uq_attendance_day_emp_date"),
+        UniqueConstraint(
+            "employee_id", "work_date_local", name="uq_attendance_day_emp_date"
+        ),
         Index("ix_attendance_day_emp_month", "employee_id", "work_date_local"),
         CheckConstraint("seconds_worked >= 0", name="ck_day_nonnegative"),
     )
@@ -160,6 +192,7 @@ class CheckInMonitoring(Base):
     """
     Optional telemetry captured during a session.
     """
+
     __tablename__ = "checkin_monitoring"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -170,20 +203,29 @@ class CheckInMonitoring(Base):
         index=True,
         nullable=False,
     )
-    monitored_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    monitored_at_utc: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
 
     cpu_percent: Mapped[Optional[float]] = mapped_column(Float)
     memory_percent: Mapped[Optional[float]] = mapped_column(Float)
 
-    active_apps: Mapped[List[str]] = mapped_column(JSONB, nullable=False, server_default="[]")
-    visited_sites: Mapped[List[Dict]] = mapped_column(JSONB, nullable=False, server_default="[]")
+    active_apps: Mapped[List[str]] = mapped_column(
+        JSONB, nullable=False, server_default="[]"
+    )
+    visited_sites: Mapped[List[Dict]] = mapped_column(
+        JSONB, nullable=False, server_default="[]"
+    )
 
-    session: Mapped["AttendanceSession"] = relationship("AttendanceSession", viewonly=True)
+    session: Mapped["AttendanceSession"] = relationship(
+        "AttendanceSession", viewonly=True
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Utilities – policy resolution (Saturdays / Holidays) & rollup math
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _nth_weekday_of_month(d: date) -> int:
     """Return ordinal of weekday in month (e.g., 1..5 for Saturdays)."""
@@ -195,12 +237,14 @@ def _nth_weekday_of_month(d: date) -> int:
 def _is_working_day(db: Session, region: Optional[str], d: date) -> bool:
     # Default Mon–Fri working, Sat/Sun off
     weekday = d.weekday()  # Mon=0 .. Sun=6
-    default = (weekday <= 4)
+    default = weekday <= 4
 
     if not region:
         return default
 
-    policy: Optional[WorkweekPolicy] = db.query(WorkweekPolicy).filter(WorkweekPolicy.region == region).one_or_none()
+    policy: Optional[WorkweekPolicy] = (
+        db.query(WorkweekPolicy).filter(WorkweekPolicy.region == region).one_or_none()
+    )
     if not policy or not policy.policy_json:
         return default
 
@@ -214,7 +258,12 @@ def _is_working_day(db: Session, region: Optional[str], d: date) -> bool:
     if key == "sat" and isinstance(rule, str):  # e.g., "1st,3rd"
         nth = _nth_weekday_of_month(d)
         wanted = {s.strip().lower() for s in rule.split(",")}
-        return (f"{nth}st" in wanted) or (f"{nth}nd" in wanted) or (f"{nth}rd" in wanted) or (f"{nth}th" in wanted)
+        return (
+            (f"{nth}st" in wanted)
+            or (f"{nth}nd" in wanted)
+            or (f"{nth}rd" in wanted)
+            or (f"{nth}th" in wanted)
+        )
     return default
 
 
@@ -231,7 +280,11 @@ def _holiday_is_paid(db: Session, region: Optional[str], d: date) -> Optional[bo
 
 
 def _employee_region(db: Session, employee_id: str) -> Optional[str]:
-    emp = db.query(Employee.region).filter(Employee.employee_id == employee_id).one_or_none()
+    emp = (
+        db.query(Employee.region)
+        .filter(Employee.employee_id == employee_id)
+        .one_or_none()
+    )
     return emp[0] if emp else None
 
 
@@ -254,6 +307,7 @@ def _local_date_ist(ts_utc: datetime) -> date:
 # ──────────────────────────────────────────────────────────────────────────────
 # Rollup core
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def rollup_day(db: Session, employee_id: str, d: date) -> AttendanceDay:
     """Compute and upsert AttendanceDay for employee_id on local date d."""
@@ -314,7 +368,9 @@ def rollup_day(db: Session, employee_id: str, d: date) -> AttendanceDay:
     # Upsert day
     day: Optional[AttendanceDay] = (
         db.query(AttendanceDay)
-        .filter(AttendanceDay.employee_id == employee_id, AttendanceDay.work_date_local == d)
+        .filter(
+            AttendanceDay.employee_id == employee_id, AttendanceDay.work_date_local == d
+        )
         .one_or_none()
     )
     if not day:
@@ -335,7 +391,9 @@ def rollup_day(db: Session, employee_id: str, d: date) -> AttendanceDay:
     return day
 
 
-def recompute_range(db: Session, employee_ids: Iterable[str], start: date, end: date) -> int:
+def recompute_range(
+    db: Session, employee_ids: Iterable[str], start: date, end: date
+) -> int:
     """Recompute [start..end] inclusive for listed employees."""
     if start > end:
         raise ValueError("start > end")
@@ -355,6 +413,7 @@ def recompute_range(db: Session, employee_ids: Iterable[str], start: date, end: 
 
 router = APIRouter(prefix="/attendance", tags=["attendance"])
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -366,7 +425,9 @@ def get_db():
 class PunchInOut(BaseModel):
     employee_id: str = Field(..., examples=["YTP000003"])
     punch_type: PunchType
-    punched_at_utc: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
+    punched_at_utc: datetime = Field(
+        default_factory=lambda: datetime.now(ZoneInfo("UTC"))
+    )
 
     @validator("punched_at_utc")
     def ensure_tz(cls, v: datetime) -> datetime:
@@ -378,7 +439,11 @@ class PunchInOut(BaseModel):
 @router.post("/punch", summary="Employee punch IN/OUT")
 def punch(payload: PunchInOut, db: Session = Depends(get_db)):
     # Validate employee exists
-    if not db.query(Employee).filter(Employee.employee_id == payload.employee_id).first():
+    if (
+        not db.query(Employee)
+        .filter(Employee.employee_id == payload.employee_id)
+        .first()
+    ):
         raise HTTPException(404, "Employee not found")
 
     local_day = _local_date_ist(payload.punched_at_utc)
@@ -393,7 +458,9 @@ def punch(payload: PunchInOut, db: Session = Depends(get_db)):
             .first()
         )
         if open_exists:
-            raise HTTPException(409, "Open session already exists. Please check out first.")
+            raise HTTPException(
+                409, "Open session already exists. Please check out first."
+            )
         sess = AttendanceSession(
             employee_id=payload.employee_id,
             check_in_utc=payload.punched_at_utc,
@@ -409,7 +476,7 @@ def punch(payload: PunchInOut, db: Session = Depends(get_db)):
         return {"ok": True, "session_id": sess.id, "work_date_local": str(local_day)}
 
     else:  # OUT
-        sess = (
+        current_session: Optional[AttendanceSession] = (
             db.query(AttendanceSession)
             .filter(
                 AttendanceSession.employee_id == payload.employee_id,
@@ -418,18 +485,24 @@ def punch(payload: PunchInOut, db: Session = Depends(get_db)):
             .order_by(AttendanceSession.check_in_utc.desc())
             .first()
         )
-        if not sess:
+        if not current_session:
             raise HTTPException(409, "No open session found for check-out.")
-        if payload.punched_at_utc < sess.check_in_utc:
+        # At this point current_session is guaranteed to be non-None due to the check above
+        assert current_session is not None
+        if payload.punched_at_utc < current_session.check_in_utc:
             raise HTTPException(400, "Checkout earlier than check-in.")
-        sess.check_out_utc = payload.punched_at_utc
+        current_session.check_out_utc = payload.punched_at_utc
         # Ensure local date remains from check-in day
-        sess.work_date_local = _local_date_ist(sess.check_in_utc)
+        current_session.work_date_local = _local_date_ist(current_session.check_in_utc)
         db.commit()
         # Rollup that day
-        rollup_day(db, payload.employee_id, sess.work_date_local)
+        rollup_day(db, payload.employee_id, current_session.work_date_local)
         db.commit()
-        return {"ok": True, "session_id": sess.id, "worked_seconds": _sum_session_seconds([sess])}
+        return {
+            "ok": True,
+            "session_id": current_session.id,
+            "worked_seconds": _sum_session_seconds([current_session]),
+        }
 
 
 class DailyQuery(BaseModel):
@@ -450,7 +523,9 @@ def get_daily(
     q = (
         db.query(AttendanceDay)
         .filter(AttendanceDay.employee_id == employee_id)
-        .filter(AttendanceDay.work_date_local >= start, AttendanceDay.work_date_local <= end)
+        .filter(
+            AttendanceDay.work_date_local >= start, AttendanceDay.work_date_local <= end
+        )
         .order_by(AttendanceDay.work_date_local.asc())
     )
     rows = q.all()
@@ -492,7 +567,10 @@ def admin_override_day(
 ):
     day = (
         db.query(AttendanceDay)
-        .filter(AttendanceDay.employee_id == employee_id, AttendanceDay.work_date_local == work_date)
+        .filter(
+            AttendanceDay.employee_id == employee_id,
+            AttendanceDay.work_date_local == work_date,
+        )
         .one_or_none()
     )
     if not day:
@@ -504,8 +582,16 @@ def admin_override_day(
         raise HTTPException(409, "Period locked. Cannot override.")
 
     # apply overrides
-    for field in ("status", "expected_seconds", "seconds_worked", "paid_leave_seconds",
-                  "overtime_seconds", "underwork_seconds", "unpaid_seconds", "leave_type_code"):
+    for field in (
+        "status",
+        "expected_seconds",
+        "seconds_worked",
+        "paid_leave_seconds",
+        "overtime_seconds",
+        "underwork_seconds",
+        "unpaid_seconds",
+        "leave_type_code",
+    ):
         val = getattr(payload, field)
         if val is not None:
             setattr(day, field, val)

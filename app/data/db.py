@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Generator, Any, Dict
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.pool import NullPool

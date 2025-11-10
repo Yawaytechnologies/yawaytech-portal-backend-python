@@ -23,7 +23,9 @@ class AttendanceRepository:
     # ─────────────────────────────
     # Sessions
     # ─────────────────────────────
-    def get_open_session(self, db: Session, employee_id: str) -> AttendanceSession | None:
+    def get_open_session(
+        self, db: Session, employee_id: str
+    ) -> AttendanceSession | None:
         """
         Return the most recent open session (check_out_utc is NULL) for an employee, if any.
         """
@@ -59,7 +61,9 @@ class AttendanceRepository:
         db.flush()  # get s.id
         return s
 
-    def close_session(self, db: Session, session: AttendanceSession, check_out_utc: datetime) -> None:
+    def close_session(
+        self, db: Session, session: AttendanceSession, check_out_utc: datetime
+    ) -> None:
         """
         Close an open session by setting check_out_utc.
         """
@@ -69,7 +73,9 @@ class AttendanceRepository:
     # ─────────────────────────────
     # Days
     # ─────────────────────────────
-    def get_day(self, db: Session, employee_id: str, work_date_local: date) -> AttendanceDay | None:
+    def get_day(
+        self, db: Session, employee_id: str, work_date_local: date
+    ) -> AttendanceDay | None:
         """
         Fetch the AttendanceDay row (one per employee per local date).
         """
@@ -215,13 +221,17 @@ class AttendanceRepository:
         db.flush()
         return m
 
-    def get_monitoring_for_employee(self, db: Session, employee_id: str) -> List[CheckInMonitoring]:
+    def get_monitoring_for_employee(
+        self, db: Session, employee_id: str
+    ) -> List[CheckInMonitoring]:
         """
         Returns monitoring records for an employee ordered by capture time (desc).
         """
         stmt = (
             select(CheckInMonitoring)
-            .join(AttendanceSession, CheckInMonitoring.session_id == AttendanceSession.id)
+            .join(
+                AttendanceSession, CheckInMonitoring.session_id == AttendanceSession.id
+            )
             .where(AttendanceSession.employee_id == employee_id)
             .order_by(CheckInMonitoring.monitored_at_utc.desc())
         )

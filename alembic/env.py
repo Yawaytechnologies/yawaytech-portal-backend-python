@@ -1,20 +1,23 @@
 # alembic/env.py
 from __future__ import annotations
-import os, sys
+import os
+import sys
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, pool
+from app.data.db import Base
 
 # ── Put project root on sys.path ───────────────────────────────────────────────
-HERE = os.path.dirname(__file__)                 # .../alembic
-ROOT = os.path.abspath(os.path.join(HERE, "..")) # project root (where 'app/' lives)
+HERE = os.path.dirname(__file__)  # .../alembic
+ROOT = os.path.abspath(os.path.join(HERE, ".."))  # project root (where 'app/' lives)
 if ROOT not in sys.path:
     sys.path.append(ROOT)
 
 # (optional) load .env so DATABASE_URL is available
 try:
     from dotenv import load_dotenv  # pip install python-dotenv
+
     load_dotenv()
 except Exception:
     pass
@@ -24,26 +27,17 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ── Import Base and **ALL** models so metadata is complete ────────────────────
-from app.data.db import Base
-
 # Core
-from app.data.models.add_employee import Employee
 
 # Attendance (models inside the feature module)
-from app.data.models.attendance import AttendanceSession, AttendanceDay, CheckInMonitoring
 
 # Policy (moved out of attendance.py)
-from app.data.models.policy import WorkweekPolicy, HolidayCalendar
 
 # Shifts
-from app.data.models.shifts import Shift, EmployeeShiftAssignment
 
 # Leave / Permission
-from app.data.models.leave import LeaveType, LeaveRequest, LeaveBalance
 
 # Payroll
-from app.data.models.payroll import EmployeeSalary, PayPeriod, PayrollRun, PayrollItem
 
 # Optional: day override audit
 # from app.data.models.attendance_override import AttendanceOverride
@@ -52,14 +46,21 @@ target_metadata = Base.metadata
 
 
 def _get_db_url() -> str:
-    return os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url") or \
-        (_ for _ in ()).throw(RuntimeError("Set DATABASE_URL or sqlalchemy.url in alembic.ini"))
+    return (
+        os.getenv("DATABASE_URL")
+        or config.get_main_option("sqlalchemy.url")
+        or (_ for _ in ()).throw(
+            RuntimeError("Set DATABASE_URL or sqlalchemy.url in alembic.ini")
+        )
+    )
+
 
 # Avoid accidental DROP TABLE when a model import is missing
 def _include_object(obj, name, type_, reflected, compare_to):
     if type_ == "table" and reflected and compare_to is None:
         return False
     return True
+
 
 # ── DEBUG: print loaded table names (helps verify imports are working) ─────────
 def _log_loaded_tables():
@@ -68,6 +69,7 @@ def _log_loaded_tables():
         print(f"[alembic] Loaded tables ({len(tables)}): {tables}")
     except Exception:
         pass
+
 
 # ── Offline migrations ────────────────────────────────────────────────────────
 def run_migrations_offline() -> None:
@@ -85,6 +87,7 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 # ── Online migrations ─────────────────────────────────────────────────────────
 def run_migrations_online() -> None:
     url = _get_db_url()
@@ -101,6 +104,7 @@ def run_migrations_online() -> None:
         )
         with context.begin_transaction():
             context.run_migrations()
+
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 if context.is_offline_mode():

@@ -35,7 +35,13 @@ def upgrade() -> None:
         sa.Column(
             "work_type",
             postgresql.ENUM(
-                "FEATURE", "BUG_FIX", "MEETING", "TRAINING", "SUPPORT", "OTHER", name="worktype"
+                "FEATURE",
+                "BUG_FIX",
+                "MEETING",
+                "TRAINING",
+                "SUPPORT",
+                "OTHER",
+                name="worktype",
             ),
             nullable=True,
         ),
@@ -45,10 +51,16 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column(
-            "created_at", postgresql.TIMESTAMP(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            postgresql.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", postgresql.TIMESTAMP(), server_default=sa.text("now()"), nullable=False
+            "updated_at",
+            postgresql.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.ForeignKeyConstraint(
             ["employee_id"],
@@ -58,8 +70,12 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("worklogs_pkey")),
     )
-    op.create_index(op.f("ix_worklogs_employee_id"), "worklogs", ["employee_id"], unique=False)
-    op.create_index(op.f("ix_worklogs_work_date"), "worklogs", ["work_date"], unique=False)
+    op.create_index(
+        op.f("ix_worklogs_employee_id"), "worklogs", ["employee_id"], unique=False
+    )
+    op.create_index(
+        op.f("ix_worklogs_work_date"), "worklogs", ["work_date"], unique=False
+    )
     # ### end Alembic commands ###
 
 

@@ -28,7 +28,11 @@ class AttendanceController:
 
     def check_out(self, db: Session, employee_id: str) -> CheckOutResponse:
         s = self.service.check_out(db, employee_id)
-        worked = int((s.check_out_utc - s.check_in_utc).total_seconds()) if s.check_out_utc else 0
+        worked = (
+            int((s.check_out_utc - s.check_in_utc).total_seconds())
+            if s.check_out_utc
+            else 0
+        )
         return CheckOutResponse(
             sessionId=s.id,
             employeeId=s.employee_id,
@@ -40,8 +44,12 @@ class AttendanceController:
     def today_status(self, db: Session, employee_id: str) -> TodayStatus:
         return TodayStatus(**self.service.today_status(db, employee_id))
 
-    def month_view(self, db: Session, employee_id: str, year: int, month: int) -> list[MonthDay]:
-        return [MonthDay(**d) for d in self.service.month_view(db, employee_id, year, month)]
+    def month_view(
+        self, db: Session, employee_id: str, year: int, month: int
+    ) -> list[MonthDay]:
+        return [
+            MonthDay(**d) for d in self.service.month_view(db, employee_id, year, month)
+        ]
 
     def get_employee_attendance(
         self,

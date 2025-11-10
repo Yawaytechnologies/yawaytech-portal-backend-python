@@ -45,7 +45,9 @@ class WorklogService:
     ) -> List[Worklog]:
         return self.repo.get_by_employee(self.db, employee_id, skip, limit)
 
-    def update_worklog(self, worklog_id: int, worklog_update: WorklogUpdate) -> Optional[Worklog]:
+    def update_worklog(
+        self, worklog_id: int, worklog_update: WorklogUpdate
+    ) -> Optional[Worklog]:
         worklog = self.repo.get_by_id(self.db, worklog_id)
         if not worklog:
             return None

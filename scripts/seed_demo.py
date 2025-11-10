@@ -35,7 +35,10 @@ def seed_data():
         # Seed Admin
         admin_password = hash_password("admin123")
         admin = Admin(
-            admin_id="admin", password_hash=admin_password, is_active=True, is_super_admin=True
+            admin_id="admin",
+            password_hash=admin_password,
+            is_active=True,
+            is_super_admin=True,
         )
         db.add(admin)
         print("Seeded admin")
@@ -144,8 +147,12 @@ def seed_data():
             # John Doe - today
             {
                 "employee_id": "EMP001",
-                "check_in_utc": datetime.combine(today, datetime.min.time().replace(hour=9)),
-                "check_out_utc": datetime.combine(today, datetime.min.time().replace(hour=17)),
+                "check_in_utc": datetime.combine(
+                    today, datetime.min.time().replace(hour=9)
+                ),
+                "check_out_utc": datetime.combine(
+                    today, datetime.min.time().replace(hour=17)
+                ),
                 "work_date_local": today,
             },
             # Jane Smith - today
@@ -183,8 +190,12 @@ def seed_data():
             employee_id="EMP001",
             work_date_local=today,
             seconds_worked=8 * 3600,  # 8 hours
-            first_check_in_utc=datetime.combine(today, datetime.min.time().replace(hour=9)),
-            last_check_out_utc=datetime.combine(today, datetime.min.time().replace(hour=17)),
+            first_check_in_utc=datetime.combine(
+                today, datetime.min.time().replace(hour=9)
+            ),
+            last_check_out_utc=datetime.combine(
+                today, datetime.min.time().replace(hour=17)
+            ),
             status="PRESENT",
         )
         db.add(day_today)

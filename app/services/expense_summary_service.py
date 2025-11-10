@@ -15,7 +15,9 @@ def get_total_expenses(db: Session) -> float:
 def get_yearly_expenses(db: Session) -> dict:
     year = date.today().year
     total = (
-        db.query(func.sum(Expense.amount)).filter(extract("year", Expense.date) == year).scalar()
+        db.query(func.sum(Expense.amount))
+        .filter(extract("year", Expense.date) == year)
+        .scalar()
     ) or 0.0
 
     return {"year": year, "total_expenses_this_year": round(total, 2)}
@@ -32,7 +34,11 @@ def get_monthly_expenses(db: Session) -> dict:
         .scalar()
     ) or 0.0
 
-    return {"year": today.year, "month": today.month, "total_expenses_this_month": round(total, 2)}
+    return {
+        "year": today.year,
+        "month": today.month,
+        "total_expenses_this_month": round(total, 2),
+    }
 
 
 def get_half_expenses(db: Session, year: int, half: str) -> dict:
@@ -72,7 +78,9 @@ def get_monthwise_expenses(db: Session, year: int, month: Optional[int] = None) 
 
     results = query.all()
 
-    monthly_totals = [{"month": int(month), "total": float(total)} for month, total in results]
+    monthly_totals = [
+        {"month": int(month), "total": float(total)} for month, total in results
+    ]
 
     return {"year": year, "monthly_totals": monthly_totals}
 
@@ -96,7 +104,9 @@ def get_weekly_expenses(db: Session, year: int, month: int) -> dict:
 
     results = query.all()
 
-    weekly_totals = [{"week": int(week), "total": float(total)} for week, total in results]
+    weekly_totals = [
+        {"week": int(week), "total": float(total)} for week, total in results
+    ]
 
     return {"year": year, "month": month, "weekly_totals": weekly_totals}
 

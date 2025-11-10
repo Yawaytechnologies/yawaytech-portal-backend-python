@@ -32,7 +32,9 @@ def get_worklogs_for_employee(
 
 
 @router.put("/{worklog_id}", response_model=Worklog)
-def update_worklog(worklog_id: int, worklog_update: WorklogUpdate, db: Session = Depends(get_db)):
+def update_worklog(
+    worklog_id: int, worklog_update: WorklogUpdate, db: Session = Depends(get_db)
+):
     worklog = controller.update_worklog(db, worklog_id, worklog_update)
     if not worklog:
         raise HTTPException(status_code=404, detail="Worklog not found")

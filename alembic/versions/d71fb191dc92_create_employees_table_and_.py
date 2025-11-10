@@ -33,7 +33,9 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=30), nullable=False),
         sa.Column("mobile_number", sa.String(length=10), nullable=False),
         sa.Column(
-            "marital_status", sa.Enum("SINGLE", "MARRIED", name="maritalstatus"), nullable=False
+            "marital_status",
+            sa.Enum("SINGLE", "MARRIED", name="maritalstatus"),
+            nullable=False,
         ),
         sa.Column("date_of_birth", sa.Date(), nullable=False),
         sa.Column("permanent_address", sa.Text(), nullable=False),
@@ -52,9 +54,13 @@ def upgrade() -> None:
         sa.UniqueConstraint("employee_id", name="uq_employee_employee_id"),
         sa.UniqueConstraint("mobile_number", name="uq_employee_mobile_number"),
     )
-    op.create_index(op.f("ix_employees_department"), "employees", ["department"], unique=False)
+    op.create_index(
+        op.f("ix_employees_department"), "employees", ["department"], unique=False
+    )
     op.create_index(op.f("ix_employees_email"), "employees", ["email"], unique=True)
-    op.create_index(op.f("ix_employees_employee_id"), "employees", ["employee_id"], unique=True)
+    op.create_index(
+        op.f("ix_employees_employee_id"), "employees", ["employee_id"], unique=True
+    )
     op.create_index(op.f("ix_employees_id"), "employees", ["id"], unique=False)
     # ### end Alembic commands ###
 

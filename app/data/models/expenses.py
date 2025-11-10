@@ -1,6 +1,16 @@
 from __future__ import annotations
 from enum import Enum
-from sqlalchemy import Column, Date, Float, Integer, String, Text, DateTime, Enum as SqlEnum, func
+from sqlalchemy import (
+    Column,
+    Date,
+    Float,
+    Integer,
+    String,
+    Text,
+    DateTime,
+    Enum as SqlEnum,
+    func,
+)
 from sqlalchemy.orm import Mapped
 
 from app.data.db import Base

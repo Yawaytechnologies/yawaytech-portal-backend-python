@@ -53,7 +53,9 @@ class Worklog(Base):
     start_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     end_time: Mapped[time | None] = mapped_column(Time, nullable=True)
 
-    duration_hours: Mapped[float | None] = mapped_column(Float, nullable=True)  # Auto-calculated
+    duration_hours: Mapped[float | None] = mapped_column(
+        Float, nullable=True
+    )  # Auto-calculated
 
     work_type: Mapped[WorkType | None] = mapped_column(SAEnum(WorkType), nullable=True)
 
@@ -61,7 +63,9 @@ class Worklog(Base):
         SAEnum(WorklogStatus), default=WorklogStatus.TODO, nullable=False
     )
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )

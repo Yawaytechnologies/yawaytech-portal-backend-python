@@ -2,7 +2,9 @@ import os
 from sqlalchemy.engine import make_url
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=r"D:\yawaytech-portal-backend\yawaytech-portal-backend-python\.env")
+load_dotenv(
+    dotenv_path=r"D:\yawaytech-portal-backend\yawaytech-portal-backend-python\.env"
+)
 
 url = os.getenv("DATABASE_URL", "").strip()
 print("RAW DATABASE_URL:", url)
