@@ -4,7 +4,7 @@ import os
 from logging.config import fileConfig
 from typing import Literal
 
-from alembic import context
+from alembic import context  # type: ignore[attr-defined]
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.sql.schema import SchemaItem
 
