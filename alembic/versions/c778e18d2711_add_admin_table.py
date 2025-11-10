@@ -55,7 +55,10 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("added_by", sa.String(length=100), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=True
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=True,
         ),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -82,7 +85,10 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        op.f("ix_attendance_days_employee_id"), "attendance_days", ["employee_id"], unique=False
+        op.f("ix_attendance_days_employee_id"),
+        "attendance_days",
+        ["employee_id"],
+        unique=False,
     )
     op.create_table(
         "attendance_sessions",
@@ -111,7 +117,10 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(
-        "ix_session_emp_open", "attendance_sessions", ["employee_id", "check_out_utc"], unique=False
+        "ix_session_emp_open",
+        "attendance_sessions",
+        ["employee_id", "check_out_utc"],
+        unique=False,
     )
     # ### end Alembic commands ###
 

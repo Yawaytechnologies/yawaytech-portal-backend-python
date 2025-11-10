@@ -33,7 +33,9 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=30), nullable=False),
         sa.Column("mobile_number", sa.String(length=10), nullable=False),
         sa.Column(
-            "marital_status", sa.Enum("SINGLE", "MARRIED", name="maritalstatus"), nullable=False
+            "marital_status",
+            sa.Enum("SINGLE", "MARRIED", name="maritalstatus"),
+            nullable=False,
         ),
         sa.Column("date_of_birth", sa.Date(), nullable=False),
         sa.Column("permanent_address", sa.Text(), nullable=False),

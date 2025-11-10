@@ -38,7 +38,11 @@ class EmployeeService:
         return db.scalar(select(Employee).where(Employee.employee_id == employee_id))
 
     def list_employees(
-        self, db: Session, q: Optional[str] = None, skip: int = 0, limit: Optional[int] = None
+        self,
+        db: Session,
+        q: Optional[str] = None,
+        skip: int = 0,
+        limit: Optional[int] = None,
     ) -> Tuple[List[Employee], int]:
         stmt = select(Employee)
         if q:

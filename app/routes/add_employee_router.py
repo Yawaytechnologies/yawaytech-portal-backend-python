@@ -1,7 +1,17 @@
 # app/routes/add_employee_router.py
 from __future__ import annotations
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, Path, status, Body, Form, File, UploadFile
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    status,
+    Body,
+    Form,
+    File,
+    UploadFile,
+)
 from sqlalchemy.orm import Session
 from datetime import date
 import base64
@@ -121,7 +131,8 @@ async def create_employee_with_form(
         # Validate required fields
         if not name or not father_name or not employee_id:
             raise HTTPException(
-                status_code=400, detail="Name, father name, and employee ID are required"
+                status_code=400,
+                detail="Name, father name, and employee ID are required",
             )
 
         # Convert date strings to date objects
@@ -153,7 +164,8 @@ async def create_employee_with_form(
                 file_content = await profile_picture.read()
                 if len(file_content) > 5 * 1024 * 1024:  # 5MB limit
                     raise HTTPException(
-                        status_code=400, detail="File size too large. Maximum 5MB allowed."
+                        status_code=400,
+                        detail="File size too large. Maximum 5MB allowed.",
                     )
 
                 # Validate file type
@@ -171,7 +183,8 @@ async def create_employee_with_form(
                 raise  # Re-raise HTTP exceptions
             except Exception as e:
                 raise HTTPException(
-                    status_code=400, detail=f"Error processing profile picture: {str(e)}"
+                    status_code=400,
+                    detail=f"Error processing profile picture: {str(e)}",
                 )
 
         # Create EmployeeCreate object
@@ -262,7 +275,8 @@ async def update_employee_with_form(
                 file_content = await profile_picture.read()
                 if len(file_content) > 5 * 1024 * 1024:  # 5MB limit
                     raise HTTPException(
-                        status_code=400, detail="File size too large. Maximum 5MB allowed."
+                        status_code=400,
+                        detail="File size too large. Maximum 5MB allowed.",
                     )
 
                 # Validate file type
@@ -280,7 +294,8 @@ async def update_employee_with_form(
                 raise  # Re-raise HTTP exceptions
             except Exception as e:
                 raise HTTPException(
-                    status_code=400, detail=f"Error processing profile picture: {str(e)}"
+                    status_code=400,
+                    detail=f"Error processing profile picture: {str(e)}",
                 )
 
         # Create EmployeeUpdate object

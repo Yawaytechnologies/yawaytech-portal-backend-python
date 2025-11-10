@@ -271,7 +271,7 @@ class EmployeeUpdateForm:
             mobile_number=self.mobile_number,
             pan_number=self.pan_number,
             aadhar_number=self.aadhar_number,
-            marital_status=MaritalStatus(self.marital_status) if self.marital_status else None,
+            marital_status=(MaritalStatus(self.marital_status) if self.marital_status else None),
             date_of_birth=date_of_birth,
             password=self.password,
             permanent_address=self.permanent_address,
