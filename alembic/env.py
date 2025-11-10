@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import os
 from logging.config import fileConfig
-from typing import Any, Optional, Literal
+from typing import Literal
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.sql.schema import SchemaItem
-from sqlalchemy.engine import Connection
-from sqlalchemy.engine.url import URL
 
 # Alembic Config object, provides access to .ini values
 config = context.config
