@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 
 from typing import List, Optional
 
+from app.data.models.attendance import DayStatus
+
 
 class CheckInResponse(BaseModel):
     sessionId: int
@@ -39,7 +41,7 @@ class AttendanceDayItem(BaseModel):
     work_date_local: date
     seconds_worked: int = 0
     hours_worked: str = Field(..., description="HH:MM")
-    status: str  # PRESENT | ABSENT
+    status: DayStatus
     first_check_in_utc: Optional[datetime] = None
     last_check_out_utc: Optional[datetime] = None
 

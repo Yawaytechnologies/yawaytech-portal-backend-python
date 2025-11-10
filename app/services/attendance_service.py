@@ -11,6 +11,7 @@ from fastapi import HTTPException
 
 from app.data.repositories.attendance_repository import AttendanceRepository
 from app.data.models.add_employee import Employee
+from app.data.models.attendance import DayStatus
 from app.schemas.attendance import (
     EmployeeAttendanceResponse,
     AttendanceDayItem,
@@ -168,12 +169,11 @@ class AttendanceService:
         # Map existing days by date for quick lookup
         by_date: Dict[date, AttendanceDayItem] = {}
         for r in rows:
-            status = "PRESENT" if (r.seconds_worked or 0) > 0 else "ABSENT"
             by_date[r.work_date_local] = AttendanceDayItem(
                 work_date_local=r.work_date_local,
                 seconds_worked=r.seconds_worked or 0,
                 hours_worked=_to_hours_minutes(r.seconds_worked or 0),
-                status=status,
+                status=r.status,
                 first_check_in_utc=r.first_check_in_utc,
                 last_check_out_utc=r.last_check_out_utc,
             )
@@ -191,15 +191,15 @@ class AttendanceService:
                             work_date_local=cursor,
                             seconds_worked=0,
                             hours_worked=_to_hours_minutes(0),
-                            status="ABSENT",
+                            status=DayStatus.ABSENT,
                             first_check_in_utc=None,
                             last_check_out_utc=None,
                         )
                     )
             cursor = cursor + timedelta(days=1)
 
-        present_days = sum(1 for it in items if it.status == "PRESENT")
-        absent_days = sum(1 for it in items if it.status == "ABSENT")
+        present_days = sum(1 for it in items if it.status == DayStatus.PRESENT)
+        absent_days = sum(1 for it in items if it.status == DayStatus.ABSENT)
 
         return EmployeeAttendanceResponse(
             employee_id=employee_id,
@@ -367,8 +367,7 @@ class AttendanceService:
             if r:
                 sw = r.seconds_worked or 0
                 total_seconds += sw
-                status = "PRESENT" if sw > 0 else "ABSENT"
-                if status == "PRESENT":
+                if r.status == DayStatus.PRESENT:
                     present_days += 1
                 else:
                     absent_days += 1
@@ -377,7 +376,7 @@ class AttendanceService:
                         work_date_local=cursor,
                         seconds_worked=sw,
                         hours_worked=_to_hours_minutes(sw),
-                        status=status,
+                        status=r.status,
                         first_check_in_utc=r.first_check_in_utc,
                         last_check_out_utc=r.last_check_out_utc,
                     )
@@ -391,7 +390,7 @@ class AttendanceService:
                             work_date_local=cursor,
                             seconds_worked=0,
                             hours_worked=_to_hours_minutes(0),
-                            status="ABSENT",
+                            status=DayStatus.ABSENT,
                             first_check_in_utc=None,
                             last_check_out_utc=None,
                         )

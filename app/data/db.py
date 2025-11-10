@@ -80,17 +80,18 @@ Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 # ---------- Startup probe ----------
-try:
-    with engine.connect() as conn:
-        try:
-            who = conn.execute(text("select current_user")).scalar()
-            ssl = conn.execute(text("show ssl")).scalar()
-            print(f"[DB] current_user: {who} | ssl={ssl}")
-        except Exception:
-            one = conn.execute(text("select 1")).scalar()
-            print(f"[DB] sqlite probe -> SELECT 1 = {one}")
-except Exception as e:
-    print(f"[DB] startup probe error: {e}")
+# Commented out to speed up startup
+# try:
+#     with engine.connect() as conn:
+#         try:
+#             who = conn.execute(text("select current_user")).scalar()
+#             ssl = conn.execute(text("show ssl")).scalar()
+#             print(f"[DB] current_user: {who} | ssl={ssl}")
+#         except Exception:
+#             one = conn.execute(text("select 1")).scalar()
+#             print(f"[DB] sqlite probe -> SELECT 1 = {one}")
+# except Exception as e:
+#     print(f"[DB] startup probe error: {e}")
 
 
 # ---------- FastAPI dependency ----------

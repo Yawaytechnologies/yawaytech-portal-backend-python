@@ -1,63 +1,108 @@
-import sys
-import os
+# alembic/env.py
+from __future__ import annotations
+import os, sys
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import create_engine, pool
-from alembic import context  # type: ignore[attr-defined]
-from app.data.db import Base
 
-# ─── Ensure Alembic can find your app ───────────────────────────────────────────
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# ── Put project root on sys.path ───────────────────────────────────────────────
+HERE = os.path.dirname(__file__)                 # .../alembic
+ROOT = os.path.abspath(os.path.join(HERE, "..")) # project root (where 'app/' lives)
+if ROOT not in sys.path:
+    sys.path.append(ROOT)
 
-# ─── Alembic Config ─────────────────────────────────────────────────────────────
+# (optional) load .env so DATABASE_URL is available
+try:
+    from dotenv import load_dotenv  # pip install python-dotenv
+    load_dotenv()
+except Exception:
+    pass
+
+# ── Alembic config & logging ──────────────────────────────────────────────────
 config = context.config
-
-# ─── Logging Setup ──────────────────────────────────────────────────────────────
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ─── Import your models and metadata ────────────────────────────────────────────
+# ── Import Base and **ALL** models so metadata is complete ────────────────────
+from app.data.db import Base
 
-# Explicitly import all models so Alembic can detect them
+# Core
+from app.data.models.add_employee import Employee
+
+# Attendance (models inside the feature module)
+from app.data.models.attendance import AttendanceSession, AttendanceDay, CheckInMonitoring
+
+# Policy (moved out of attendance.py)
+from app.data.models.policy import WorkweekPolicy, HolidayCalendar
+
+# Shifts
+from app.data.models.shifts import Shift, EmployeeShiftAssignment
+
+# Leave / Permission
+from app.data.models.leave import LeaveType, LeaveRequest, LeaveBalance
+
+# Payroll
+from app.data.models.payroll import EmployeeSalary, PayPeriod, PayrollRun, PayrollItem
+
+# Optional: day override audit
+# from app.data.models.attendance_override import AttendanceOverride
 
 target_metadata = Base.metadata
 
 
-# ─── Offline Migrations ─────────────────────────────────────────────────────────
+def _get_db_url() -> str:
+    return os.getenv("DATABASE_URL") or config.get_main_option("sqlalchemy.url") or \
+        (_ for _ in ()).throw(RuntimeError("Set DATABASE_URL or sqlalchemy.url in alembic.ini"))
+
+# Avoid accidental DROP TABLE when a model import is missing
+def _include_object(obj, name, type_, reflected, compare_to):
+    if type_ == "table" and reflected and compare_to is None:
+        return False
+    return True
+
+# ── DEBUG: print loaded table names (helps verify imports are working) ─────────
+def _log_loaded_tables():
+    try:
+        tables = sorted(target_metadata.tables.keys())
+        print(f"[alembic] Loaded tables ({len(tables)}): {tables}")
+    except Exception:
+        pass
+
+# ── Offline migrations ────────────────────────────────────────────────────────
 def run_migrations_offline() -> None:
-    url = os.getenv("DATABASE_URL")
-    if not url:
-        raise ValueError("DATABASE_URL environment variable not set")
+    url = _get_db_url()
+    _log_loaded_tables()
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
+        compare_server_default=True,
+        include_object=_include_object,
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
-
-# ─── Online Migrations ──────────────────────────────────────────────────────────
+# ── Online migrations ─────────────────────────────────────────────────────────
 def run_migrations_online() -> None:
-    database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        raise ValueError("DATABASE_URL environment variable not set")
-
-    connectable = create_engine(database_url, poolclass=pool.NullPool)
+    url = _get_db_url()
+    connectable = create_engine(url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
+        _log_loaded_tables()
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
+            include_object=_include_object,
         )
-
         with context.begin_transaction():
             context.run_migrations()
 
-
-# ─── Entry Point ────────────────────────────────────────────────────────────────
+# ── Entry point ───────────────────────────────────────────────────────────────
 if context.is_offline_mode():
     run_migrations_offline()
 else:

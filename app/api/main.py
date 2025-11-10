@@ -22,23 +22,7 @@ from app.routes.worklog_router import router as worklog_router
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    try:
-        with engine.connect() as conn:
-            try:
-                who = conn.execute(text("select current_user")).scalar()
-            except Exception as e:
-                who = f"error: {e}"
-
-            try:
-                ssl = conn.execute(text("show ssl")).scalar()
-            except Exception:
-                ssl = "N/A"
-
-            print(f"[DB] current_user at startup: {who} | ssl={ssl}")
-    except Exception as e:
-        print(f"[DB] startup identity check failed: {e}")
-    finally:
-        yield  # ✅ Always yield, even if errors occurred
+    yield  # Start the app immediately without DB checks
 
 
 app = FastAPI(
