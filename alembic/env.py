@@ -1,50 +1,35 @@
-# alembic/env.py
 from __future__ import annotations
+
 import os
-import sys
 from logging.config import fileConfig
+from typing import Any, Optional, Literal
 
 from alembic import context
-from sqlalchemy import create_engine, pool
-from app.data.db import Base
+from sqlalchemy import engine_from_config, pool
+from sqlalchemy.sql.schema import SchemaItem
+from sqlalchemy.engine import Connection
+from sqlalchemy.engine.url import URL
 
-# ── Put project root on sys.path ───────────────────────────────────────────────
-HERE = os.path.dirname(__file__)  # .../alembic
-ROOT = os.path.abspath(os.path.join(HERE, ".."))  # project root (where 'app/' lives)
-if ROOT not in sys.path:
-    sys.path.append(ROOT)
-
-# (optional) load .env so DATABASE_URL is available
-try:
-    from dotenv import load_dotenv  # pip install python-dotenv
-
-    load_dotenv()
-except Exception:
-    pass
-
-# ── Alembic config & logging ──────────────────────────────────────────────────
+# Alembic Config object, provides access to .ini values
 config = context.config
+
+# Configure Python logging via alembic.ini if present
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Core
+# --- target metadata ---------------------------------------------------------
+# Import your SQLAlchemy Base here so autogenerate works.
+# Adjust the import to wherever your Base lives.
+try:
+    # e.g., from app.data.models.base import Base
+    from app.data.models.add_employee import Base  # type: ignore
 
-# Attendance (models inside the feature module)
-
-# Policy (moved out of attendance.py)
-
-# Shifts
-
-# Leave / Permission
-
-# Payroll
-
-# Optional: day override audit
-# from app.data.models.attendance_override import AttendanceOverride
-
-target_metadata = Base.metadata
+    target_metadata = Base.metadata  # type: ignore[attr-defined]
+except Exception:
+    target_metadata = None  # type: ignore[assignment]
 
 
+# --- helpers -----------------------------------------------------------------
 def _get_db_url() -> str:
     return (
         os.getenv("DATABASE_URL")
@@ -53,58 +38,66 @@ def _get_db_url() -> str:
     )
 
 
-# Avoid accidental DROP TABLE when a model import is missing
-def _include_object(obj, name, type_, reflected, compare_to):
-    if type_ == "table" and reflected and compare_to is None:
-        return False
+def _include_object(
+    obj: "SchemaItem",
+    name: str | None,
+    type_: Literal[
+        "schema", "table", "column", "index", "unique_constraint", "foreign_key_constraint"
+    ],
+    reflected: bool,
+    compare_to: "SchemaItem | None",
+) -> bool:
+    """
+    Optional: Protect against accidental table drops when a model import is missing.
+    Keep this if you were already using something similar.
+    """
+    # Example pass-through: always include objects
     return True
 
 
-# ── DEBUG: print loaded table names (helps verify imports are working) ─────────
-def _log_loaded_tables():
-    try:
-        tables = sorted(target_metadata.tables.keys())
-        print(f"[alembic] Loaded tables ({len(tables)}): {tables}")
-    except Exception:
-        pass
-
-
-# ── Offline migrations ────────────────────────────────────────────────────────
+# --- offline / online run modes ----------------------------------------------
 def run_migrations_offline() -> None:
-    url = _get_db_url()
-    _log_loaded_tables()
+    """Run migrations in 'offline' mode (no DB connection)."""
+    url: str = _get_db_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=_include_object,  # keep if you use it
         compare_type=True,
         compare_server_default=True,
-        include_object=_include_object,
     )
+
     with context.begin_transaction():
         context.run_migrations()
 
 
-# ── Online migrations ─────────────────────────────────────────────────────────
 def run_migrations_online() -> None:
-    url = _get_db_url()
-    connectable = create_engine(url, poolclass=pool.NullPool)
+    """Run migrations in 'online' mode (actual DB connection)."""
+    configuration = config.get_section(config.config_ini_section) or {}
+    configuration["sqlalchemy.url"] = _get_db_url()
+
+    connectable = engine_from_config(
+        configuration,
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+        future=True,
+    )
 
     with connectable.connect() as connection:
-        _log_loaded_tables()
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            include_object=_include_object,  # keep if you use it
             compare_type=True,
             compare_server_default=True,
-            include_object=_include_object,
         )
+
         with context.begin_transaction():
             context.run_migrations()
 
 
-# ── Entry point ───────────────────────────────────────────────────────────────
 if context.is_offline_mode():
     run_migrations_offline()
 else:
