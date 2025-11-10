@@ -25,9 +25,7 @@ def check_in(employeeId: str = Query(..., min_length=1), db: Session = Depends(g
 
 
 @router.post("/check-out", response_model=CheckOutResponse)
-def check_out(
-    employeeId: str = Query(..., min_length=1), db: Session = Depends(get_db)
-):
+def check_out(employeeId: str = Query(..., min_length=1), db: Session = Depends(get_db)):
     return controller.check_out(db, employeeId)
 
 
@@ -53,12 +51,8 @@ def month(
 )
 def get_employee_attendance_days(
     employee_id: str,
-    date_from: date = Query(
-        ..., description="Inclusive start date (YYYY-MM-DD, local IST date)"
-    ),
-    date_to: date = Query(
-        ..., description="Inclusive end date (YYYY-MM-DD, local IST date)"
-    ),
+    date_from: date = Query(..., description="Inclusive start date (YYYY-MM-DD, local IST date)"),
+    date_to: date = Query(..., description="Inclusive end date (YYYY-MM-DD, local IST date)"),
     include_absent: bool = Query(True, description="Fill missing days as ABSENT"),
     db: Session = Depends(get_db),
 ):
@@ -84,15 +78,9 @@ def get_employee_attendance_days(
 def get_employee_attendance_months(
     employee_id: str,
     year: int = Query(..., ge=1900, le=3000),
-    include_absent: bool = Query(
-        True, description="Treat missing calendar days as ABSENT"
-    ),
-    working_days_only: bool = Query(
-        False, description="Only count Mon–Fri for absence fill"
-    ),
-    cap_to_today: bool = Query(
-        True, description="For current month, count only until today"
-    ),
+    include_absent: bool = Query(True, description="Treat missing calendar days as ABSENT"),
+    working_days_only: bool = Query(False, description="Only count Mon–Fri for absence fill"),
+    cap_to_today: bool = Query(True, description="For current month, count only until today"),
     db: Session = Depends(get_db),
 ):
     try:
@@ -138,9 +126,7 @@ def get_employee_month_report(
     month: int = Query(..., ge=1, le=12),
     include_absent: bool = Query(True, description="Fill missing days as ABSENT"),
     working_days_only: bool = Query(False, description="Ignore weekends entirely"),
-    cap_to_today: bool = Query(
-        True, description="For current month, count only up to today"
-    ),
+    cap_to_today: bool = Query(True, description="For current month, count only up to today"),
     db: Session = Depends(get_db),
 ) -> EmployeeMonthlyAttendanceResponse:
     try:

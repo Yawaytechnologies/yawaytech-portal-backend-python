@@ -37,16 +37,12 @@ class Employee(Base):
     name: Mapped[str] = mapped_column(String(30), nullable=False)
     father_name: Mapped[str] = mapped_column(String(30), nullable=False)
 
-    employee_id: Mapped[str] = mapped_column(
-        String(9), nullable=False, unique=True, index=True
-    )
+    employee_id: Mapped[str] = mapped_column(String(9), nullable=False, unique=True, index=True)
 
     date_of_joining: Mapped[date] = mapped_column(Date, nullable=False)
     date_of_leaving: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    email: Mapped[str] = mapped_column(
-        String(30), nullable=False, unique=True, index=True
-    )
+    email: Mapped[str] = mapped_column(String(30), nullable=False, unique=True, index=True)
     mobile_number: Mapped[str] = mapped_column(String(10), nullable=False)
     pan_number: Mapped[str | None] = mapped_column(
         String(10), unique=True, index=True, nullable=True
@@ -55,23 +51,17 @@ class Employee(Base):
         String(12), unique=True, index=True, nullable=True
     )
 
-    marital_status: Mapped[MaritalStatus] = mapped_column(
-        SAEnum(MaritalStatus), nullable=False
-    )
+    marital_status: Mapped[MaritalStatus] = mapped_column(SAEnum(MaritalStatus), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
 
     permanent_address: Mapped[str] = mapped_column(Text, nullable=False)
 
     designation: Mapped[str] = mapped_column(String(30), nullable=False)
-    department: Mapped[Department] = mapped_column(
-        SAEnum(Department), nullable=False, index=True
-    )
+    department: Mapped[Department] = mapped_column(SAEnum(Department), nullable=False, index=True)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=datetime.utcnow
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
     )

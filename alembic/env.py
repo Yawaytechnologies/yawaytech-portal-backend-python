@@ -49,9 +49,7 @@ def _get_db_url() -> str:
     return (
         os.getenv("DATABASE_URL")
         or config.get_main_option("sqlalchemy.url")
-        or (_ for _ in ()).throw(
-            RuntimeError("Set DATABASE_URL or sqlalchemy.url in alembic.ini")
-        )
+        or (_ for _ in ()).throw(RuntimeError("Set DATABASE_URL or sqlalchemy.url in alembic.ini"))
     )
 
 

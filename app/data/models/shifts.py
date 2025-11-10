@@ -22,19 +22,13 @@ class Shift(Base):
     __tablename__ = "shifts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(
-        String(30), nullable=False, unique=True, index=True
-    )
+    name: Mapped[str] = mapped_column(String(30), nullable=False, unique=True, index=True)
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
-    total_hours: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=8
-    )  # 8h baseline
+    total_hours: Mapped[int] = mapped_column(Integer, nullable=False, default=8)  # 8h baseline
     is_night: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
-    __table_args__ = (
-        CheckConstraint("total_hours BETWEEN 1 AND 24", name="ck_shift_total_hours"),
-    )
+    __table_args__ = (CheckConstraint("total_hours BETWEEN 1 AND 24", name="ck_shift_total_hours"),)
 
 
 class EmployeeShiftAssignment(Base):
@@ -66,9 +60,7 @@ class EmployeeShiftAssignment(Base):
             "(effective_to IS NULL) OR (effective_to >= effective_from)",
             name="ck_shift_assign_range",
         ),
-        UniqueConstraint(
-            "employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"
-        ),
+        UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
     )
 
     # Postgres overlap guard (migration):

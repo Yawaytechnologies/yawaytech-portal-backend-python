@@ -90,9 +90,7 @@ class AttendanceService:
             first_midnight_local = datetime.combine(
                 start_local.date() + timedelta(days=1), datetime.min.time(), tzinfo=IST
             )
-            first_day_end_utc = first_midnight_local.astimezone(
-                sess.check_in_utc.tzinfo
-            )
+            first_day_end_utc = first_midnight_local.astimezone(sess.check_in_utc.tzinfo)
 
             # allocate to first day
             self.repo.close_session(db, sess, first_day_end_utc)
@@ -473,9 +471,7 @@ class AttendanceService:
         now = datetime.now()
         cutoff_time = now - timedelta(hours=hours_back)
 
-        logger.info(
-            f"Starting browser history retrieval for platform: {platform.system()}"
-        )
+        logger.info(f"Starting browser history retrieval for platform: {platform.system()}")
 
         # Browser history paths for different OS
         history_paths = []
@@ -493,9 +489,7 @@ class AttendanceService:
             history_paths.append((chrome_path, "Chrome"))
 
             # Firefox
-            firefox_path = (
-                Path(os.environ.get("APPDATA", "")) / "Mozilla" / "Firefox" / "Profiles"
-            )
+            firefox_path = Path(os.environ.get("APPDATA", "")) / "Mozilla" / "Firefox" / "Profiles"
             if firefox_path.exists():
                 for profile_dir in firefox_path.iterdir():
                     if profile_dir.is_dir():
@@ -517,10 +511,7 @@ class AttendanceService:
 
             # Opera
             opera_path = (
-                Path(os.environ.get("APPDATA", ""))
-                / "Opera Software"
-                / "Opera Stable"
-                / "History"
+                Path(os.environ.get("APPDATA", "")) / "Opera Software" / "Opera Stable" / "History"
             )
             history_paths.append((opera_path, "Opera"))
 
@@ -549,9 +540,7 @@ class AttendanceService:
             history_paths.append((chrome_path, "Chrome"))
 
             # Firefox
-            firefox_path = (
-                Path.home() / "Library" / "Application Support" / "Firefox" / "Profiles"
-            )
+            firefox_path = Path.home() / "Library" / "Application Support" / "Firefox" / "Profiles"
             if firefox_path.exists():
                 for profile_dir in firefox_path.iterdir():
                     if profile_dir.is_dir() and profile_dir.name.endswith(".default"):
@@ -566,9 +555,7 @@ class AttendanceService:
 
         elif platform.system() == "Linux":
             # Chrome/Chromium
-            chrome_path = (
-                Path.home() / ".config" / "google-chrome" / "Default" / "History"
-            )
+            chrome_path = Path.home() / ".config" / "google-chrome" / "Default" / "History"
             history_paths.append((chrome_path, "Chrome"))
 
             # Firefox
@@ -613,9 +600,7 @@ class AttendanceService:
                     if browser_name in ["Chrome", "Edge"]:
                         # Chrome/Edge history query
                         # Chrome stores timestamps as microseconds since 1601-01-01
-                        chrome_epoch_offset = (
-                            11644473600  # seconds from 1601-01-01 to 1970-01-01
-                        )
+                        chrome_epoch_offset = 11644473600  # seconds from 1601-01-01 to 1970-01-01
                         cutoff_microseconds = int(
                             (cutoff_time.timestamp() + chrome_epoch_offset) * 1000000
                         )
@@ -632,16 +617,12 @@ class AttendanceService:
                         )
 
                         rows = cursor.fetchall()
-                        logger.info(
-                            f"Retrieved {len(rows)} rows from {browser_name} history"
-                        )
+                        logger.info(f"Retrieved {len(rows)} rows from {browser_name} history")
                         for row in rows:
                             url, title, timestamp = row
                             # Convert Chrome timestamp to Unix timestamp
                             unix_timestamp = (timestamp / 1000000) - chrome_epoch_offset
-                            visited_at = datetime.fromtimestamp(
-                                unix_timestamp
-                            ).isoformat()
+                            visited_at = datetime.fromtimestamp(unix_timestamp).isoformat()
                             visited_sites.append(
                                 {
                                     "url": url,
@@ -665,14 +646,10 @@ class AttendanceService:
                         )  # Firefox uses microseconds
 
                         rows = cursor.fetchall()
-                        logger.info(
-                            f"Retrieved {len(rows)} rows from {browser_name} history"
-                        )
+                        logger.info(f"Retrieved {len(rows)} rows from {browser_name} history")
                         for row in rows:
                             url, title, timestamp = row
-                            visited_at = datetime.fromtimestamp(
-                                timestamp / 1000000
-                            ).isoformat()
+                            visited_at = datetime.fromtimestamp(timestamp / 1000000).isoformat()
                             visited_sites.append(
                                 {
                                     "url": url,
@@ -696,9 +673,7 @@ class AttendanceService:
                         )  # Safari uses seconds since 2001-01-01
 
                         rows = cursor.fetchall()
-                        logger.info(
-                            f"Retrieved {len(rows)} rows from {browser_name} history"
-                        )
+                        logger.info(f"Retrieved {len(rows)} rows from {browser_name} history")
                         for row in rows:
                             url, title, timestamp = row
                             visited_at = datetime.fromtimestamp(timestamp).isoformat()
@@ -754,10 +729,7 @@ class AttendanceService:
         active_apps = []
         for proc in psutil.process_iter(["pid", "name", "username"]):
             try:
-                if (
-                    proc.info["username"]
-                    and "system" not in proc.info["username"].lower()
-                ):
+                if proc.info["username"] and "system" not in proc.info["username"].lower():
                     active_apps.append(proc.info["name"])
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue

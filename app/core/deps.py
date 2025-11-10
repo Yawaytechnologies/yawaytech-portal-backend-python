@@ -11,9 +11,7 @@ admin_repo = AdminRepository()
 employee_repo = EmployeeRepository()
 
 
-def get_current_admin(
-    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
-):
+def get_current_admin(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_token(token)
         admin_id = payload.get("sub")
@@ -38,9 +36,7 @@ def require_super_admin(current=Depends(get_current_admin)):
     return current
 
 
-def get_current_employee(
-    db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)
-):
+def get_current_employee(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     try:
         payload = decode_token(token)
         employee_id = payload.get("sub")

@@ -44,11 +44,7 @@ class WorklogRepository:
             .filter(Worklog.employee_id == employee_id)
             .scalar()
         )
-        count = (
-            db.query(func.count(Worklog.id))
-            .filter(Worklog.employee_id == employee_id)
-            .scalar()
-        )
+        count = db.query(func.count(Worklog.id)).filter(Worklog.employee_id == employee_id).scalar()
         return {"total_hours": total_hours or 0, "worklogs_count": count or 0}
 
     # Removed get_pending_approvals method as reviewer_id is removed

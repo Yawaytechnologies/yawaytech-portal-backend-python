@@ -52,13 +52,9 @@ class LeaveType(Base):
     )
     is_paid: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     allow_half_day: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    allow_permission_hours: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    allow_permission_hours: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    __table_args__ = (
-        CheckConstraint("code ~ '^[A-Z]{2,16}$'", name="ck_leave_type_code"),
-    )
+    __table_args__ = (CheckConstraint("code ~ '^[A-Z]{2,16}$'", name="ck_leave_type_code"),)
 
 
 class LeaveRequest(Base):
@@ -98,18 +94,14 @@ class LeaveRequest(Base):
     approver_employee_id: Mapped[Optional[str]] = mapped_column(
         String(9), ForeignKey("employees.employee_id"), nullable=True
     )
-    decided_at: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    decided_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     reason: Mapped[Optional[str]] = mapped_column(String(200))
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    __table_args__ = (
-        CheckConstraint("end_datetime >= start_datetime", name="ck_leave_req_range"),
-    )
+    __table_args__ = (CheckConstraint("end_datetime >= start_datetime", name="ck_leave_req_range"),)
 
 
 class LeaveBalance(Base):

@@ -47,12 +47,8 @@ class EmployeeSalary(Base):
     )
 
     # MONTHLY or HOURLY
-    salary_type: Mapped[str] = mapped_column(
-        String(8), nullable=False, default="MONTHLY"
-    )
-    base_amount: Mapped[float] = mapped_column(
-        Numeric(12, 2), nullable=False
-    )  # e.g., 57000.00
+    salary_type: Mapped[str] = mapped_column(String(8), nullable=False, default="MONTHLY")
+    base_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)  # e.g., 57000.00
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="INR")
 
     effective_from: Mapped[date] = mapped_column(Date, nullable=False, index=True)
@@ -70,9 +66,7 @@ class EmployeeSalary(Base):
 
     __table_args__ = (
         Index("ix_emp_salary_emp_from", "employee_id", "effective_from"),
-        CheckConstraint(
-            "salary_type IN ('MONTHLY','HOURLY')", name="ck_emp_salary_type"
-        ),
+        CheckConstraint("salary_type IN ('MONTHLY','HOURLY')", name="ck_emp_salary_type"),
     )
 
     # RECOMMENDED (migration note):
@@ -117,9 +111,7 @@ class PayPeriod(Base):
         nullable=False,
     )
 
-    __table_args__ = (
-        CheckConstraint("start_date <= end_date", name="ck_period_range"),
-    )
+    __table_args__ = (CheckConstraint("start_date <= end_date", name="ck_period_range"),)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -143,9 +135,7 @@ class PayrollRun(Base):
         index=True,
         nullable=False,
     )
-    run_no: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1
-    )  # e.g., 1,2,3...
+    run_no: Mapped[int] = mapped_column(Integer, nullable=False, default=1)  # e.g., 1,2,3...
     run_status: Mapped[str] = mapped_column(
         String(16), nullable=False, default="Draft"
     )  # Draft/Finalized
@@ -191,51 +181,33 @@ class PayrollItem(Base):
     )
 
     # Cached context for audit/replay
-    salary_type: Mapped[str] = mapped_column(
-        String(8), nullable=False
-    )  # MONTHLY|HOURLY
-    base_amount: Mapped[float] = mapped_column(
-        Numeric(12, 2), nullable=False
-    )  # the version used
+    salary_type: Mapped[str] = mapped_column(String(8), nullable=False)  # MONTHLY|HOURLY
+    base_amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)  # the version used
     currency: Mapped[str] = mapped_column(String(3), nullable=False, default="INR")
 
     # Rates derived during calculation (cache them)
     standard_workdays: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0
     )  # working weekdays minus paid holidays
-    per_day_rate: Mapped[float] = mapped_column(
-        Numeric(12, 2), nullable=False, default=0
-    )
-    per_hour_rate: Mapped[float] = mapped_column(
-        Numeric(12, 2), nullable=False, default=0
-    )
-    ot_multiplier: Mapped[float] = mapped_column(
-        Numeric(5, 2), nullable=False, default=1.50
-    )
+    per_day_rate: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
+    per_hour_rate: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False, default=0)
+    ot_multiplier: Mapped[float] = mapped_column(Numeric(5, 2), nullable=False, default=1.50)
 
     # Summaries taken from attendance_days rollups
     paid_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     unpaid_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    underwork_hours: Mapped[float] = mapped_column(
-        Numeric(8, 2), nullable=False, default=0
-    )
-    overtime_hours: Mapped[float] = mapped_column(
-        Numeric(8, 2), nullable=False, default=0
-    )
+    underwork_hours: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False, default=0)
+    overtime_hours: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False, default=0)
 
     # Money
-    gross_earnings: Mapped[float] = mapped_column(
-        Numeric(12, 2), nullable=False
-    )  # components + OT
+    gross_earnings: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)  # components + OT
     total_deductions: Mapped[float] = mapped_column(
         Numeric(12, 2), nullable=False
     )  # underwork/unpaid/others
     net_pay: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
 
     # Human-readable split (OT ₹, Unpaid ₹, Underwork ₹, Bonus, Advance, etc.)
-    breakdown_json: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, server_default="{}"
-    )
+    breakdown_json: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
 
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -244,9 +216,7 @@ class PayrollItem(Base):
     run: Mapped["PayrollRun"] = relationship("PayrollRun", viewonly=True)
 
     __table_args__ = (
-        UniqueConstraint(
-            "payroll_run_id", "employee_id", name="uq_payroll_items_run_emp"
-        ),
+        UniqueConstraint("payroll_run_id", "employee_id", name="uq_payroll_items_run_emp"),
         CheckConstraint("gross_earnings >= 0", name="ck_payroll_items_gross_nonneg"),
         CheckConstraint("total_deductions >= 0", name="ck_payroll_items_ded_nonneg"),
         CheckConstraint("net_pay >= 0", name="ck_payroll_items_net_nonneg"),

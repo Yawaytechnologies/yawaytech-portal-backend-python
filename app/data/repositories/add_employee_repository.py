@@ -19,9 +19,7 @@ class EmployeeRepository:
         db.commit()
 
     def get_by_employee_id(self, db: Session, code: str) -> Optional[Employee]:
-        return db.execute(
-            select(Employee).where(Employee.employee_id == code)
-        ).scalar_one_or_none()
+        return db.execute(select(Employee).where(Employee.employee_id == code)).scalar_one_or_none()
 
     # def get_by_email(self, db: Session, email: str) -> Optional[Employee]:
     #     return db.execute(select(Employee).where(Employee.email == email)).scalar_one_or_none()
@@ -55,9 +53,7 @@ class EmployeeRepository:
         total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
 
         rows = (
-            db.execute(
-                stmt.order_by(Employee.id.desc()).offset((page - 1) * size).limit(size)
-            )
+            db.execute(stmt.order_by(Employee.id.desc()).offset((page - 1) * size).limit(size))
             .scalars()
             .all()
         )

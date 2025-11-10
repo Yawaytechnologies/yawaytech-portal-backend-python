@@ -74,9 +74,7 @@ class AttendanceSession(Base):
         nullable=False,
     )
 
-    check_in_utc: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    check_in_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     check_out_utc: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -133,20 +131,14 @@ class AttendanceDay(Base):
 
     # Rollup metrics
     seconds_worked: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    expected_seconds: Mapped[int] = mapped_column(
-        Integer, default=28800, nullable=False
-    )  # 8h
+    expected_seconds: Mapped[int] = mapped_column(Integer, default=28800, nullable=False)  # 8h
     paid_leave_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     overtime_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     underwork_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     unpaid_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    first_check_in_utc: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True)
-    )
-    last_check_out_utc: Mapped[Optional[datetime]] = mapped_column(
-        DateTime(timezone=True)
-    )
+    first_check_in_utc: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+    last_check_out_utc: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     leave_type_code: Mapped[Optional[str]] = mapped_column(String(16))
     # Use the enum's values (e.g. "Present") as the database labels so PostgreSQL
@@ -180,9 +172,7 @@ class AttendanceDay(Base):
     employee: Mapped["Employee"] = relationship("Employee", viewonly=True)
 
     __table_args__ = (
-        UniqueConstraint(
-            "employee_id", "work_date_local", name="uq_attendance_day_emp_date"
-        ),
+        UniqueConstraint("employee_id", "work_date_local", name="uq_attendance_day_emp_date"),
         Index("ix_attendance_day_emp_month", "employee_id", "work_date_local"),
         CheckConstraint("seconds_worked >= 0", name="ck_day_nonnegative"),
     )
@@ -203,23 +193,15 @@ class CheckInMonitoring(Base):
         index=True,
         nullable=False,
     )
-    monitored_at_utc: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    monitored_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     cpu_percent: Mapped[Optional[float]] = mapped_column(Float)
     memory_percent: Mapped[Optional[float]] = mapped_column(Float)
 
-    active_apps: Mapped[List[str]] = mapped_column(
-        JSONB, nullable=False, server_default="[]"
-    )
-    visited_sites: Mapped[List[Dict]] = mapped_column(
-        JSONB, nullable=False, server_default="[]"
-    )
+    active_apps: Mapped[List[str]] = mapped_column(JSONB, nullable=False, server_default="[]")
+    visited_sites: Mapped[List[Dict]] = mapped_column(JSONB, nullable=False, server_default="[]")
 
-    session: Mapped["AttendanceSession"] = relationship(
-        "AttendanceSession", viewonly=True
-    )
+    session: Mapped["AttendanceSession"] = relationship("AttendanceSession", viewonly=True)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -280,11 +262,7 @@ def _holiday_is_paid(db: Session, region: Optional[str], d: date) -> Optional[bo
 
 
 def _employee_region(db: Session, employee_id: str) -> Optional[str]:
-    emp = (
-        db.query(Employee.region)
-        .filter(Employee.employee_id == employee_id)
-        .one_or_none()
-    )
+    emp = db.query(Employee.region).filter(Employee.employee_id == employee_id).one_or_none()
     return emp[0] if emp else None
 
 
@@ -368,9 +346,7 @@ def rollup_day(db: Session, employee_id: str, d: date) -> AttendanceDay:
     # Upsert day
     day: Optional[AttendanceDay] = (
         db.query(AttendanceDay)
-        .filter(
-            AttendanceDay.employee_id == employee_id, AttendanceDay.work_date_local == d
-        )
+        .filter(AttendanceDay.employee_id == employee_id, AttendanceDay.work_date_local == d)
         .one_or_none()
     )
     if not day:
@@ -391,9 +367,7 @@ def rollup_day(db: Session, employee_id: str, d: date) -> AttendanceDay:
     return day
 
 
-def recompute_range(
-    db: Session, employee_ids: Iterable[str], start: date, end: date
-) -> int:
+def recompute_range(db: Session, employee_ids: Iterable[str], start: date, end: date) -> int:
     """Recompute [start..end] inclusive for listed employees."""
     if start > end:
         raise ValueError("start > end")
@@ -425,9 +399,7 @@ def get_db():
 class PunchInOut(BaseModel):
     employee_id: str = Field(..., examples=["YTP000003"])
     punch_type: PunchType
-    punched_at_utc: datetime = Field(
-        default_factory=lambda: datetime.now(ZoneInfo("UTC"))
-    )
+    punched_at_utc: datetime = Field(default_factory=lambda: datetime.now(ZoneInfo("UTC")))
 
     @validator("punched_at_utc")
     def ensure_tz(cls, v: datetime) -> datetime:
@@ -439,11 +411,7 @@ class PunchInOut(BaseModel):
 @router.post("/punch", summary="Employee punch IN/OUT")
 def punch(payload: PunchInOut, db: Session = Depends(get_db)):
     # Validate employee exists
-    if (
-        not db.query(Employee)
-        .filter(Employee.employee_id == payload.employee_id)
-        .first()
-    ):
+    if not db.query(Employee).filter(Employee.employee_id == payload.employee_id).first():
         raise HTTPException(404, "Employee not found")
 
     local_day = _local_date_ist(payload.punched_at_utc)
@@ -458,9 +426,7 @@ def punch(payload: PunchInOut, db: Session = Depends(get_db)):
             .first()
         )
         if open_exists:
-            raise HTTPException(
-                409, "Open session already exists. Please check out first."
-            )
+            raise HTTPException(409, "Open session already exists. Please check out first.")
         sess = AttendanceSession(
             employee_id=payload.employee_id,
             check_in_utc=payload.punched_at_utc,
@@ -523,9 +489,7 @@ def get_daily(
     q = (
         db.query(AttendanceDay)
         .filter(AttendanceDay.employee_id == employee_id)
-        .filter(
-            AttendanceDay.work_date_local >= start, AttendanceDay.work_date_local <= end
-        )
+        .filter(AttendanceDay.work_date_local >= start, AttendanceDay.work_date_local <= end)
         .order_by(AttendanceDay.work_date_local.asc())
     )
     rows = q.all()

@@ -76,17 +76,13 @@ class EmployeeUpdate(BaseModel):
     # All optional (PATCH semantics)
     name: Optional[str] = Field(None, min_length=2, max_length=30)
     father_name: Optional[str] = Field(None, min_length=2, max_length=30)
-    employee_id: Optional[str] = Field(
-        None, min_length=EMP_ID_LEN, max_length=EMP_ID_LEN
-    )
+    employee_id: Optional[str] = Field(None, min_length=EMP_ID_LEN, max_length=EMP_ID_LEN)
 
     date_of_joining: Optional[date] = None
     date_of_leaving: Optional[date] = None
 
     email: Optional[EmailStr] = None
-    mobile_number: Optional[str] = Field(
-        None, min_length=10, max_length=10, pattern=r"^\d{10}$"
-    )
+    mobile_number: Optional[str] = Field(None, min_length=10, max_length=10, pattern=r"^\d{10}$")
 
     pan_number: Optional[str] = Field(None, min_length=10, max_length=10)
     aadhar_number: Optional[str] = Field(None, min_length=12, max_length=12)
@@ -95,9 +91,7 @@ class EmployeeUpdate(BaseModel):
     date_of_birth: Optional[date] = None
 
     # write-only on update too
-    password: Optional[str] = Field(
-        None, min_length=8, json_schema_extra={"writeOnly": True}
-    )
+    password: Optional[str] = Field(None, min_length=8, json_schema_extra={"writeOnly": True})
 
     permanent_address: Optional[str] = Field(None, min_length=5)
     designation: Optional[str] = Field(None, min_length=2, max_length=30)
@@ -185,9 +179,7 @@ class EmployeeCreateForm:
         # Convert date strings to date objects
         date_of_birth = date.fromisoformat(self.date_of_birth)
         date_of_joining = date.fromisoformat(self.date_of_joining)
-        date_of_leaving = (
-            date.fromisoformat(self.date_of_leaving) if self.date_of_leaving else None
-        )
+        date_of_leaving = date.fromisoformat(self.date_of_leaving) if self.date_of_leaving else None
 
         # Convert uploaded file to base64 if present
         profile_picture_base64 = None
@@ -222,15 +214,11 @@ class EmployeeUpdateForm:
         self,
         name: Optional[str] = Form(None, min_length=2, max_length=30),
         father_name: Optional[str] = Form(None, min_length=2, max_length=30),
-        employee_id: Optional[str] = Form(
-            None, min_length=EMP_ID_LEN, max_length=EMP_ID_LEN
-        ),
+        employee_id: Optional[str] = Form(None, min_length=EMP_ID_LEN, max_length=EMP_ID_LEN),
         date_of_joining: Optional[str] = Form(None),
         date_of_leaving: Optional[str] = Form(None),
         email: Optional[str] = Form(None),
-        mobile_number: Optional[str] = Form(
-            None, min_length=10, max_length=10, regex=r"^\d{10}$"
-        ),
+        mobile_number: Optional[str] = Form(None, min_length=10, max_length=10, regex=r"^\d{10}$"),
         pan_number: Optional[str] = Form(None, min_length=10, max_length=10),
         aadhar_number: Optional[str] = Form(None, min_length=12, max_length=12),
         marital_status: Optional[str] = Form(None),
@@ -261,15 +249,9 @@ class EmployeeUpdateForm:
     def to_employee_update(self) -> EmployeeUpdate:
         """Convert form data to EmployeeUpdate model"""
         # Convert date strings to date objects
-        date_of_birth = (
-            date.fromisoformat(self.date_of_birth) if self.date_of_birth else None
-        )
-        date_of_joining = (
-            date.fromisoformat(self.date_of_joining) if self.date_of_joining else None
-        )
-        date_of_leaving = (
-            date.fromisoformat(self.date_of_leaving) if self.date_of_leaving else None
-        )
+        date_of_birth = date.fromisoformat(self.date_of_birth) if self.date_of_birth else None
+        date_of_joining = date.fromisoformat(self.date_of_joining) if self.date_of_joining else None
+        date_of_leaving = date.fromisoformat(self.date_of_leaving) if self.date_of_leaving else None
 
         # Convert uploaded file to base64 if present
         profile_picture_base64 = None
@@ -289,9 +271,7 @@ class EmployeeUpdateForm:
             mobile_number=self.mobile_number,
             pan_number=self.pan_number,
             aadhar_number=self.aadhar_number,
-            marital_status=(
-                MaritalStatus(self.marital_status) if self.marital_status else None
-            ),
+            marital_status=(MaritalStatus(self.marital_status) if self.marital_status else None),
             date_of_birth=date_of_birth,
             password=self.password,
             permanent_address=self.permanent_address,

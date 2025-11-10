@@ -29,9 +29,7 @@ def upgrade() -> None:
     # Optional (safer than constraints if many NULLs exist):
     # op.create_index("ix_employees_pan_number", "employees", ["pan_number"], unique=True)
     # op.create_index("ix_employees_aadhar_number", "employees", ["aadhar_number"], unique=True)
-    op.create_index(
-        op.f("ix_aadhar_number"), "employees", ["aadhar_number"], unique=False
-    )
+    op.create_index(op.f("ix_aadhar_number"), "employees", ["aadhar_number"], unique=False)
     op.create_index(op.f("ix_pan_number"), "employees", ["pan"], unique=False)
 
 

@@ -12,9 +12,7 @@ from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 class EmployeeService:
     def create_employee(self, db: Session, payload: EmployeeCreate) -> Employee:
         exists_email = db.scalar(
-            select(func.count())
-            .select_from(Employee)
-            .where(Employee.email == payload.email)
+            select(func.count()).select_from(Employee).where(Employee.email == payload.email)
         )
         if exists_email:
             raise ValueError("Email already exists")
@@ -93,9 +91,7 @@ class EmployeeService:
             dup = db.scalar(
                 select(func.count())
                 .select_from(Employee)
-                .where(
-                    Employee.employee_id == data["employee_id"], Employee.id != emp.id
-                )
+                .where(Employee.employee_id == data["employee_id"], Employee.id != emp.id)
             )
             if dup:
                 raise ValueError("Employee ID already exists")

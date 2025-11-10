@@ -30,9 +30,7 @@ class AttendanceOverride(Base):
     patch_json: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
     note: Mapped[Optional[str]] = mapped_column(Text)
 
-    acted_by: Mapped[str] = mapped_column(
-        String(40), nullable=False
-    )  # admin user id/email
+    acted_by: Mapped[str] = mapped_column(String(40), nullable=False)  # admin user id/email
     acted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

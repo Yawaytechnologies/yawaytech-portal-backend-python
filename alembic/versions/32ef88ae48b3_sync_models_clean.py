@@ -61,9 +61,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("code", sa.String(length=16), nullable=False),
         sa.Column("name", sa.String(length=60), nullable=False),
-        sa.Column(
-            "unit", sa.Enum("DAY", "HOUR", name="leave_unit_enum"), nullable=False
-        ),
+        sa.Column("unit", sa.Enum("DAY", "HOUR", name="leave_unit_enum"), nullable=False),
         sa.Column("is_paid", sa.Boolean(), nullable=False),
         sa.Column("allow_half_day", sa.Boolean(), nullable=False),
         sa.Column("allow_permission_hours", sa.Boolean(), nullable=False),
@@ -149,12 +147,8 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
-        sa.CheckConstraint(
-            "salary_type IN ('MONTHLY','HOURLY')", name="ck_emp_salary_type"
-        ),
-        sa.ForeignKeyConstraint(
-            ["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"
-        ),
+        sa.CheckConstraint("salary_type IN ('MONTHLY','HOURLY')", name="ck_emp_salary_type"),
+        sa.ForeignKeyConstraint(["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -187,9 +181,7 @@ def upgrade() -> None:
             "(effective_to IS NULL) OR (effective_to >= effective_from)",
             name="ck_shift_assign_range",
         ),
-        sa.ForeignKeyConstraint(
-            ["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"),
         sa.ForeignKeyConstraint(["shift_id"], ["shifts.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -227,12 +219,8 @@ def upgrade() -> None:
         sa.Column("adjusted", sa.Numeric(precision=6, scale=2), nullable=False),
         sa.Column("closing", sa.Numeric(precision=6, scale=2), nullable=False),
         sa.CheckConstraint("year BETWEEN 1970 AND 2100", name="ck_leave_balance_year"),
-        sa.ForeignKeyConstraint(
-            ["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"
-        ),
-        sa.ForeignKeyConstraint(
-            ["leave_type_id"], ["leave_types.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(["leave_type_id"], ["leave_types.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
             "employee_id",
@@ -269,9 +257,7 @@ def upgrade() -> None:
         sa.Column("requested_hours", sa.Numeric(precision=5, scale=2), nullable=True),
         sa.Column(
             "status",
-            sa.Enum(
-                "PENDING", "APPROVED", "REJECTED", "CANCELLED", name="leave_status_enum"
-            ),
+            sa.Enum("PENDING", "APPROVED", "REJECTED", "CANCELLED", name="leave_status_enum"),
             nullable=False,
         ),
         sa.Column("approver_employee_id", sa.String(length=9), nullable=True),
@@ -285,12 +271,8 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("end_datetime >= start_datetime", name="ck_leave_req_range"),
         sa.ForeignKeyConstraint(["approver_employee_id"], ["employees.employee_id"]),
-        sa.ForeignKeyConstraint(
-            ["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"
-        ),
-        sa.ForeignKeyConstraint(
-            ["leave_type_id"], ["leave_types.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(["leave_type_id"], ["leave_types.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -326,9 +308,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.CheckConstraint("run_status IN ('Draft','Finalized')", name="ck_run_status"),
-        sa.ForeignKeyConstraint(
-            ["pay_period_id"], ["pay_periods.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["pay_period_id"], ["pay_periods.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("pay_period_id", "run_no", name="uq_payroll_run_period_no"),
     )
@@ -356,9 +336,7 @@ def upgrade() -> None:
         sa.Column("underwork_hours", sa.Numeric(precision=8, scale=2), nullable=False),
         sa.Column("overtime_hours", sa.Numeric(precision=8, scale=2), nullable=False),
         sa.Column("gross_earnings", sa.Numeric(precision=12, scale=2), nullable=False),
-        sa.Column(
-            "total_deductions", sa.Numeric(precision=12, scale=2), nullable=False
-        ),
+        sa.Column("total_deductions", sa.Numeric(precision=12, scale=2), nullable=False),
         sa.Column("net_pay", sa.Numeric(precision=12, scale=2), nullable=False),
         sa.Column(
             "breakdown_json",
@@ -375,16 +353,10 @@ def upgrade() -> None:
         sa.CheckConstraint("gross_earnings >= 0", name="ck_payroll_items_gross_nonneg"),
         sa.CheckConstraint("net_pay >= 0", name="ck_payroll_items_net_nonneg"),
         sa.CheckConstraint("total_deductions >= 0", name="ck_payroll_items_ded_nonneg"),
-        sa.ForeignKeyConstraint(
-            ["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"
-        ),
-        sa.ForeignKeyConstraint(
-            ["payroll_run_id"], ["payroll_runs.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["employee_id"], ["employees.employee_id"], ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(["payroll_run_id"], ["payroll_runs.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "payroll_run_id", "employee_id", name="uq_payroll_items_run_emp"
-        ),
+        sa.UniqueConstraint("payroll_run_id", "employee_id", name="uq_payroll_items_run_emp"),
     )
     op.create_index(
         op.f("ix_payroll_items_employee_id"),
@@ -401,12 +373,8 @@ def upgrade() -> None:
 
     # ───────────────── modify attendance tables safely ─────────────────
     # expected_seconds (8h default)
-    op.add_column(
-        "attendance_days", sa.Column("expected_seconds", sa.Integer(), nullable=True)
-    )
-    op.execute(
-        "UPDATE attendance_days SET expected_seconds = 28800 WHERE expected_seconds IS NULL"
-    )
+    op.add_column("attendance_days", sa.Column("expected_seconds", sa.Integer(), nullable=True))
+    op.execute("UPDATE attendance_days SET expected_seconds = 28800 WHERE expected_seconds IS NULL")
     op.alter_column(
         "attendance_days",
         "expected_seconds",
@@ -427,13 +395,9 @@ def upgrade() -> None:
     )
 
     # lock_flag boolean → default false
-    op.add_column(
-        "attendance_days", sa.Column("lock_flag", sa.Boolean(), nullable=True)
-    )
+    op.add_column("attendance_days", sa.Column("lock_flag", sa.Boolean(), nullable=True))
     op.execute("UPDATE attendance_days SET lock_flag = FALSE WHERE lock_flag IS NULL")
-    op.alter_column(
-        "attendance_days", "lock_flag", existing_type=sa.Boolean(), nullable=False
-    )
+    op.alter_column("attendance_days", "lock_flag", existing_type=sa.Boolean(), nullable=False)
 
     # created_at / updated_at with server default now()
     op.add_column(
@@ -536,15 +500,9 @@ def upgrade() -> None:
     )
 
     # employees PAN/AADHAAR indexes + uniques (keep if you want both)
-    op.create_index(
-        op.f("ix_employees_aadhar_number"), "employees", ["aadhar_number"], unique=True
-    )
-    op.create_index(
-        op.f("ix_employees_pan_number"), "employees", ["pan_number"], unique=True
-    )
-    op.create_unique_constraint(
-        "uq_employee_aadhar_number", "employees", ["aadhar_number"]
-    )
+    op.create_index(op.f("ix_employees_aadhar_number"), "employees", ["aadhar_number"], unique=True)
+    op.create_index(op.f("ix_employees_pan_number"), "employees", ["pan_number"], unique=True)
+    op.create_unique_constraint("uq_employee_aadhar_number", "employees", ["aadhar_number"])
     op.create_unique_constraint("uq_employee_pan_number", "employees", ["pan_number"])
 
 
@@ -642,9 +600,7 @@ def downgrade() -> None:
     op.drop_table("employee_shift_assignments")
 
     op.drop_index(op.f("ix_employee_salary_employee_id"), table_name="employee_salary")
-    op.drop_index(
-        op.f("ix_employee_salary_effective_from"), table_name="employee_salary"
-    )
+    op.drop_index(op.f("ix_employee_salary_effective_from"), table_name="employee_salary")
     op.drop_index("ix_emp_salary_emp_from", table_name="employee_salary")
     op.drop_table("employee_salary")
 
@@ -662,7 +618,5 @@ def downgrade() -> None:
 
     op.drop_index("ix_holiday_region_date", table_name="holiday_calendar")
     op.drop_index(op.f("ix_holiday_calendar_region"), table_name="holiday_calendar")
-    op.drop_index(
-        op.f("ix_holiday_calendar_holiday_date"), table_name="holiday_calendar"
-    )
+    op.drop_index(op.f("ix_holiday_calendar_holiday_date"), table_name="holiday_calendar")
     op.drop_table("holiday_calendar")

@@ -141,9 +141,7 @@ async def create_employee_with_form(
             if not date_of_birth or date_of_birth == "string":
                 raise HTTPException(status_code=400, detail="Date of birth is required")
             if not date_of_joining or date_of_joining == "string":
-                raise HTTPException(
-                    status_code=400, detail="Date of joining is required"
-                )
+                raise HTTPException(status_code=400, detail="Date of joining is required")
 
             date_of_birth_obj = date.fromisoformat(date_of_birth)
             date_of_joining_obj = date.fromisoformat(date_of_joining)

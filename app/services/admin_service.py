@@ -17,9 +17,7 @@ class AdminService:
         if not verify_password(password, admin.password_hash):
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        return create_access_token(
-            {"sub": admin.admin_id, "is_super_admin": admin.is_super_admin}
-        )
+        return create_access_token({"sub": admin.admin_id, "is_super_admin": admin.is_super_admin})
 
     def bootstrap_super_admin(
         self, db: Session, *, admin_id: str, password: str, bootstrap_token: str

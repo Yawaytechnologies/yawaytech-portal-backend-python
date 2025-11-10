@@ -8,12 +8,8 @@ from sqlalchemy.sql import func
 class Admin(Base):
     __tablename__ = "admins"
 
-    id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True, index=True
-    )
-    admin_id: Mapped[str] = mapped_column(
-        String(80), unique=True, index=True, nullable=False
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True, index=True)
+    admin_id: Mapped[str] = mapped_column(String(80), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     is_super_admin: Mapped[bool] = mapped_column(

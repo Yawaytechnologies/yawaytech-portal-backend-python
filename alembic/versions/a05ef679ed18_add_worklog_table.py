@@ -70,12 +70,8 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("worklogs_pkey")),
     )
-    op.create_index(
-        op.f("ix_worklogs_employee_id"), "worklogs", ["employee_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_worklogs_work_date"), "worklogs", ["work_date"], unique=False
-    )
+    op.create_index(op.f("ix_worklogs_employee_id"), "worklogs", ["employee_id"], unique=False)
+    op.create_index(op.f("ix_worklogs_work_date"), "worklogs", ["work_date"], unique=False)
     # ### end Alembic commands ###
 
 
