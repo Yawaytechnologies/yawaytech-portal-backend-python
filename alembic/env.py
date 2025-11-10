@@ -7,7 +7,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import create_engine, pool
 from app.data.db import Base
- 
+
 # ── Put project root on sys.path ───────────────────────────────────────────────
 HERE = os.path.dirname(__file__)  # .../alembic
 ROOT = os.path.abspath(os.path.join(HERE, ".."))  # project root (where 'app/' lives)
