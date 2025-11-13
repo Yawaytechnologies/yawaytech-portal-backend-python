@@ -20,7 +20,6 @@ from app.data.db import get_db
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
 from app.controllers.add_employee_controller import AddEmployeeController
 from app.data.models.add_employee import MaritalStatus, Department
-from fastapi import Query
 
 router = APIRouter(prefix="/api", tags=["Add Employee"])
 

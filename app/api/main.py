@@ -19,11 +19,13 @@ from app.routes.leave_admin_router import router as leave_admin_router
 from app.routes.policy_router import router as policy_router
 from app.routes.leave_employee_router import router as leave_employee_router
 
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     print("🚀 App startup initiated")
     yield
     print("🛑 App shutdown triggered")
+
 
 app = FastAPI(
     title=APP_NAME,
@@ -62,19 +64,23 @@ app.include_router(leave_admin_router, prefix="")
 app.include_router(policy_router, prefix="")
 app.include_router(leave_employee_router, prefix="")
 
+
 # Health check routes
 @app.get("/")
 def root():
     print("✅ Root route hit")
     return {"message": "Expense Manager API is running"}
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
+
 
 # Debug DB connection
 @app.get("/debug/db")
@@ -85,10 +91,12 @@ def debug_db(db: Session = Depends(get_db)):
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
+
 # Global error handlers
 @app.exception_handler(Exception)
 async def unhandled_exceptions(_: Request, __: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
+
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):
