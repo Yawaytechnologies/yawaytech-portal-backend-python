@@ -8,7 +8,7 @@ from app.data.models.add_employee import Department
 from app.schemas.dashboard import EmployeesPage, EmployeeOut
 from app.services.dashboard_service import DashboardService
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(prefix="/api", tags=["Dashboard"])
 
 
 @router.get("/employees", response_model=EmployeesPage)

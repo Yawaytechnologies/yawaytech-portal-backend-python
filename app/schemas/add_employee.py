@@ -147,7 +147,7 @@ class EmployeeCreateForm:
         date_of_joining: str = Form(...),  # Will be converted to date
         date_of_leaving: Optional[str] = Form(None),
         email: str = Form(...),
-        mobile_number: str = Form(..., min_length=10, max_length=10, regex=r"^\d{10}$"),
+        mobile_number: str = Form(..., min_length=10, max_length=10, pattern=r"^\d{10}$"),
         pan_number: str = Form(..., min_length=10, max_length=10),
         aadhar_number: str = Form(..., min_length=12, max_length=12),
         marital_status: str = Form(...),
@@ -218,7 +218,9 @@ class EmployeeUpdateForm:
         date_of_joining: Optional[str] = Form(None),
         date_of_leaving: Optional[str] = Form(None),
         email: Optional[str] = Form(None),
-        mobile_number: Optional[str] = Form(None, min_length=10, max_length=10, regex=r"^\d{10}$"),
+        mobile_number: Optional[str] = Form(
+            None, min_length=10, max_length=10, pattern=r"^\d{10}$"
+        ),
         pan_number: Optional[str] = Form(None, min_length=10, max_length=10),
         aadhar_number: Optional[str] = Form(None, min_length=12, max_length=12),
         marital_status: Optional[str] = Form(None),
