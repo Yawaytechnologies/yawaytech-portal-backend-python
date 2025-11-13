@@ -7,7 +7,7 @@ from app.controllers.worklog_controller import WorklogController
 from app.schemas.worklog import Worklog, WorklogCreate, WorklogUpdate
 from app.core.deps import get_db
 
-router = APIRouter(prefix="/worklog", tags=["worklog"])
+router = APIRouter(prefix="/api", tags=["Worklog"])
 controller = WorklogController()
 
 

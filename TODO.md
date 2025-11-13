@@ -1,6 +1,4 @@
-# TODO: Add Summary Controller Functions
+# TODO: Fix Pydantic regex deprecation error
 
-- [x] Add summary functions to expenses_controller.py
-- [x] Update routes to call controller functions instead of service directly
-- [x] Remove unused import from routes
-- [x] Test the updated routes with controller
+- [x] Replace `regex` with `pattern` in `app/schemas/leave_employee_schema.py` line 57
+- [ ] Test server startup to ensure error is resolved

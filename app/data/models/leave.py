@@ -32,11 +32,16 @@ class LeaveRequestUnit(str, Enum):
     HOUR = "HOUR"
 
 
+# Backwards-compatible alias: some modules expect the shorter name LeaveReqUnit
+# Keep both names to avoid updating many import sites.
+LeaveReqUnit = LeaveRequestUnit
+
+
 class LeaveStatus(str, Enum):
-    PENDING = "Pending"
-    APPROVED = "Approved"
-    REJECTED = "Rejected"
-    CANCELLED = "Cancelled"
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    CANCELLED = "CANCELLED"
 
 
 class LeaveType(Base):

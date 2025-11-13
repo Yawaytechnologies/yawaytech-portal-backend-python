@@ -15,7 +15,7 @@ from app.schemas.attendance import (
     EmployeeCheckInMonitoringResponse,
 )
 
-router = APIRouter(prefix="/attendance", tags=["Attendance"])
+router = APIRouter(prefix="/api", tags=["Attendance"])
 controller = AttendanceController()
 
 

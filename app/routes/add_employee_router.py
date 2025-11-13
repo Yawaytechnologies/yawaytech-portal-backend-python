@@ -21,7 +21,7 @@ from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRea
 from app.controllers.add_employee_controller import AddEmployeeController
 from app.data.models.add_employee import MaritalStatus, Department
 
-router = APIRouter(prefix="/employees", tags=["Employees"])
+router = APIRouter(prefix="/api", tags=["Add Employee"])
 
 
 def get_controller() -> AddEmployeeController:
@@ -111,7 +111,7 @@ async def create_employee_with_form(
     date_of_joining: str = Form(...),
     date_of_leaving: str = Form(None),
     email: str = Form(...),
-    mobile_number: str = Form(..., min_length=10, max_length=10, regex=r"^\d{10}$"),
+    mobile_number: str = Form(..., min_length=10, max_length=10, pattern=r"^\d{10}$"),
     pan_number: str = Form(..., min_length=10, max_length=10),
     aadhar_number: str = Form(..., min_length=12, max_length=12),
     marital_status: str = Form(...),
@@ -224,7 +224,7 @@ async def update_employee_with_form(
     date_of_joining: str = Form(None),
     date_of_leaving: str = Form(None),
     email: str = Form(None),
-    mobile_number: str = Form(None, min_length=10, max_length=10, regex=r"^\d{10}$"),
+    mobile_number: str = Form(None, min_length=10, max_length=10, pattern=r"^\d{10}$"),
     pan_number: str = Form(None, min_length=10, max_length=10),
     aadhar_number: str = Form(None, min_length=12, max_length=12),
     marital_status: str = Form(None),

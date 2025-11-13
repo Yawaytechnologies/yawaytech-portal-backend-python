@@ -18,6 +18,9 @@ from app.routes.dashboard_router import router as dashboard_router
 from app.routes import admin_router, proctected_example_router, employee_router
 from app.routes.attendance_router import router as attendance_router
 from app.routes.worklog_router import router as worklog_router
+from app.routes.leave_admin_router import router as leave_admin_router
+from app.routes.policy_router import router as policy_router
+from app.routes.leave_employee_router import router as leave_employee_router
 
 
 @asynccontextmanager
@@ -55,10 +58,13 @@ app.include_router(employee_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
 app.include_router(expenses_router, prefix="")
-app.include_router(add_employee_router, prefix="/api")
-app.include_router(attendance_router, prefix="/api")
-app.include_router(dashboard_router, prefix="/api")
-app.include_router(worklog_router, prefix="/api")
+app.include_router(add_employee_router, prefix="")
+app.include_router(attendance_router, prefix="")
+app.include_router(dashboard_router, prefix="")
+app.include_router(worklog_router, prefix="")
+app.include_router(leave_admin_router, prefix="")
+app.include_router(policy_router, prefix="")
+app.include_router(leave_employee_router, prefix="")
 
 
 # Health & Root
