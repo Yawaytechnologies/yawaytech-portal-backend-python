@@ -9,12 +9,9 @@ from sqlalchemy.orm import Session
 from app.core.config import APP_NAME
 from app.data.db import get_db
 
-# Import all models to register them before create_all (for dev only)
-
 # Routers
 from app.routes.expenses_router import router as expenses_router
 from app.routes.add_employee_router import router as add_employee_router
-from app.routes.dashboard_router import router as dashboard_router
 from app.routes import admin_router, proctected_example_router, employee_router
 from app.routes.attendance_router import router as attendance_router
 from app.routes.worklog_router import router as worklog_router
@@ -22,11 +19,11 @@ from app.routes.leave_admin_router import router as leave_admin_router
 from app.routes.policy_router import router as policy_router
 from app.routes.leave_employee_router import router as leave_employee_router
 
-
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    yield  # Start the app immediately without DB checks
-
+    print("🚀 App startup initiated")
+    yield
+    print("🛑 App shutdown triggered")
 
 app = FastAPI(
     title=APP_NAME,
@@ -53,35 +50,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount routers
+# Routers
 app.include_router(employee_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
 app.include_router(expenses_router, prefix="")
 app.include_router(add_employee_router, prefix="")
 app.include_router(attendance_router, prefix="")
-app.include_router(dashboard_router, prefix="")
 app.include_router(worklog_router, prefix="")
 app.include_router(leave_admin_router, prefix="")
 app.include_router(policy_router, prefix="")
 app.include_router(leave_employee_router, prefix="")
 
-
-# Health & Root
-@app.get("/healthz")
-def healthz():
-    return {"ok": True}
-
+# Health check routes
+@app.get("/")
+def root():
+    print("✅ Root route hit")
+    return {"message": "Expense Manager API is running"}
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
-
-@app.get("/")
-def root():
-    return {"message": "Expense Manager API is running"}
-
+@app.get("/healthz")
+def healthz():
+    return {"ok": True}
 
 # Debug DB connection
 @app.get("/debug/db")
@@ -92,12 +85,10 @@ def debug_db(db: Session = Depends(get_db)):
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
-
 # Global error handlers
 @app.exception_handler(Exception)
 async def unhandled_exceptions(_: Request, __: Exception):
     return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
-
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):

@@ -20,6 +20,7 @@ from app.data.db import get_db
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
 from app.controllers.add_employee_controller import AddEmployeeController
 from app.data.models.add_employee import MaritalStatus, Department
+from fastapi import Query
 
 router = APIRouter(prefix="/api", tags=["Add Employee"])
 
@@ -215,6 +216,15 @@ async def create_employee_with_form(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/department/{department}", response_model=List[EmployeeRead])
+def get_employees_by_department(
+    department: Department,
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
+    return ctrl.get_by_department(db, department)
 
 
 @router.put("/form/{employee_id}", response_model=EmployeeRead)
