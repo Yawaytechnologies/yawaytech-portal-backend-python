@@ -217,6 +217,15 @@ async def create_employee_with_form(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
+@router.get("/department/{department}", response_model=List[EmployeeRead])
+def get_employees_by_department(
+    department: Department,
+    db: Session = Depends(get_db),
+    ctrl: AddEmployeeController = Depends(get_controller),
+):
+    return ctrl.get_by_department(db, department)
+
+
 @router.put("/form/{employee_id}", response_model=EmployeeRead)
 async def update_employee_with_form(
     name: str = Form(None, min_length=2, max_length=30),

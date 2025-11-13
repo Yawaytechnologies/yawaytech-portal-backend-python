@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
 from app.services.add_employee_service import EmployeeService
+from app.data.models.add_employee import Department
 
 
 class AddEmployeeController:
@@ -37,3 +38,7 @@ class AddEmployeeController:
 
     def delete(self, db: Session, employee_id: str) -> bool:
         return self.service.delete_employee(db, employee_id)
+
+    def get_by_department(self, db: Session, department: Department) -> list[EmployeeRead]:
+        rows = self.service.get_employees_by_department(db, department)
+        return [EmployeeRead.model_validate(r) for r in rows]

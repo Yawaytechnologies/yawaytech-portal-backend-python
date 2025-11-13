@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
 from app.core.security import hash_password
-from app.data.models.add_employee import Employee
+from app.data.models.add_employee import Employee, Department
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
 
 
@@ -110,3 +110,9 @@ class EmployeeService:
         db.delete(emp)
         db.commit()
         return True
+
+    def get_employees_by_department(self, db: Session, department: Department) -> List[Employee]:
+        stmt = select(Employee).where(Employee.department == department)
+        rows = db.scalars(stmt).all()
+        employees: List[Employee] = cast(List[Employee], list(rows))
+        return employees
