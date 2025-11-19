@@ -52,6 +52,24 @@ class LeaveMeRepository:
         # rows are Row[tuple[LeaveBalance, LeaveType]] → unpack to plain tuples
         return [(row[0], row[1]) for row in rows]
 
+    def list_balances_for_employee_year_month(
+        self, db: Session, employee_id: str, year: int, month: Optional[int]
+    ) -> List[Tuple[LeaveBalance, LeaveType]]:
+        stmt = (
+            select(LeaveBalance, LeaveType)
+            .join(LeaveType, LeaveType.id == LeaveBalance.leave_type_id)
+            .where(
+                and_(
+                    LeaveBalance.employee_id == employee_id,
+                    LeaveBalance.year == year,
+                    LeaveBalance.month == month,
+                )
+            )
+            .order_by(LeaveType.code.asc())
+        )
+        rows = db.execute(stmt).all()
+        return [(row[0], row[1]) for row in rows]
+
     # --------- Holidays ----------
     def list_holidays_in_range(
         self, db: Session, date_from: date, date_to: date, region: Optional[str]
@@ -173,3 +191,27 @@ class LeaveMeRepository:
         )
         rows = db.execute(stmt).all()
         return [(row[0], row[1]) for row in rows]
+
+    # --------- Monthly leave type limit check ----------
+    def has_approved_leave_in_month(
+        self, db: Session, employee_id: str, leave_type_code: str, year: int, month: int
+    ) -> bool:
+        from calendar import monthrange
+
+        start = datetime(year, month, 1)
+        end = datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
+        stmt = (
+            select(LeaveRequest.id)
+            .join(LeaveType, LeaveType.id == LeaveRequest.leave_type_id)
+            .where(
+                and_(
+                    LeaveRequest.employee_id == employee_id,
+                    LeaveType.code == leave_type_code,
+                    LeaveRequest.status == LeaveStatus.APPROVED,
+                    LeaveRequest.start_datetime >= start,
+                    LeaveRequest.end_datetime <= end,
+                )
+            )
+            .limit(1)
+        )
+        return db.execute(stmt).first() is not None

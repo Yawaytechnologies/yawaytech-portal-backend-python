@@ -17,24 +17,59 @@ class LeaveAdminController:
         self.repo = repo or LeaveRepository()
 
     # ---- Types ----
-    def create_type(self, db: Session, payload: dict) -> LeaveType:
+    def create_type(self, db: Session, payload: dict) -> dict:
         # code uniqueness handled by DB constraint; let exceptions bubble or pre-check:
         if self.repo.get_type(db, payload["code"]):
             raise ValueError("Leave type code already exists")
-        return self.repo.create_type(db, payload)
+        lt = self.repo.create_type(db, payload)
+        return {
+            "id": lt.id,
+            "code": lt.code,
+            "name": lt.name,
+            "unit": lt.unit.value if hasattr(lt.unit, "value") else str(lt.unit),
+            "is_paid": lt.is_paid,
+            "allow_half_day": lt.allow_half_day,
+            "allow_permission_hours": lt.allow_permission_hours,
+            "duration_days": lt.duration_days,
+            "monthly_limit": lt.monthly_limit,
+            "yearly_limit": lt.yearly_limit,
+            "carry_forward_allowed": lt.carry_forward_allowed,
+        }
 
     def list_types(self, db: Session) -> List[LeaveType]:
         return self.repo.list_types(db)
 
-    def update_type(self, db: Session, code: str, patch: dict) -> LeaveType:
+    def update_type(self, db: Session, code: str, patch: dict) -> dict:
         lt = self.repo.update_type(db, code, patch)
         if not lt:
             raise ValueError("Leave type not found")
-        return lt
+        return {
+            "id": lt.id,
+            "code": lt.code,
+            "name": lt.name,
+            "unit": lt.unit.value if hasattr(lt.unit, "value") else str(lt.unit),
+            "is_paid": lt.is_paid,
+            "allow_half_day": lt.allow_half_day,
+            "allow_permission_hours": lt.allow_permission_hours,
+        }
+
+    def delete_type(self, db: Session, code: str) -> dict:
+        ok = self.repo.delete_type(db, code)
+        if not ok:
+            raise ValueError("Leave type not found")
+        return {"ok": True}
 
     # ---- Holidays ----
     def create_holiday(self, db: Session, payload: dict):
-        return self.repo.create_holiday(db, payload)
+        h = self.repo.create_holiday(db, payload)
+        return {
+            "id": h.id,
+            "holiday_date": h.holiday_date.isoformat(),
+            "name": h.name,
+            "is_paid": h.is_paid,
+            "region": h.region,
+            "recurs_annually": h.recurs_annually,
+        }
 
     def list_holidays(self, db: Session, start: date, end: date, region: Optional[str]):
         return self.repo.list_holidays(db, start, end, region)
@@ -43,7 +78,14 @@ class LeaveAdminController:
         h = self.repo.update_holiday(db, holiday_id, patch)
         if not h:
             raise ValueError("Holiday not found")
-        return h
+        return {
+            "id": h.id,
+            "holiday_date": h.holiday_date.isoformat(),
+            "name": h.name,
+            "is_paid": h.is_paid,
+            "region": h.region,
+            "recurs_annually": h.recurs_annually,
+        }
 
     def delete_holiday(self, db: Session, holiday_id: int):
         ok = self.repo.delete_holiday(db, holiday_id)
@@ -127,6 +169,16 @@ class LeaveAdminController:
         if not lt:
             raise ValueError("Leave type not found")
 
+        # Monthly leave type limit check (e.g., CL can be taken only once per month)
+        year = payload["start_datetime"].year
+        month = payload["start_datetime"].month
+        if self.repo.has_approved_leave_in_month(
+            db, payload["employee_id"], payload["leave_type_code"], year, month
+        ):
+            raise ValueError(
+                f"Employee has already taken {payload['leave_type_code']} leave this month ({year}-{month:02d}). Only one {payload['leave_type_code']} leave per month is allowed."
+            )
+
         row = self.repo.create_request(
             db,
             {
@@ -142,7 +194,7 @@ class LeaveAdminController:
         )
         return row
 
-    def list_requests(self, db: Session, status: Optional[str] = None):
+    def list_requests(self, db: Session, status: Optional[str] = None) -> List[dict]:
         return self.repo.list_requests(db, status)
 
     # ---- Approval / Rejection ----

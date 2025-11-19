@@ -10,6 +10,7 @@ from app.schemas.leave_employee_schema import (
     LeaveBalanceOut,
     LeaveApplyIn,
     LeaveRequestOut,
+    LeaveSummaryOut,
 )
 from app.controllers.leave_employee_controller import LeaveMeController
 from app.data.db import SessionLocal
@@ -34,9 +35,9 @@ def list_types(db: Session = Depends(get_db)) -> List[LeaveTypeOut]:
 
 @router.get("/balances")
 def list_balances(
-    employeeId: str, year: int, db: Session = Depends(get_db)
+    employeeId: str, year: int, month: Optional[int] = Query(None), db: Session = Depends(get_db)
 ) -> List[LeaveBalanceOut]:
-    return ctl.list_balances(db, employeeId, year)
+    return ctl.list_balances(db, employeeId, year, month)
 
 
 @router.get("/calendar")
@@ -80,3 +81,10 @@ def cancel_request(req_id: int, employeeId: str = Query(...), db: Session = Depe
     except ValueError as e:
         db.rollback()
         raise HTTPException(400, str(e))
+
+
+@router.get("/summary")
+def get_summary(
+    employeeId: str, year: int, month: int, db: Session = Depends(get_db)
+) -> LeaveSummaryOut:
+    return ctl.get_summary(db, employeeId, year, month)

@@ -3,18 +3,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 import logging
 from sqlalchemy.orm import Session
 from datetime import date
+from typing import List
 
 from app.schemas.leave_schma import (
     LeaveTypeCreate,
     LeaveTypeUpdate,
     HolidayCreate,
     HolidayUpdate,
+    HolidayResponse,
     HolidaysQuery,
-    BalanceSeedPayload,
-    BalanceAdjustPayload,
-    AccrualRunPayload,
     LeaveRequestCreate,
     LeaveDecisionPayload,
+    LeaveRequestResponse,
 )
 from app.controllers.leave_admin_controller import LeaveAdminController
 from app.data.db import SessionLocal
@@ -57,6 +57,16 @@ def update_type(code: str, payload: LeaveTypeUpdate, db: Session = Depends(get_d
         raise HTTPException(404, str(e))
 
 
+@router.delete("/types/{code}")
+def delete_type(code: str, db: Session = Depends(get_db)):
+    try:
+        result = ctl.delete_type(db, code)
+        db.commit()
+        return result
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+
 # ---- Holidays ----
 @router.post("/holidays")
 def create_holiday(payload: HolidayCreate, db: Session = Depends(get_db)):
@@ -81,7 +91,7 @@ def list_holidays(
     return ctl.list_holidays(db, q.start, q.end, q.region)
 
 
-@router.patch("/holidays/{holiday_id}")
+@router.patch("/holidays/{holiday_id}", response_model=HolidayResponse)
 def update_holiday(holiday_id: int, payload: HolidayUpdate, db: Session = Depends(get_db)):
     try:
         result = ctl.update_holiday(db, holiday_id, payload.dict(exclude_unset=True))
@@ -101,46 +111,6 @@ def delete_holiday(holiday_id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, str(e))
 
 
-# ---- Balances ----
-@router.post("/balances/seed")
-def seed_balances(payload: BalanceSeedPayload, db: Session = Depends(get_db)):
-    result = ctl.seed_balances(
-        db, payload.employee_id, payload.year, [i.dict() for i in payload.items]
-    )
-    db.commit()
-    return result
-
-
-@router.patch("/balances/adjust")
-def adjust_balance(payload: BalanceAdjustPayload, db: Session = Depends(get_db)):
-    try:
-        result = ctl.adjust_balance(
-            db, payload.employee_id, payload.year, payload.leave_type_code, payload.delta_hours
-        )
-        db.commit()
-        return result
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-
-
-@router.get("/balances")
-def list_balances(employeeId: str, year: int, db: Session = Depends(get_db)):
-    return ctl.list_balances(db, employeeId, year)
-
-
-# ---- Accrual ----
-@router.post("/accrual/run")
-def run_accrual(payload: AccrualRunPayload, db: Session = Depends(get_db)):
-    try:
-        result = ctl.run_accrual(
-            db, payload.year, payload.month, payload.employee_ids, payload.per_type_hours
-        )
-        db.commit()
-        return result
-    except ValueError as e:
-        raise HTTPException(400, str(e))
-
-
 # ---- Requests (admin) ----
 @router.post("/requests")
 def create_request_admin(payload: LeaveRequestCreate, db: Session = Depends(get_db)):
@@ -152,7 +122,7 @@ def create_request_admin(payload: LeaveRequestCreate, db: Session = Depends(get_
         raise HTTPException(400, str(e))
 
 
-@router.get("/requests")
+@router.get("/requests", response_model=List[LeaveRequestResponse])
 def list_requests(status: str | None = Query(None), db: Session = Depends(get_db)):
     return ctl.list_requests(db, status)
 

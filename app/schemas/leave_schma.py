@@ -13,6 +13,10 @@ class LeaveTypeCreate(BaseModel):
     is_paid: bool = True
     allow_half_day: bool = False
     allow_permission_hours: bool = False
+    duration_days: int = Field(..., ge=0)
+    monthly_limit: int = Field(..., ge=0)
+    yearly_limit: int = Field(..., ge=0)
+    carry_forward_allowed: bool = False
 
 
 class LeaveTypeUpdate(BaseModel):
@@ -36,6 +40,15 @@ class HolidayUpdate(BaseModel):
     is_paid: Optional[bool] = None
     region: Optional[str] = None
     recurs_annually: Optional[bool] = None
+
+
+class HolidayResponse(BaseModel):
+    id: int
+    holiday_date: date
+    name: str
+    is_paid: bool
+    region: Optional[str] = None
+    recurs_annually: bool
 
 
 # ---------- Balances ----------
@@ -104,3 +117,21 @@ class HolidaysQuery(BaseModel):
     start: date
     end: date
     region: Optional[str] = None
+
+
+# ---------- Leave Request Response ----------
+class LeaveRequestResponse(BaseModel):
+    id: int
+    employee_id: str
+    employee_name: str
+    leave_type_code: str
+    start_date: date
+    end_date: date
+    requested_unit: str
+    requested_hours: Optional[float] = None
+    requested_days: float
+    status: str
+    reason: Optional[str] = None
+    created_at: datetime
+    approver_employee_id: Optional[str] = None
+    decided_at: Optional[datetime] = None
