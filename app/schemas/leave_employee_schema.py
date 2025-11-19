@@ -22,6 +22,7 @@ class LeaveBalanceOut(BaseModel):
     leave_type_code: str
     leave_type_name: str
     year: int
+    month: Optional[int]
     opening: float
     accrued: float
     used: float
@@ -89,3 +90,10 @@ class LeaveRequestOut(BaseModel):
     status: str
     reason: Optional[str]
     created_at: datetime
+
+
+# ---------- LEAVE SUMMARY ----------
+class LeaveSummaryOut(BaseModel):
+    total_leaves_month: float
+    pending_leaves: float
+    billable_leaves: float

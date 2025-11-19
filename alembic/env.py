@@ -19,8 +19,7 @@ if config.config_file_name is not None:
 # Import your SQLAlchemy Base here so autogenerate works.
 # Adjust the import to wherever your Base lives.
 try:
-    # e.g., from app.data.models.base import Base
-    from app.data.models.add_employee import Base  # type: ignore
+    from app.data.db import Base
 
     target_metadata = Base.metadata  # type: ignore[attr-defined]
 except Exception:

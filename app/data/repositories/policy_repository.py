@@ -7,7 +7,7 @@ from sqlalchemy import select, and_
 from sqlalchemy.orm import Session
 
 from app.data.models.policy import WorkweekPolicy, HolidayCalendar
-from app.data.models.payroll import PayPeriod
+# from app.data.models.payroll import PayPeriod  # Commented out as payroll is removed
 
 
 class PolicyRepository:
@@ -81,8 +81,10 @@ class PolicyRepository:
     def is_period_locked_for_date(self, db: Session, d: date) -> bool:
         """
         Returns True if any PayPeriod covering date `d` is locked.
+        Since payroll is removed, this always returns False.
         """
-        stmt = select(PayPeriod).where(
-            and_(PayPeriod.start_date <= d, PayPeriod.end_date >= d, PayPeriod.is_locked.is_(True))
-        )
-        return db.execute(stmt).first() is not None
+        # stmt = select(PayPeriod).where(
+        #     and_(PayPeriod.start_date <= d, PayPeriod.end_date >= d, PayPeriod.is_locked.is_(True))
+        # )
+        # return db.execute(stmt).first() is not None
+        return False

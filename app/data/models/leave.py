@@ -58,6 +58,10 @@ class LeaveType(Base):
     is_paid: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     allow_half_day: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     allow_permission_hours: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    duration_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    monthly_limit: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    yearly_limit: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    carry_forward_allowed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     __table_args__ = (CheckConstraint("code ~ '^[A-Z]{2,16}$'", name="ck_leave_type_code"),)
 
@@ -128,6 +132,7 @@ class LeaveBalance(Base):
         Integer, ForeignKey("leave_types.id", ondelete="RESTRICT"), nullable=False
     )
     year: Mapped[int] = mapped_column(Integer, nullable=False)
+    month: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     opening: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False, default=0)
     accrued: Mapped[float] = mapped_column(Numeric(6, 2), nullable=False, default=0)
@@ -140,8 +145,10 @@ class LeaveBalance(Base):
             "employee_id",
             "leave_type_id",
             "year",
-            name="uq_leave_balance_emp_type_year",
+            "month",
+            name="uq_leave_balance_emp_type_year_month",
         ),
-        Index("ix_leave_balance_emp_year", "employee_id", "year"),
+        Index("ix_leave_balance_emp_year_month", "employee_id", "year", "month"),
         CheckConstraint("year BETWEEN 1970 AND 2100", name="ck_leave_balance_year"),
+        CheckConstraint("month IS NULL OR month BETWEEN 1 AND 12", name="ck_leave_balance_month"),
     )

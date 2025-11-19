@@ -16,6 +16,7 @@ from app.schemas.leave_employee_schema import (
     CalendarLeaveOut,
     LeaveApplyIn,
     LeaveRequestOut,
+    LeaveSummaryOut,
 )
 
 
@@ -40,14 +41,20 @@ class LeaveMeService:
         ]
 
     # --------- Balances ----------
-    def list_balances(self, db: Session, employee_id: str, year: int) -> List[LeaveBalanceOut]:
-        rows = self.repo.list_balances_for_employee_year(db, employee_id, year)
+    def list_balances(self, db: Session, employee_id: str, year: int, month: Optional[int] = None) -> List[LeaveBalanceOut]:
+        if month is not None:
+            # Month-wise balances: filter by year and month
+            rows = self.repo.list_balances_for_employee_year_month(db, employee_id, year, month)
+        else:
+            # Year-wise balances: existing logic
+            rows = self.repo.list_balances_for_employee_year(db, employee_id, year)
         return [
             LeaveBalanceOut(
                 leave_type_id=lt.id,
                 leave_type_code=lt.code,
                 leave_type_name=lt.name,
                 year=bal.year,
+                month=bal.month,
                 opening=float(bal.opening),
                 accrued=float(bal.accrued),
                 used=float(bal.used),
@@ -108,6 +115,15 @@ class LeaveMeService:
                 raise HTTPException(400, "Permission-hours not allowed for this leave type")
             if payload.requested_hours is None or payload.requested_hours <= 0:
                 raise HTTPException(400, "requested_hours must be > 0 for HOUR requests")
+
+        # Monthly leave type limit check (e.g., CL can be taken only once per month)
+        year = payload.start_datetime.year
+        month = payload.start_datetime.month
+        if self.repo.has_approved_leave_in_month(db, employee_id, payload.leave_type_code, year, month):
+            raise HTTPException(
+                status_code=409,
+                detail=f"You have already taken {payload.leave_type_code} leave this month ({year}-{month:02d}). Only one {payload.leave_type_code} leave per month is allowed."
+            )
 
         # Overlap guard
         if self.repo.any_overlapping_request(
@@ -176,3 +192,39 @@ class LeaveMeService:
 
         self.repo.cancel_request(db, r)
         return {"ok": True}
+
+    # --------- Summary ----------
+    def get_summary(self, db: Session, employee_id: str, year: int, month: int) -> LeaveSummaryOut:
+        # Total leaves for the month: sum of accrued for the year (assuming monthly accrual)
+        balances = self.list_balances(db, employee_id, year)
+        total_leaves_month = sum(bal.accrued for bal in balances) / 12  # Simple monthly average
+
+        # Pending leaves: sum of requested units for pending requests in the month
+        pending_requests = self.repo.list_my_requests(db, employee_id, LeaveStatus.PENDING)
+        pending_leaves = 0.0
+        for req, lt in pending_requests:
+            if req.start_datetime.year == year and req.start_datetime.month == month:
+                if req.requested_unit == LeaveReqUnit.DAY:
+                    pending_leaves += 1
+                elif req.requested_unit == LeaveReqUnit.HALF_DAY:
+                    pending_leaves += 0.5
+                elif req.requested_unit == LeaveReqUnit.HOUR and req.requested_hours:
+                    pending_leaves += req.requested_hours / 8  # Assuming 8 hours per day
+
+        # Billable leaves: sum of approved paid leaves in the month
+        approved_requests = self.repo.list_my_requests(db, employee_id, LeaveStatus.APPROVED)
+        billable_leaves = 0.0
+        for req, lt in approved_requests:
+            if req.start_datetime.year == year and req.start_datetime.month == month and lt.is_paid:
+                if req.requested_unit == LeaveReqUnit.DAY:
+                    billable_leaves += 1
+                elif req.requested_unit == LeaveReqUnit.HALF_DAY:
+                    billable_leaves += 0.5
+                elif req.requested_unit == LeaveReqUnit.HOUR and req.requested_hours:
+                    billable_leaves += req.requested_hours / 8
+
+        return LeaveSummaryOut(
+            total_leaves_month=total_leaves_month,
+            pending_leaves=pending_leaves,
+            billable_leaves=billable_leaves,
+        )

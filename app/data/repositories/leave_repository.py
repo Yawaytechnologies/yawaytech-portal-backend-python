@@ -6,6 +6,7 @@ from calendar import monthrange
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_, func, or_
+from sqlalchemy.types import Date
 
 from app.data.models.leave import (
     LeaveType,
@@ -47,6 +48,13 @@ class LeaveRepository:
                 setattr(lt, k, v)
         db.flush()
         return lt
+
+    def delete_type(self, db: Session, code: str) -> bool:
+        lt = self.get_type(db, code)
+        if not lt:
+            return False
+        db.delete(lt)
+        return True
 
     # --- Holidays ---
     def create_holiday(self, db: Session, payload: dict) -> HolidayCalendar:
@@ -193,12 +201,69 @@ class LeaveRepository:
         self,
         db: Session,
         status: Optional[str] = None,
-    ) -> List[LeaveRequest]:
-        q = select(LeaveRequest).order_by(LeaveRequest.start_datetime.desc())
+    ) -> List[dict]:
+        from app.data.models.add_employee import Employee
+
+        q = (
+            select(
+                LeaveRequest.id,
+                LeaveRequest.employee_id,
+                Employee.name.label("employee_name"),
+                LeaveType.code.label("leave_type_code"),
+                LeaveRequest.start_datetime.cast(Date).label("start_date"),
+                LeaveRequest.end_datetime.cast(Date).label("end_date"),
+                LeaveRequest.requested_unit,
+                LeaveRequest.requested_hours,
+                LeaveRequest.status,
+                LeaveRequest.reason,
+                LeaveRequest.created_at,
+                LeaveRequest.approver_employee_id,
+                LeaveRequest.decided_at,
+            )
+            .join(Employee, LeaveRequest.employee_id == Employee.employee_id)
+            .join(LeaveType, LeaveRequest.leave_type_id == LeaveType.id)
+            .order_by(LeaveRequest.start_datetime.desc())
+        )
         if status:
             # convert incoming string to enum for type safety
             q = q.where(LeaveRequest.status == LeaveStatus(status))
-        return list(db.execute(q).scalars())
+
+        results = db.execute(q).all()
+
+        # Calculate requested_days
+        response = []
+        for row in results:
+            requested_days = self._calculate_requested_days(row)
+            response.append({
+                "id": row.id,
+                "employee_id": row.employee_id,
+                "employee_name": row.employee_name,
+                "leave_type_code": row.leave_type_code,
+                "start_date": row.start_date,
+                "end_date": row.end_date,
+                "requested_unit": row.requested_unit,
+                "requested_hours": row.requested_hours,
+                "requested_days": requested_days,
+                "status": row.status.value if hasattr(row.status, 'value') else str(row.status),
+                "reason": row.reason,
+                "created_at": row.created_at,
+                "approver_employee_id": row.approver_employee_id,
+                "decided_at": row.decided_at,
+            })
+        return response
+
+    def _calculate_requested_days(self, row) -> float:
+        """Calculate the number of days requested based on unit and dates/hours."""
+        if row.requested_unit == "HOUR":
+            # For hours, assume 8 hours per day
+            return (row.requested_hours or 0) / 8.0
+        elif row.requested_unit == "HALF_DAY":
+            # Calculate number of days between start and end, inclusive
+            days = (row.end_date - row.start_date).days + 1
+            return days * 0.5
+        else:  # DAY
+            days = (row.end_date - row.start_date).days + 1
+            return float(days)
 
     def set_request_status(
         self,
