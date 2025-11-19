@@ -22,7 +22,9 @@ class LeaveMeController:
     def list_types(self, db: Session) -> List[LeaveTypeOut]:
         return self.service.list_types(db)
 
-    def list_balances(self, db: Session, employee_id: str, year: int, month: Optional[int] = None) -> List[LeaveBalanceOut]:
+    def list_balances(
+        self, db: Session, employee_id: str, year: int, month: Optional[int] = None
+    ) -> List[LeaveBalanceOut]:
         return self.service.list_balances(db, employee_id, year, month)
 
     def get_calendar(

@@ -111,9 +111,6 @@ def delete_holiday(holiday_id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, str(e))
 
 
-
-
-
 # ---- Requests (admin) ----
 @router.post("/requests")
 def create_request_admin(payload: LeaveRequestCreate, db: Session = Depends(get_db)):

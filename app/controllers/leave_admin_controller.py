@@ -26,7 +26,7 @@ class LeaveAdminController:
             "id": lt.id,
             "code": lt.code,
             "name": lt.name,
-            "unit": lt.unit.value if hasattr(lt.unit, 'value') else str(lt.unit),
+            "unit": lt.unit.value if hasattr(lt.unit, "value") else str(lt.unit),
             "is_paid": lt.is_paid,
             "allow_half_day": lt.allow_half_day,
             "allow_permission_hours": lt.allow_permission_hours,
@@ -47,7 +47,7 @@ class LeaveAdminController:
             "id": lt.id,
             "code": lt.code,
             "name": lt.name,
-            "unit": lt.unit.value if hasattr(lt.unit, 'value') else str(lt.unit),
+            "unit": lt.unit.value if hasattr(lt.unit, "value") else str(lt.unit),
             "is_paid": lt.is_paid,
             "allow_half_day": lt.allow_half_day,
             "allow_permission_hours": lt.allow_permission_hours,
@@ -172,7 +172,9 @@ class LeaveAdminController:
         # Monthly leave type limit check (e.g., CL can be taken only once per month)
         year = payload["start_datetime"].year
         month = payload["start_datetime"].month
-        if self.repo.has_approved_leave_in_month(db, payload["employee_id"], payload["leave_type_code"], year, month):
+        if self.repo.has_approved_leave_in_month(
+            db, payload["employee_id"], payload["leave_type_code"], year, month
+        ):
             raise ValueError(
                 f"Employee has already taken {payload['leave_type_code']} leave this month ({year}-{month:02d}). Only one {payload['leave_type_code']} leave per month is allowed."
             )

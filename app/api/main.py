@@ -20,7 +20,6 @@ from app.routes.policy_router import router as policy_router
 from app.routes.leave_employee_router import router as leave_employee_router
 
 
-
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     print("🚀 App startup initiated")
@@ -65,7 +64,6 @@ app.include_router(worklog_router, prefix="")
 app.include_router(leave_admin_router, prefix="")
 app.include_router(policy_router, prefix="")
 app.include_router(leave_employee_router, prefix="")
-
 
 
 # Health check routes

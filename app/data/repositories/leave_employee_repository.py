@@ -197,6 +197,7 @@ class LeaveMeRepository:
         self, db: Session, employee_id: str, leave_type_code: str, year: int, month: int
     ) -> bool:
         from calendar import monthrange
+
         start = datetime(year, month, 1)
         end = datetime(year, month, monthrange(year, month)[1], 23, 59, 59)
         stmt = (

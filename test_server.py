@@ -19,7 +19,9 @@ except Exception as e:
 
 # Test the leave requests endpoint
 try:
-    req = urllib.request.Request("http://localhost:8000/api/admin/leave/requests", headers={"accept": "application/json"})
+    req = urllib.request.Request(
+        "http://localhost:8000/api/admin/leave/requests", headers={"accept": "application/json"}
+    )
     with urllib.request.urlopen(req) as response:
         data = response.read().decode("utf-8")
         print("Leave Requests Status Code:", response.getcode())

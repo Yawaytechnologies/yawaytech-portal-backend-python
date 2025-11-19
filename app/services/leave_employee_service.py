@@ -41,7 +41,9 @@ class LeaveMeService:
         ]
 
     # --------- Balances ----------
-    def list_balances(self, db: Session, employee_id: str, year: int, month: Optional[int] = None) -> List[LeaveBalanceOut]:
+    def list_balances(
+        self, db: Session, employee_id: str, year: int, month: Optional[int] = None
+    ) -> List[LeaveBalanceOut]:
         if month is not None:
             # Month-wise balances: filter by year and month
             rows = self.repo.list_balances_for_employee_year_month(db, employee_id, year, month)
@@ -119,10 +121,12 @@ class LeaveMeService:
         # Monthly leave type limit check (e.g., CL can be taken only once per month)
         year = payload.start_datetime.year
         month = payload.start_datetime.month
-        if self.repo.has_approved_leave_in_month(db, employee_id, payload.leave_type_code, year, month):
+        if self.repo.has_approved_leave_in_month(
+            db, employee_id, payload.leave_type_code, year, month
+        ):
             raise HTTPException(
                 status_code=409,
-                detail=f"You have already taken {payload.leave_type_code} leave this month ({year}-{month:02d}). Only one {payload.leave_type_code} leave per month is allowed."
+                detail=f"You have already taken {payload.leave_type_code} leave this month ({year}-{month:02d}). Only one {payload.leave_type_code} leave per month is allowed.",
             )
 
         # Overlap guard

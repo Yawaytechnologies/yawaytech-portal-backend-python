@@ -234,22 +234,24 @@ class LeaveRepository:
         response = []
         for row in results:
             requested_days = self._calculate_requested_days(row)
-            response.append({
-                "id": row.id,
-                "employee_id": row.employee_id,
-                "employee_name": row.employee_name,
-                "leave_type_code": row.leave_type_code,
-                "start_date": row.start_date,
-                "end_date": row.end_date,
-                "requested_unit": row.requested_unit,
-                "requested_hours": row.requested_hours,
-                "requested_days": requested_days,
-                "status": row.status.value if hasattr(row.status, 'value') else str(row.status),
-                "reason": row.reason,
-                "created_at": row.created_at,
-                "approver_employee_id": row.approver_employee_id,
-                "decided_at": row.decided_at,
-            })
+            response.append(
+                {
+                    "id": row.id,
+                    "employee_id": row.employee_id,
+                    "employee_name": row.employee_name,
+                    "leave_type_code": row.leave_type_code,
+                    "start_date": row.start_date,
+                    "end_date": row.end_date,
+                    "requested_unit": row.requested_unit,
+                    "requested_hours": row.requested_hours,
+                    "requested_days": requested_days,
+                    "status": row.status.value if hasattr(row.status, "value") else str(row.status),
+                    "reason": row.reason,
+                    "created_at": row.created_at,
+                    "approver_employee_id": row.approver_employee_id,
+                    "decided_at": row.decided_at,
+                }
+            )
         return response
 
     def _calculate_requested_days(self, row) -> float:
@@ -371,3 +373,32 @@ class LeaveRepository:
         if scalar is None:
             return 0.0
         return float(scalar)
+
+    # --- Check if employee has approved leave in a month ---
+    def has_approved_leave_in_month(
+        self,
+        db: Session,
+        employee_id: str,
+        leave_type_code: str,
+        year: int,
+        month: int,
+    ) -> bool:
+        start_of_month = date(year, month, 1)
+        end_of_month = date(year, month, monthrange(year, month)[1])
+
+        stmt = (
+            select(LeaveRequest.id)
+            .join(LeaveType, LeaveType.id == LeaveRequest.leave_type_id)
+            .where(
+                and_(
+                    LeaveRequest.employee_id == employee_id,
+                    LeaveType.code == leave_type_code,
+                    LeaveRequest.status == LeaveStatus.APPROVED,
+                    LeaveRequest.start_datetime.cast(Date) <= end_of_month,
+                    LeaveRequest.end_datetime.cast(Date) >= start_of_month,
+                )
+            )
+        )
+
+        result = db.execute(stmt).first()
+        return result is not None
