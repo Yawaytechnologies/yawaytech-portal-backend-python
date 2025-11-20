@@ -1,12 +1,13 @@
 from datetime import date
 
 from pydantic import BaseModel
+from app.data.models.expenses import ExpenseCategory
 
 
 class ExpenseBase(BaseModel):
     title: str
     amount: float
-    category: str
+    category: ExpenseCategory
     date: date
     description: str | None = None
     added_by: str

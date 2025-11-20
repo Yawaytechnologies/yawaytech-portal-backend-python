@@ -17,12 +17,12 @@ if config.config_file_name is not None:
 
 # --- target metadata ---------------------------------------------------------
 # Import your SQLAlchemy Base here so autogenerate works.
-# Adjust the import to wherever your Base lives.
 try:
     from app.data.db import Base
 
     target_metadata = Base.metadata  # type: ignore[attr-defined]
-except Exception:
+except Exception as e:
+    print(f"⚠️ Warning: Could not import Base metadata: {e}")
     target_metadata = None  # type: ignore[assignment]
 
 
@@ -44,11 +44,7 @@ def _include_object(
     reflected: bool,
     compare_to: "SchemaItem | None",
 ) -> bool:
-    """
-    Optional: Protect against accidental table drops when a model import is missing.
-    Keep this if you were already using something similar.
-    """
-    # Example pass-through: always include objects
+    # Optional: Protect against accidental table drops when a model import is missing
     return True
 
 
@@ -61,7 +57,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        include_object=_include_object,  # keep if you use it
+        include_object=_include_object,
         compare_type=True,
         compare_server_default=True,
     )
@@ -75,6 +71,8 @@ def run_migrations_online() -> None:
     configuration = config.get_section(config.config_ini_section) or {}
     configuration["sqlalchemy.url"] = _get_db_url()
 
+    print("🔌 [Alembic] Attempting to connect to the database...")
+
     connectable = engine_from_config(
         configuration,
         prefix="sqlalchemy.",
@@ -82,17 +80,22 @@ def run_migrations_online() -> None:
         future=True,
     )
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            include_object=_include_object,  # keep if you use it
-            compare_type=True,
-            compare_server_default=True,
-        )
+    try:
+        with connectable.connect() as connection:
+            print("✅ [Alembic] Successfully connected to the database.")
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                include_object=_include_object,
+                compare_type=True,
+                compare_server_default=True,
+            )
 
-        with context.begin_transaction():
-            context.run_migrations()
+            with context.begin_transaction():
+                context.run_migrations()
+    except Exception as e:
+        print(f"❌ [Alembic] Failed to connect: {e}")
+        raise
 
 
 if context.is_offline_mode():
