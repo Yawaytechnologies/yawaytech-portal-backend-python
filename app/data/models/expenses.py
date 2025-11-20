@@ -17,14 +17,14 @@ from app.data.db import Base
 
 
 class ExpenseCategory(str, Enum):
-    FOOD = "Food"
-    TRANSPORT = "Transport"
-    UTILITIES = "Utilities"
-    ENTERTAINMENT = "Entertainment"
-    SOFTWARE = "Software"
-    HEALTH = "Health"
-    SHOPPING = "Shopping"
-    OTHER = "Other"  # Optional catch-all category
+    FOOD = "FOOD"
+    TRANSPORT = "TRANSPORT"
+    UTILITIES = "UTILITIES"
+    ENTERTAINMENT = "ENTERTAINMENT"
+    SOFTWARE = "SOFTWARE"
+    HEALTH = "HEALTH"
+    SHOPPING = "SHOPPING"
+    OTHER = "OTHER"  # Optional catch-all category
 
 
 class Expense(Base):
