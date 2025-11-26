@@ -30,9 +30,14 @@ def get_db():
 # ── Workweek ───────────────────────────────────────────────────────────────────
 
 
-@router.post("/workweek", response_model=WorkweekPolicyOut, summary="Create/Update workweek rules")
-def upsert_workweek(payload: WorkweekUpsertRequest = Body(...), db: Session = Depends(get_db)):
-    return controller.upsert_workweek(db, payload)
+@router.get("/workweek", response_model=List[WorkweekPolicyOut], summary="List all workweek policies")
+def list_workweeks(db: Session = Depends(get_db)):
+    return controller.list_workweeks(db)
+
+
+@router.post("/workweek", response_model=WorkweekPolicyOut, summary="Create workweek rules")
+def create_workweek(payload: WorkweekUpsertRequest = Body(...), db: Session = Depends(get_db)):
+    return controller.create_workweek(db, payload)
 
 
 # ── Holidays ───────────────────────────────────────────────────────────────────

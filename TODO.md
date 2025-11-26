@@ -1,20 +1,16 @@
-# TODO: Remove Payroll Process
+# TODO: Fix POST /api/workweek to Create New Row Instead of Upsert
 
-## Files to Delete
-- [x] app/data/models/payroll.py
-- [x] app/schemas/payperiod.py
-- [x] app/schemas/payroll_run.py
-- [x] app/schemas/payroll_item.py
-- [x] app/schemas/employee_salary.py
-- [x] app/data/repositories/payroll_repository.py
-- [x] app/services/payroll_service.py
-- [x] app/routes/admin_payroll_router.py
-- [x] app/routes/employee_payroll_router.py
-- [x] app/controllers/admin_payroll_controller.py
-- [x] app/controllers/employee_payroll_controller.py
+## Steps to Complete
 
-## Files to Edit
-- [x] app/api/main.py: Remove payroll router imports and includes
+1. **Create Alembic Migration**: Generate a new migration to drop the unique index on `region` in `workweek_policies` table.
+2. **Update Model**: Remove `unique=True` from the `region` column in `WorkweekPolicy` model.
+3. **Modify Repository**: Change `upsert_workweek` method to always create a new row, remove the existence check.
+4. **Test the API**: Verify that POST /api/workweek now creates a new row each time, allowing multiple policies per region.
+5. **Update Documentation**: Optionally update the endpoint summary if needed.
 
-## Database Changes
-- [x] Create Alembic migration to drop payroll tables (payroll_items, payroll_runs, pay_periods, employee_salary) and remove payroll-related columns from employees (bank_name, ifsc_code) and employee_salary (pf_scheme, esi_scheme, gratuity_scheme)
+## Current Status
+- [x] Step 1: Create migration
+- [ ] Step 2: Update model
+- [ ] Step 3: Modify repository
+- [ ] Step 4: Test API
+- [ ] Step 5: Update docs if necessary

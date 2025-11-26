@@ -13,7 +13,7 @@ class WorkweekPolicy(Base):
     __tablename__ = "workweek_policies"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    region: Mapped[str] = mapped_column(String(8), nullable=False, unique=True, index=True)
+    region: Mapped[str] = mapped_column(String(8), nullable=False, index=True)
     # e.g. {"mon":true,"tue":true,"wed":true,"thu":true,"fri":true,"sat":"1st,3rd","sun":false}
     policy_json: Mapped[Dict] = mapped_column(JSONB, nullable=False, server_default="{}")
 

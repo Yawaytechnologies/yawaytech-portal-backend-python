@@ -58,7 +58,8 @@ app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
 app.include_router(attendance_router)
 app.include_router(expenses_router, prefix="")
-app.include_router(add_employee_router, prefix="")
+app.include_router(employee_router.router, prefix="/api", tags=["employee"])
+app.include_router(add_employee_router)  # Added to include add_employee_router routes
 
 app.include_router(worklog_router, prefix="")
 app.include_router(leave_admin_router, prefix="")

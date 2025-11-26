@@ -75,7 +75,7 @@ class EmployeeService:
             exclude_unset=True
         )  # Pydantic v2: payload.model_dump(exclude_unset=True)
 
-        if "password" in data:
+        if "password" in data and data["password"] is not None:
             data["password"] = hash_password(data["password"])
 
         if "email" in data:
