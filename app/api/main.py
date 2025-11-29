@@ -18,6 +18,8 @@ from app.routes.worklog_router import router as worklog_router
 from app.routes.leave_admin_router import router as leave_admin_router
 from app.routes.policy_router import router as policy_router
 from app.routes.leave_employee_router import router as leave_employee_router
+from app.routes.shift_router import router as shift_router
+from app.routes.monthly_summary_router import router as monthly_summary_router
 
 
 @asynccontextmanager
@@ -65,7 +67,8 @@ app.include_router(worklog_router, prefix="")
 app.include_router(leave_admin_router, prefix="")
 app.include_router(policy_router, prefix="")
 app.include_router(leave_employee_router, prefix="")
-
+app.include_router(shift_router, prefix="") 
+app.include_router(monthly_summary_router, prefix="")
 
 # Health check routes
 @app.get("/")

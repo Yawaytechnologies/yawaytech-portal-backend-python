@@ -58,6 +58,7 @@ class Employee(Base):
 
     designation: Mapped[str] = mapped_column(String(30), nullable=False)
     department: Mapped[Department] = mapped_column(SAEnum(Department), nullable=False, index=True)
+    region: Mapped[str | None] = mapped_column(String(8), nullable=True, index=True)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
     bank_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     ifsc_code: Mapped[str | None] = mapped_column(String(11), nullable=True)

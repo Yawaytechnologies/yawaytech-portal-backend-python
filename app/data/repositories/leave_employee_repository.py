@@ -62,7 +62,7 @@ class LeaveMeRepository:
                 and_(
                     LeaveBalance.employee_id == employee_id,
                     LeaveBalance.year == year,
-                    LeaveBalance.month == month,
+                    or_(LeaveBalance.month == month, LeaveBalance.month.is_(None)),
                 )
             )
             .order_by(LeaveType.code.asc())
