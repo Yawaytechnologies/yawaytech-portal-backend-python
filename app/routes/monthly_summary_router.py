@@ -12,11 +12,13 @@ from app.data.models.add_employee import Employee  # assuming you have an Employ
 
 router = APIRouter(prefix="/monthly-summary", tags=["Monthly Summary"])
 
+
 # ✅ List all summaries for a given month
 @router.get("/")
 def list_month_summaries(month_start: date, db: Session = Depends(get_db)):
     summaries = get_month_summaries(db, month_start)
     return summaries
+
 
 # ✅ Get a single employee’s summary for a given month
 @router.get("/employee/{employee_id}")
@@ -25,6 +27,7 @@ def employee_summary(employee_id: str, month_start: date, db: Session = Depends(
     if not summary:
         raise HTTPException(status_code=404, detail="Summary not found")
     return summary
+
 
 # ✅ Trigger rollup for all employees for a given month
 @router.post("/rollup")

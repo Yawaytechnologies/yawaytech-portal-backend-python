@@ -116,3 +116,77 @@ class EmployeeService:
         rows = db.scalars(stmt).all()
         employees: List[Employee] = cast(List[Employee], list(rows))
         return employees
+
+    def get_department_progress(self, db: Session, department: Department) -> dict:
+        """Get progress metrics for all employees in a department"""
+        from app.data.models.monthly_summary import MonthlyEmployeeSummary
+
+        # Get all employees in department
+        employees = self.get_employees_by_department(db, department)
+        employee_ids = [emp.employee_id for emp in employees]
+
+        if not employee_ids:
+            return {"department": department.value, "total_employees": 0, "progress": []}
+
+        # Get latest monthly summaries for these employees
+        latest_summaries = (
+            db.query(MonthlyEmployeeSummary)
+            .filter(MonthlyEmployeeSummary.employee_id.in_(employee_ids))
+            .order_by(MonthlyEmployeeSummary.employee_id, MonthlyEmployeeSummary.month_start.desc())
+            .all()
+        )
+
+        # Group by employee_id to get latest summary per employee
+        employee_summaries = {}
+        for summary in latest_summaries:
+            if summary.employee_id not in employee_summaries:
+                employee_summaries[summary.employee_id] = summary
+
+        # Calculate department totals
+        total_employees = len(employees)
+        total_present_days = sum(s.present_days for s in employee_summaries.values())
+        total_work_days = sum(s.total_work_days for s in employee_summaries.values())
+        total_worked_hours = sum(s.total_worked_hours for s in employee_summaries.values())
+        total_overtime_hours = sum(s.overtime_hours for s in employee_summaries.values())
+        total_leave_days = sum(s.leave_days for s in employee_summaries.values())
+
+        # Calculate averages
+        avg_attendance_rate = (
+            (total_present_days / total_work_days * 100) if total_work_days > 0 else 0
+        )
+        avg_worked_hours = total_worked_hours / total_employees if total_employees > 0 else 0
+
+        return {
+            "department": department.value,
+            "total_employees": total_employees,
+            "total_present_days": total_present_days,
+            "total_work_days": total_work_days,
+            "total_worked_hours": total_worked_hours,
+            "total_overtime_hours": total_overtime_hours,
+            "total_leave_days": total_leave_days,
+            "average_attendance_rate": round(avg_attendance_rate, 2),
+            "average_worked_hours": round(avg_worked_hours, 2),
+            "progress": [
+                {
+                    "employee_id": emp.employee_id,
+                    "name": emp.name,
+                    "email": emp.email,
+                    "department": emp.department.value,
+                    "designation": emp.designation,
+                    "profile_picture": emp.profile_picture,
+                    "month_start": summary.month_start.isoformat() if summary else None,
+                    "present_days": summary.present_days if summary else 0,
+                    "total_work_days": summary.total_work_days if summary else 0,
+                    "worked_hours": summary.total_worked_hours if summary else 0,
+                    "overtime_hours": summary.overtime_hours if summary else 0,
+                    "leave_days": summary.leave_days if summary else 0,
+                    "attendance_rate": (
+                        round((summary.present_days / summary.total_work_days * 100), 2)
+                        if summary and summary.total_work_days > 0
+                        else 0
+                    ),
+                }
+                for emp in employees
+                for summary in [employee_summaries.get(emp.employee_id)]
+            ],
+        }

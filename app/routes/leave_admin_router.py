@@ -74,7 +74,9 @@ def delete_type(code: str, db: Session = Depends(get_db)):
 @router.post("/balances/seed")
 def seed_balances(payload: BalanceSeedPayload, db: Session = Depends(get_db)):
     try:
-        result = ctl.seed_balances(db, payload.employee_id, payload.year, payload.items)
+        result = ctl.seed_balances(
+            db, payload.employee_id, payload.year, [item.dict() for item in payload.items]
+        )
         db.commit()
         return result
     except ValueError as e:
@@ -84,7 +86,9 @@ def seed_balances(payload: BalanceSeedPayload, db: Session = Depends(get_db)):
 @router.post("/balances/adjust")
 def adjust_balance(payload: BalanceAdjustPayload, db: Session = Depends(get_db)):
     try:
-        result = ctl.adjust_balance(db, payload.employee_id, payload.year, payload.leave_type_code, payload.delta_hours)
+        result = ctl.adjust_balance(
+            db, payload.employee_id, payload.year, payload.leave_type_code, payload.delta_hours
+        )
         db.commit()
         return result
     except ValueError as e:
@@ -94,7 +98,9 @@ def adjust_balance(payload: BalanceAdjustPayload, db: Session = Depends(get_db))
 @router.post("/balances/accrue")
 def run_accrual(payload: AccrualRunPayload, db: Session = Depends(get_db)):
     try:
-        result = ctl.run_monthly_accrual(db, payload.year, payload.month, payload.employee_ids, payload.per_type_hours)
+        result = ctl.run_monthly_accrual(
+            db, payload.year, payload.month, payload.employee_ids, payload.per_type_hours
+        )
         db.commit()
         return result
     except ValueError as e:

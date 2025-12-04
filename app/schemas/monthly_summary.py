@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import Optional, Dict
 from pydantic import BaseModel
 
+
 class MonthlySummaryBase(BaseModel):
     employee_id: str
     month_start: date
@@ -19,10 +20,11 @@ class MonthlySummaryBase(BaseModel):
     underwork_hours: float
     leave_type_breakdown: Optional[Dict[str, float]] = {}
 
+
 class MonthlySummarySchema(MonthlySummaryBase):
     id: int
     created_at: datetime
     updated_at: datetime
 
     class Config:
-        from_attributes = True   # replaces orm_mode in Pydantic v2
+        from_attributes = True  # replaces orm_mode in Pydantic v2

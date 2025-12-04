@@ -23,32 +23,39 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("employee_id", sa.String(length=9), nullable=False),
         sa.Column("month_start", sa.Date(), nullable=False),
-
         # Attendance counts
         sa.Column("total_work_days", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("present_days", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("holiday_days", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("weekend_days", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("leave_days", sa.Integer(), nullable=False, server_default="0"),
-
         # Leave breakdown
         sa.Column("paid_leave_hours", sa.Numeric(8, 2), nullable=False, server_default="0"),
         sa.Column("unpaid_leave_hours", sa.Numeric(8, 2), nullable=False, server_default="0"),
         sa.Column("pending_leave_hours", sa.Numeric(8, 2), nullable=False, server_default="0"),
-
         # Work metrics
         sa.Column("total_worked_hours", sa.Numeric(10, 2), nullable=False, server_default="0"),
         sa.Column("expected_hours", sa.Numeric(10, 2), nullable=False, server_default="0"),
         sa.Column("overtime_hours", sa.Numeric(10, 2), nullable=False, server_default="0"),
         sa.Column("underwork_hours", sa.Numeric(10, 2), nullable=False, server_default="0"),
-
         # JSON breakdown
-        sa.Column("leave_type_breakdown", postgresql.JSONB, nullable=False, server_default=sa.text("'{}'::jsonb")),
-
+        sa.Column(
+            "leave_type_breakdown",
+            postgresql.JSONB,
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         # Audit
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now(), nullable=False),
-
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            onupdate=sa.func.now(),
+            nullable=False,
+        ),
         sa.UniqueConstraint("employee_id", "month_start", name="uq_monthly_summary_emp_month"),
     )
 

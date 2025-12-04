@@ -30,7 +30,9 @@ def get_db():
 # ── Workweek ───────────────────────────────────────────────────────────────────
 
 
-@router.get("/workweek", response_model=List[WorkweekPolicyOut], summary="List all workweek policies")
+@router.get(
+    "/workweek", response_model=List[WorkweekPolicyOut], summary="List all workweek policies"
+)
 def list_workweeks(db: Session = Depends(get_db)):
     return controller.list_workweeks(db)
 

@@ -2,7 +2,6 @@
 
 from typing import Sequence, Union
 from alembic import op
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "b3310ae3ff6b"
@@ -13,6 +12,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade():
     op.drop_index("ix_workweek_policies_region", table_name="workweek_policies")
+
 
 def downgrade():
     op.create_index("ix_workweek_policies_region", "workweek_policies", ["region"], unique=True)

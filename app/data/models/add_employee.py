@@ -12,7 +12,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.data.db import Base
 
 
@@ -76,6 +76,10 @@ class Employee(Base):
         UniqueConstraint("aadhar_number", name="uq_employee_aadhar_number"),
         UniqueConstraint("mobile_number", name="uq_employee_mobile_number"),
     )
+
+    # Relationships
+    bank_details = relationship("EmployeeBankDetail", back_populates="employee")
+    salaries = relationship("EmployeeSalary", back_populates="employee")
 
     # Index("ix_employees_dept_name", Employee.department, Employee.name)
     # Index("ix_employees_employee_id", Employee.employee_id, unique=True)

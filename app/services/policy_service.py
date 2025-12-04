@@ -28,7 +28,7 @@ class PolicyService:
         ]
 
     def create_workweek(self, db: Session, payload: WorkweekUpsertRequest) -> WorkweekPolicyOut:
-        row = self.repo.create_workweek(db, payload.region, payload.policy)
+        row = self.repo.upsert_workweek(db, payload.region, payload.policy)
         return WorkweekPolicyOut(id=row.id, region=row.region, policy_json=row.policy_json)
 
     # ── Holidays ───────────────────────────────────────────────────────────────

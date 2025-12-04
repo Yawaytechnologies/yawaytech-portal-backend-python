@@ -6,6 +6,7 @@ from app.data.models.attendance import AttendanceDay
 from app.data.models.leave import LeaveRequest
 from app.data.models.policy import HolidayCalendar
 
+
 def aggregate_employee_month(db: Session, employee_id: str, month_start: date) -> dict:
     month_end = (month_start.replace(day=28) + timedelta(days=4)).replace(day=1)
 
@@ -41,15 +42,17 @@ def aggregate_employee_month(db: Session, employee_id: str, month_start: date) -
     leave = (
         db.query(
             func.sum(func.coalesce(LeaveRequest.requested_hours, 0))
-                .filter(LeaveRequest.status == "APPROVED").label("approved_hours"),
+            .filter(LeaveRequest.status == "APPROVED")
+            .label("approved_hours"),
             func.sum(func.coalesce(LeaveRequest.requested_hours, 0))
-                .filter(LeaveRequest.status == "PENDING").label("pending_hours"),
+            .filter(LeaveRequest.status == "PENDING")
+            .label("pending_hours"),
             func.sum(func.coalesce(LeaveRequest.requested_hours, 0))
-                .filter(LeaveRequest.status == "REJECTED").label("unpaid_hours"),
+            .filter(LeaveRequest.status == "REJECTED")
+            .label("unpaid_hours"),
             func.count().filter(LeaveRequest.status == "APPROVED").label("approved_days"),
             func.count().filter(LeaveRequest.status == "REJECTED").label("unpaid_days"),
             func.count().filter(LeaveRequest.status == "PENDING").label("pending_days"),
-
         )
         .filter(
             LeaveRequest.employee_id == employee_id,
@@ -69,7 +72,7 @@ def aggregate_employee_month(db: Session, employee_id: str, month_start: date) -
             LeaveRequest.employee_id == employee_id,
             LeaveRequest.start_datetime >= month_start,
             LeaveRequest.start_datetime < month_end,
-            LeaveRequest.status == "APPROVED"
+            LeaveRequest.status == "APPROVED",
         )
         .group_by(LeaveRequest.leave_type_id)
         .all()
@@ -92,6 +95,7 @@ def aggregate_employee_month(db: Session, employee_id: str, month_start: date) -
         "underwork_hours": float((attendance.underwork_seconds or 0) / 3600),
         "leave_type_breakdown": leave_breakdown,
     }
+
 
 def generate_monthly_summary(db: Session, employee_id: str, month_start: date):
     summary_data = aggregate_employee_month(db, employee_id, month_start)

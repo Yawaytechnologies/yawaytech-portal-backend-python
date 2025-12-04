@@ -89,7 +89,7 @@ def delete_employee(
 
 
 # Form data endpoints for file uploads
-@router.post("/form/", response_model=EmployeeRead, status_code=status.HTTP_201_CREATED)
+@router.post("/employee/form/", response_model=EmployeeRead, status_code=status.HTTP_201_CREATED)
 async def create_employee_with_form(
     name: str = Form(..., min_length=2, max_length=30),
     father_name: str = Form(..., min_length=2, max_length=30),
