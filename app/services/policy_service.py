@@ -20,7 +20,14 @@ class PolicyService:
         self.repo = repo or PolicyRepository()
 
     # ── Workweek ───────────────────────────────────────────────────────────────
-    def upsert_workweek(self, db: Session, payload: WorkweekUpsertRequest) -> WorkweekPolicyOut:
+    def list_workweeks(self, db: Session) -> List[WorkweekPolicyOut]:
+        rows = self.repo.get_all_workweeks(db)
+        return [
+            WorkweekPolicyOut(id=row.id, region=row.region, policy_json=row.policy_json)
+            for row in rows
+        ]
+
+    def create_workweek(self, db: Session, payload: WorkweekUpsertRequest) -> WorkweekPolicyOut:
         row = self.repo.upsert_workweek(db, payload.region, payload.policy)
         return WorkweekPolicyOut(id=row.id, region=row.region, policy_json=row.policy_json)
 

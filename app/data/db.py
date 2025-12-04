@@ -104,4 +104,4 @@ def get_db() -> Generator[Session, None, None]:
 
 
 # Enable automatic table creation on startup
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Commented out to prevent hanging on startup; use Alembic migrations instead

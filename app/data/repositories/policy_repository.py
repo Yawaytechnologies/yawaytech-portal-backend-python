@@ -17,6 +17,10 @@ class PolicyRepository:
         stmt = select(WorkweekPolicy).where(WorkweekPolicy.region == region)
         return db.execute(stmt).scalar_one_or_none()
 
+    def get_all_workweeks(self, db: Session) -> List[WorkweekPolicy]:
+        stmt = select(WorkweekPolicy).order_by(WorkweekPolicy.region.asc())
+        return list(db.execute(stmt).scalars().all())
+
     def upsert_workweek(self, db: Session, region: str, policy_json: Dict) -> WorkweekPolicy:
         row = self.get_workweek_by_region(db, region)
         if row:

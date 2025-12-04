@@ -1,20 +1,20 @@
-# TODO: Remove Payroll Process
+# Fix Mypy Errors
 
-## Files to Delete
-- [x] app/data/models/payroll.py
-- [x] app/schemas/payperiod.py
-- [x] app/schemas/payroll_run.py
-- [x] app/schemas/payroll_item.py
-- [x] app/schemas/employee_salary.py
-- [x] app/data/repositories/payroll_repository.py
-- [x] app/services/payroll_service.py
-- [x] app/routes/admin_payroll_router.py
-- [x] app/routes/employee_payroll_router.py
-- [x] app/controllers/admin_payroll_controller.py
-- [x] app/controllers/employee_payroll_controller.py
+## Errors to Fix:
+1. app/data/models/payroll_policy_rule.py:15 - Need type annotation for "rule_type"
+2. app/services/employeee_salary_service.py:32 & 61 - Argument 2 incompatible type "PayrollPolicy | None"; expected "PayrollPolicy"
+3. app/data/repositories/shift_grace_policy_repository.py:14 - Name "Optional" is not defined
+4. app/routes/payroll_policy_router.py:27 - Argument 3 incompatible type "PayrollPolicyBase"; expected "PayrollPolicyUpdate"
+5. app/controllers/shift_grace_policy_controller.py:28 - Name "Optional" is not defined
+6. app/routes/shift_grace_policy_router.py:28 - Name "Optional" is not defined
+7. app/services/policy_service.py:31 - "PolicyRepository" has no attribute "create_workweek"
+8. app/routes/leave_admin_router.py:77 - Argument 4 incompatible type "list[BalanceSeedItem]"; expected "list[dict[Any, Any]]"
 
-## Files to Edit
-- [x] app/api/main.py: Remove payroll router imports and includes
-
-## Database Changes
-- [x] Create Alembic migration to drop payroll tables (payroll_items, payroll_runs, pay_periods, employee_salary) and remove payroll-related columns from employees (bank_name, ifsc_code) and employee_salary (pf_scheme, esi_scheme, gratuity_scheme)
+## Plan:
+- Update payroll_policy_rule.py to use Mapped[Ruletypes] for rule_type
+- Modify employeee_salary_service.py to accept Optional[PayrollPolicy] and handle None
+- Add import for Optional in shift_grace_policy_repository.py
+- Fix payroll_policy_router.py to use PayrollPolicyUpdate
+- Add import for Optional in shift_grace_policy_controller.py and router
+- Change create_workweek to upsert_workweek in policy_service.py
+- Convert BalanceSeedItem list to dict list in leave_admin_router.py

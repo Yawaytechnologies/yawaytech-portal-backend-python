@@ -19,8 +19,11 @@ class AdminPolicyController:
         self.service = service or PolicyService()
 
     # Workweek
-    def upsert_workweek(self, db: Session, payload: WorkweekUpsertRequest) -> WorkweekPolicyOut:
-        return self.service.upsert_workweek(db, payload)
+    def list_workweeks(self, db: Session) -> List[WorkweekPolicyOut]:
+        return self.service.list_workweeks(db)
+
+    def create_workweek(self, db: Session, payload: WorkweekUpsertRequest) -> WorkweekPolicyOut:
+        return self.service.create_workweek(db, payload)
 
     # Holidays
     def create_holiday(self, db: Session, payload: HolidayCreateRequest) -> HolidayOut:

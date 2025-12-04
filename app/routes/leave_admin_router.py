@@ -15,6 +15,9 @@ from app.schemas.leave_schma import (
     LeaveRequestCreate,
     LeaveDecisionPayload,
     LeaveRequestResponse,
+    BalanceSeedPayload,
+    BalanceAdjustPayload,
+    AccrualRunPayload,
 )
 from app.controllers.leave_admin_controller import LeaveAdminController
 from app.data.db import SessionLocal
@@ -65,6 +68,43 @@ def delete_type(code: str, db: Session = Depends(get_db)):
         return result
     except ValueError as e:
         raise HTTPException(404, str(e))
+
+
+# ---- Balances ----
+@router.post("/balances/seed")
+def seed_balances(payload: BalanceSeedPayload, db: Session = Depends(get_db)):
+    try:
+        result = ctl.seed_balances(
+            db, payload.employee_id, payload.year, [item.dict() for item in payload.items]
+        )
+        db.commit()
+        return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.post("/balances/adjust")
+def adjust_balance(payload: BalanceAdjustPayload, db: Session = Depends(get_db)):
+    try:
+        result = ctl.adjust_balance(
+            db, payload.employee_id, payload.year, payload.leave_type_code, payload.delta_hours
+        )
+        db.commit()
+        return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@router.post("/balances/accrue")
+def run_accrual(payload: AccrualRunPayload, db: Session = Depends(get_db)):
+    try:
+        result = ctl.run_monthly_accrual(
+            db, payload.year, payload.month, payload.employee_ids, payload.per_type_hours
+        )
+        db.commit()
+        return result
+    except ValueError as e:
+        raise HTTPException(400, str(e))
 
 
 # ---- Holidays ----

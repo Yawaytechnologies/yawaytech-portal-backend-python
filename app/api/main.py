@@ -18,6 +18,13 @@ from app.routes.worklog_router import router as worklog_router
 from app.routes.leave_admin_router import router as leave_admin_router
 from app.routes.policy_router import router as policy_router
 from app.routes.leave_employee_router import router as leave_employee_router
+from app.routes.shift_router import router as shift_router
+from app.routes.monthly_summary_router import router as monthly_summary_router
+from app.routes.shift_grace_policy_router import router as shift_grace_policy_router
+from app.routes.payroll_policy_router import router as payroll_policy_router
+from app.routes.employee_salary_router import router as employee_salary_router
+from app.routes.employee_bank_detail_router import router as employee_bank_detail_router
+from app.routes.department_router import router as department_router
 
 
 @asynccontextmanager
@@ -58,12 +65,20 @@ app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
 app.include_router(attendance_router)
 app.include_router(expenses_router, prefix="")
-app.include_router(add_employee_router, prefix="")
+app.include_router(employee_router.router, prefix="/api", tags=["employee"])
+app.include_router(add_employee_router)  # Added to include add_employee_router routes
+app.include_router(department_router, prefix="/api")
 
 app.include_router(worklog_router, prefix="")
 app.include_router(leave_admin_router, prefix="")
 app.include_router(policy_router, prefix="")
 app.include_router(leave_employee_router, prefix="")
+app.include_router(shift_router, prefix="")
+app.include_router(monthly_summary_router, prefix="")
+app.include_router(shift_grace_policy_router, prefix="")
+app.include_router(payroll_policy_router, prefix="")
+app.include_router(employee_salary_router, prefix="")
+app.include_router(employee_bank_detail_router, prefix="")
 
 
 # Health check routes
