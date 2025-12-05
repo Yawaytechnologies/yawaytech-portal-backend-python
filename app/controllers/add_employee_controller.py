@@ -45,3 +45,6 @@ class AddEmployeeController:
 
     def get_department_progress(self, db: Session, department: Department) -> dict:
         return self.service.get_department_progress(db, department)
+
+    def get_all_employees_by_department(self, db: Session) -> dict:
+        return self.service.get_all_employees_by_department(db)

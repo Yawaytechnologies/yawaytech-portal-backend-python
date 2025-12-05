@@ -24,9 +24,9 @@ class MaritalStatus(str, Enum):
 class Department(str, Enum):
     HR = "HR"
     IT = "IT"
-    SALES = "Sales"
-    FINANCE = "Finance"
-    MARKETING = "Marketing"
+    SALES = "SALES"
+    FINANCE = "FINANCE"
+    MARKETING = "MARKETING"
 
 
 class Employee(Base):
