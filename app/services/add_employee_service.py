@@ -6,7 +6,7 @@ from sqlalchemy import select, func
 
 from app.core.security import hash_password
 from app.data.models.add_employee import Employee, Department
-from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
+from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
 
 
 class EmployeeService:
@@ -166,27 +166,15 @@ class EmployeeService:
             "total_leave_days": total_leave_days,
             "average_attendance_rate": round(avg_attendance_rate, 2),
             "average_worked_hours": round(avg_worked_hours, 2),
-            "progress": [
-                {
-                    "employee_id": emp.employee_id,
-                    "name": emp.name,
-                    "email": emp.email,
-                    "department": emp.department.value,
-                    "designation": emp.designation,
-                    "profile_picture": emp.profile_picture,
-                    "month_start": summary.month_start.isoformat() if summary else None,
-                    "present_days": summary.present_days if summary else 0,
-                    "total_work_days": summary.total_work_days if summary else 0,
-                    "worked_hours": summary.total_worked_hours if summary else 0,
-                    "overtime_hours": summary.overtime_hours if summary else 0,
-                    "leave_days": summary.leave_days if summary else 0,
-                    "attendance_rate": (
-                        round((summary.present_days / summary.total_work_days * 100), 2)
-                        if summary and summary.total_work_days > 0
-                        else 0
-                    ),
-                }
-                for emp in employees
-                for summary in [employee_summaries.get(emp.employee_id)]
-            ],
         }
+
+    def get_all_employees_by_department(self, db: Session) -> dict:
+        """Get all employees grouped by department"""
+        from app.data.models.add_employee import Department
+
+        result = {}
+        for dept in Department:
+            employees = self.get_employees_by_department(db, dept)
+            if employees:  # Only include departments with employees
+                result[dept.value] = [EmployeeRead.model_validate(emp) for emp in employees]
+        return result
