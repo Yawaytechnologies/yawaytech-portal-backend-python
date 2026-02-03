@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api", tags=["Worklog"])
 controller = WorklogController()
 
 
-@router.post("/", response_model=Worklog, status_code=status.HTTP_201_CREATED)
+@router.post("/worklog", response_model=Worklog, status_code=status.HTTP_201_CREATED)
 def create_worklog(worklog_create: WorklogCreate, db: Session = Depends(get_db)):
     return controller.create_worklog(db, worklog_create)
 
