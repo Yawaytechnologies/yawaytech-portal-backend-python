@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.data.models.employee_salary import EmployeeSalary
 from app.data.models.payroll_policy import PayrollPolicy
 from app.data.models.salary_breakdown import SalaryBreakdown
+from app.data.models.add_employee import Employee
 from app.schemas.employee_salary import EmployeeSalaryCreate, EmployeeSalaryUpdate
 
 
@@ -33,11 +34,16 @@ def calculate_gross_with_breakdown(base_salary: float, policy: Optional[PayrollP
 
 
 def create_salary(db: Session, data: EmployeeSalaryCreate):
+    # Query employee by id
+    employee = db.query(Employee).filter(Employee.id == data.employee_id).first()
+    if not employee:
+        raise ValueError(f"Employee with id {data.employee_id} not found")
+
     policy = db.query(PayrollPolicy).filter(PayrollPolicy.id == data.payroll_policy_id).first()
     gross, breakdowns = calculate_gross_with_breakdown(data.base_salary, policy)
 
     salary = EmployeeSalary(
-        employee_id=data.employee_id,
+        employee_id=employee.id,
         base_salary=data.base_salary,
         gross_salary=gross,
         payroll_policy_id=data.payroll_policy_id,

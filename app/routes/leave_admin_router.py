@@ -20,6 +20,7 @@ from app.schemas.leave_schma import (
     AccrualRunPayload,
 )
 from app.controllers.leave_admin_controller import LeaveAdminController
+from app.data.models.leave import LeaveStatus
 from app.data.db import SessionLocal
 
 router = APIRouter(prefix="/api/admin/leave", tags=["Admin Leave"])
@@ -163,7 +164,10 @@ def create_request_admin(payload: LeaveRequestCreate, db: Session = Depends(get_
 
 
 @router.get("/requests", response_model=List[LeaveRequestResponse])
-def list_requests(status: str | None = Query(None), db: Session = Depends(get_db)):
+def list_requests(status: LeaveStatus | None = Query(None), db: Session = Depends(get_db)):
+    # FastAPI will validate the incoming status against the LeaveStatus enum and
+    # return 422 if an invalid string is provided. We pass the enum (or None)
+    # through to the controller which expects an Optional[LeaveStatus].
     return ctl.list_requests(db, status)
 
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 from datetime import datetime
 from typing import Optional, List
+from app.data.models.leave import LeaveStatus
 from sqlalchemy.orm import Session
 
 from app.schemas.leave_employee_schema import (
@@ -36,7 +37,7 @@ class LeaveMeController:
         return self.service.apply(db, employee_id, payload)
 
     def list_requests(
-        self, db: Session, employee_id: str, status: Optional[str]
+        self, db: Session, employee_id: str, status: Optional[LeaveStatus]
     ) -> List[LeaveRequestOut]:
         return self.service.list_requests(db, employee_id, status)
 

@@ -225,8 +225,20 @@ class LeaveRepository:
             .order_by(LeaveRequest.start_datetime.desc())
         )
         if status:
-            # convert incoming string to enum for type safety
-            q = q.where(LeaveRequest.status == LeaveStatus(status))
+            # Accept either a LeaveStatus enum or a raw string; validate and
+            # convert strings to LeaveStatus with a helpful error message.
+            if isinstance(status, str):
+                try:
+                    status_enum = LeaveStatus(status)
+                except ValueError:
+                    valid = ", ".join([s.value for s in LeaveStatus])
+                    raise ValueError(f"Invalid leave status '{status}'. Valid values: {valid}")
+            elif isinstance(status, LeaveStatus):
+                status_enum = status
+            else:
+                raise ValueError("Invalid status type")
+
+            q = q.where(LeaveRequest.status == status_enum)
 
         results = db.execute(q).all()
 
@@ -275,8 +287,12 @@ class LeaveRepository:
         approver_id: Optional[str],
         note: Optional[str],
     ) -> LeaveRequest:
-        # Convert string status to LeaveStatus enum
-        req.status = LeaveStatus(status)  # PENDING|APPROVED|REJECTED|CANCELLED
+        # Convert string status to LeaveStatus enum (validate explicitly)
+        try:
+            req.status = LeaveStatus(status)
+        except ValueError:
+            valid = ", ".join([s.value for s in LeaveStatus])
+            raise ValueError(f"Invalid leave status '{status}'. Valid values: {valid}")
 
         if approver_id:
             req.approver_employee_id = approver_id
