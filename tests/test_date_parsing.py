@@ -6,6 +6,7 @@ from pathlib import Path
 
 # Ensure project root is on sys.path so `app` package imports work
 import sys
+
 project_root = Path(__file__).resolve().parents[1]
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -13,7 +14,12 @@ if str(project_root) not in sys.path:
 # Import the module by file path so tests remain stable even when run from different cwd
 router_path = project_root / "app" / "routes" / "leave_employee_router.py"
 spec = importlib.util.spec_from_file_location("leave_employee_router", str(router_path))
+if spec is None:
+    raise ImportError(f"Could not load module spec from {router_path}")
+assert spec is not None
 leave_employee_router = importlib.util.module_from_spec(spec)
+if spec.loader is None:
+    raise ImportError(f"Could not load module loader from {spec}")
 spec.loader.exec_module(leave_employee_router)
 _parse_flexible_datetime = leave_employee_router._parse_flexible_datetime
 

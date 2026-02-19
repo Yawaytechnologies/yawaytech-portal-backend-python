@@ -4,7 +4,6 @@ API endpoints for payroll calculations and examination.
 """
 
 from datetime import date
-from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -35,7 +34,7 @@ async def get_employee_payroll(
 ):
     """
     Calculate payroll for a single employee for a given month.
-    
+
     Returns detailed breakdown including:
     - Base salary and gross salary
     - Attendance metrics (present days, worked hours, overtime, etc.)
@@ -45,7 +44,7 @@ async def get_employee_payroll(
     payroll = get_payroll_for_employee(db, employee_id, month_start)
     if not payroll:
         raise HTTPException(status_code=404, detail="Employee or salary record not found")
-    
+
     return payroll.to_dict()
 
 
@@ -56,7 +55,7 @@ async def get_all_employees_payroll(
 ):
     """
     Calculate payroll for all employees for a given month.
-    
+
     Returns list of payroll calculations with full breakdowns.
     """
     payrolls = get_payroll_for_all_employees(db, month_start)
@@ -71,18 +70,18 @@ async def generate_employee_salary(
 ):
     """
     Generate/update salary record with full breakdown for an employee.
-    
+
     This endpoint:
     1. Calculates payroll for the given month
     2. Updates the EmployeeSalary record
     3. Creates detailed SalaryBreakdown entries for audit trail
-    
+
     Returns the updated EmployeeSalary record.
     """
     salary = generate_salary_breakdown(db, employee_id, month_start)
     if not salary:
         raise HTTPException(status_code=404, detail="Employee or salary record not found")
-    
+
     return {
         "id": salary.id,
         "employee_id": salary.employee_id,
@@ -108,36 +107,42 @@ async def generate_all_employees_salaries(
 ):
     """
     Generate/update salary records for all employees for a given month.
-    
+
     Returns summary of generated records.
     """
     from app.data.models.add_employee import Employee
-    
+
     employees = db.query(Employee).all()
     results = []
     errors = []
-    
+
     for employee in employees:
         try:
             salary = generate_salary_breakdown(db, employee.id, month_start)
             if salary:
-                results.append({
-                    "employee_id": employee.id,
-                    "employee_code": employee.employee_id,
-                    "gross_salary": salary.gross_salary,
-                    "status": "success",
-                })
+                results.append(
+                    {
+                        "employee_id": employee.id,
+                        "employee_code": employee.employee_id,
+                        "gross_salary": salary.gross_salary,
+                        "status": "success",
+                    }
+                )
             else:
-                errors.append({
-                    "employee_id": employee.id,
-                    "error": "Salary record not found",
-                })
+                errors.append(
+                    {
+                        "employee_id": employee.id,
+                        "error": "Salary record not found",
+                    }
+                )
         except Exception as e:
-            errors.append({
-                "employee_id": employee.id,
-                "error": str(e),
-            })
-    
+            errors.append(
+                {
+                    "employee_id": employee.id,
+                    "error": str(e),
+                }
+            )
+
     return {
         "month": month_start.isoformat(),
         "generated": len(results),

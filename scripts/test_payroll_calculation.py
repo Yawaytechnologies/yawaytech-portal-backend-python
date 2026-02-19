@@ -9,10 +9,10 @@ This script shows how employee salaries are calculated based on:
 3. Payroll policy rules
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from sqlalchemy.orm import Session
 from app.data.db import SessionLocal
-from app.data.models.add_employee import Employee, Department, MaritalStatus
+from app.data.models.add_employee import Employee
 from app.data.models.employee_salary import EmployeeSalary
 from app.data.models.payroll_policy import PayrollPolicy
 from app.data.models.payroll_policy_rule import PayrollPolicyRule, Ruletypes
@@ -25,14 +25,15 @@ def create_test_payroll_setup(db: Session):
     """
     Create sample data for testing payroll calculations.
     """
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("CREATING TEST PAYROLL SETUP")
-    print("="*80)
-    
+    print("=" * 80)
+
     # 1. Create/find an employee
     employee = db.query(Employee).filter(Employee.employee_id == "EMP001").first()
     if not employee:
         from app.data.models.add_employee import Department, MaritalStatus
+
         employee = Employee(
             employee_id="EMP001",
             name="John Doe",
@@ -52,7 +53,7 @@ def create_test_payroll_setup(db: Session):
         print(f"[OK] Created employee: {employee.employee_id}")
     else:
         print(f"[OK] Found existing employee: {employee.employee_id}")
-    
+
     # 2. Create payroll policy
     policy = db.query(PayrollPolicy).filter(PayrollPolicy.name == "IT Standard Policy").first()
     if not policy:
@@ -68,7 +69,7 @@ def create_test_payroll_setup(db: Session):
         print(f"✓ Created policy: {policy.name}")
     else:
         print(f"✓ Found existing policy: {policy.name}")
-    
+
     # 3. Create/update policy rules
     rule_configs = [
         {
@@ -120,10 +121,10 @@ def create_test_payroll_setup(db: Session):
             "description": "Monthly health insurance premium",
         },
     ]
-    
+
     # Clear existing rules
     policy.rules.clear()
-    
+
     for config in rule_configs:
         rule = PayrollPolicyRule(
             rule_name=config["rule_name"],
@@ -134,9 +135,9 @@ def create_test_payroll_setup(db: Session):
             is_enabled=True,
         )
         policy.rules.append(rule)
-    
+
     print(f"✓ Created {len(rule_configs)} policy rules")
-    
+
     # 4. Create employee salary
     salary = db.query(EmployeeSalary).filter(EmployeeSalary.employee_id == employee.id).first()
     if not salary:
@@ -153,22 +154,22 @@ def create_test_payroll_setup(db: Session):
         salary.base_salary = 50000.0
         salary.payroll_policy_id = policy.id
         print(f"✓ Updated employee salary: ₹{salary.base_salary}")
-    
+
     # 5. Create test attendance data for February 2026
     month_start = date(2026, 2, 1)
-    
+
     # Clear existing attendance for this month
     db.query(AttendanceDay).filter(
         AttendanceDay.employee_id == employee.employee_id,
         AttendanceDay.work_date_local >= month_start,
         AttendanceDay.work_date_local < date(2026, 3, 1),
     ).delete()
-    
+
     # Create attendance days
     attendance_count = 0
     for day_offset in range(28):  # 28 days of Feb
         work_date = month_start + timedelta(days=day_offset)
-        
+
         # Skip weekends (Saturday=5, Sunday=6)
         if work_date.weekday() >= 5:
             status = DayStatus.WEEKEND
@@ -185,7 +186,7 @@ def create_test_payroll_setup(db: Session):
         else:
             status = DayStatus.PRESENT
             seconds = 8 * 3600  # 8 hours
-        
+
         att_day = AttendanceDay(
             employee_id=employee.employee_id,
             work_date_local=work_date,
@@ -195,15 +196,19 @@ def create_test_payroll_setup(db: Session):
         )
         db.add(att_day)
         attendance_count += 1
-    
+
     print(f"✓ Created {attendance_count} attendance day records")
-    
+
     # 6. Create monthly summary
-    summary = db.query(MonthlyEmployeeSummary).filter(
-        MonthlyEmployeeSummary.employee_id == employee.employee_id,
-        MonthlyEmployeeSummary.month_start == month_start,
-    ).first()
-    
+    summary = (
+        db.query(MonthlyEmployeeSummary)
+        .filter(
+            MonthlyEmployeeSummary.employee_id == employee.employee_id,
+            MonthlyEmployeeSummary.month_start == month_start,
+        )
+        .first()
+    )
+
     if not summary:
         summary = MonthlyEmployeeSummary(
             employee_id=employee.employee_id,
@@ -226,7 +231,7 @@ def create_test_payroll_setup(db: Session):
         )
         db.add(summary)
         print(f"✓ Created monthly summary for {month_start}")
-    
+
     db.commit()
     print("\n✓ Test setup complete!\n")
     return employee, salary, policy, summary
@@ -234,20 +239,20 @@ def create_test_payroll_setup(db: Session):
 
 def display_payroll_calculation(employee: Employee, payroll):
     """Display detailed payroll calculation."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print(f"PAYROLL CALCULATION: {employee.name} ({employee.employee_id})")
     print(f"Month: {payroll['month_start']}")
-    print("="*80)
-    
+    print("=" * 80)
+
     # Salary summary
     print("\n📊 SALARY SUMMARY")
     print(f"  Base Salary:           ₹{payroll['salary']['base']:>10,.2f}")
     print(f"  Gross Salary:          ₹{payroll['salary']['gross']:>10,.2f}")
     print(f"  Net Salary:            ₹{payroll['salary']['net']:>10,.2f}")
-    
+
     # Attendance
     print("\n📅 ATTENDANCE (Feb 2026)")
-    att = payroll['attendance']
+    att = payroll["attendance"]
     print(f"  Present Days:          {att['present_days']:>10} days")
     print(f"  Total Work Days:       {att['total_work_days']:>10} days")
     print(f"  Worked Hours:          {att['worked_hours']:>10.1f} hours")
@@ -256,77 +261,75 @@ def display_payroll_calculation(employee: Employee, payroll):
     print(f"  Underwork Hours:       {att['underwork_hours']:>10.1f} hours")
     print(f"  Paid Leave Hours:      {att['paid_leave_hours']:>10.1f} hours")
     print(f"  Unpaid Leave Hours:    {att['unpaid_leave_hours']:>10.1f} hours")
-    
+
     # Policy
     print("\n📋 PAYROLL POLICY")
-    policy = payroll['policy']
+    policy = payroll["policy"]
     print(f"  Policy Name:           {policy['name']}")
     print(f"  Policy ID:             {policy['id']}")
-    
+
     # Breakdown
-    breakdown = payroll['breakdown']
-    
-    if breakdown['allowances']:
+    breakdown = payroll["breakdown"]
+
+    if breakdown["allowances"]:
         print("\n✅ ALLOWANCES")
         total_allow = 0
-        for allow in breakdown['allowances']:
-            amount = allow['amount']
+        for allow in breakdown["allowances"]:
+            amount = allow["amount"]
             total_allow += amount
-            is_pct = "(%)" if allow['is_percentage'] else "flat"
+            is_pct = "(%)" if allow["is_percentage"] else "flat"
             print(f"  {allow['rule_name']:<30} ₹{amount:>10,.2f}  [{is_pct}]")
         print(f"  {'Total Allowances':<30} ₹{total_allow:>10,.2f}")
-    
-    if breakdown['deductions']:
+
+    if breakdown["deductions"]:
         print("\n❌ DEDUCTIONS")
         total_ded = 0
-        for ded in breakdown['deductions']:
-            amount = ded['amount']
+        for ded in breakdown["deductions"]:
+            amount = ded["amount"]
             total_ded += amount
-            is_pct = "(%)" if ded['is_percentage'] else "flat"
+            is_pct = "(%)" if ded["is_percentage"] else "flat"
             print(f"  {ded['rule_name']:<30} ₹{amount:>10,.2f}  [{is_pct}]")
         print(f"  {'Total Deductions':<30} ₹{total_ded:>10,.2f}")
-    
-    if breakdown['attendance_adjustments']:
+
+    if breakdown["attendance_adjustments"]:
         print("\n⏰ ATTENDANCE-BASED ADJUSTMENTS")
-        for adj in breakdown['attendance_adjustments']:
+        for adj in breakdown["attendance_adjustments"]:
             print(f"  {adj['name']:<30}")
             print(f"    Type:                  {adj['type']}")
-            for key in ['hours', 'present_days', 'rate']:
+            for key in ["hours", "present_days", "rate"]:
                 if key in adj:
                     print(f"    {key.capitalize()}:          {adj[key]}")
             print(f"    Amount:                ₹{adj['amount']:>10,.2f}")
-    
-    print("\n" + "="*80 + "\n")
+
+    print("\n" + "=" * 80 + "\n")
 
 
 def main():
     """Main test function."""
     db = SessionLocal()
-    
+
     try:
         # Setup test data
         employee, salary, policy, summary = create_test_payroll_setup(db)
-        
+
         # Calculate payroll
         print("\n🔄 CALCULATING PAYROLL...")
-        payroll = get_payroll_for_employee(
-            db,
-            employee.id,
-            date(2026, 2, 1)
-        )
-        
+        payroll = get_payroll_for_employee(db, employee.id, date(2026, 2, 1))
+
         if payroll:
             display_payroll_calculation(employee, payroll.to_dict())
-            
+
             print("\n✨ KEY INSIGHTS:")
             print(f"  - {payroll.present_days} out of {payroll.total_work_days} work days present")
             print(f"  - {payroll.overtime_hours:.1f} hours of overtime worked")
             print(f"  - Overtime bonus: ₹{payroll.overtime_hours * 500:,.2f}")
             print(f"  - Attendance bonus: ₹{payroll.present_days * 1000:,.2f}")
-            print(f"  - Total additions: ₹{payroll.base_salary - salary.base_salary + sum(a['amount'] for a in payroll.allowances):,.2f}")
+            print(
+                f"  - Total additions: ₹{payroll.base_salary - salary.base_salary + sum(a['amount'] for a in payroll.allowances):,.2f}"
+            )
         else:
             print("❌ Failed to calculate payroll")
-    
+
     finally:
         db.close()
 
