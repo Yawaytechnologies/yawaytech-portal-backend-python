@@ -2,7 +2,6 @@
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision = "020335d90768"
 down_revision = None

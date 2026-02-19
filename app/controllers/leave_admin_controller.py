@@ -194,7 +194,7 @@ class LeaveAdminController:
         )
         return row
 
-    def list_requests(self, db: Session, status: Optional[str] = None) -> List[dict]:
+    def list_requests(self, db: Session, status: Optional[LeaveStatus] = None) -> List[dict]:
         return self.repo.list_requests(db, status)
 
     # ---- Approval / Rejection ----

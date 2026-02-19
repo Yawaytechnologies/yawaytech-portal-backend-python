@@ -10,7 +10,6 @@ from typing import Sequence, Union
 
 from alembic import op
 
-
 # revision identifiers, used by Alembic.
 revision: str = "6bce6867c6cb"
 down_revision: Union[str, Sequence[str], None] = "999999999999"
@@ -21,8 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     # Create the expense_category enum
-    op.execute(
-        """
+    op.execute("""
         CREATE TYPE expense_category AS ENUM (
             'Food',
             'Transport',
@@ -35,8 +33,7 @@ def upgrade() -> None:
             'Health',
             'Other'
         );
-    """
-    )
+    """)
 
 
 def downgrade() -> None:

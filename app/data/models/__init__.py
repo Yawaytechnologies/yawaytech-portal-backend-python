@@ -7,6 +7,11 @@ from app.data.models.admin import Admin
 from app.data.models.expenses import Expense
 from app.data.models.shift_grace_policy import ShiftGracePolicy
 from app.data.models.employee_bank_detail import EmployeeBankDetail
+from app.data.models.employee_salary import EmployeeSalary
+from app.data.models.payroll_policy import PayrollPolicy
+from app.data.models.payroll_policy_rule import PayrollPolicyRule, Ruletypes
+from app.data.models.salary_breakdown import SalaryBreakdown
+from app.data.models.monthly_summary import MonthlyEmployeeSummary
 
 # from app.data.models.payroll import EmployeeSalary, PayPeriod, PayrollRun, PayrollItem  # Commented out as payroll is removed
 
@@ -26,7 +31,12 @@ __all__ = [
     "LeaveType",
     "LeaveRequest",
     "LeaveBalance",
-    # "EmployeeSalary",  # Commented out as payroll is removed
+    "EmployeeSalary",
+    "PayrollPolicy",
+    "PayrollPolicyRule",
+    "Ruletypes",
+    "SalaryBreakdown",
+    "MonthlyEmployeeSummary",
     # "PayPeriod",  # Commented out as payroll is removed
     # "PayrollRun",  # Commented out as payroll is removed
     # "PayrollItem",  # Commented out as payroll is removed

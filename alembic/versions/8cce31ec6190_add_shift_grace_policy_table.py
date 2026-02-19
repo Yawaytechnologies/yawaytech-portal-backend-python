@@ -19,8 +19,7 @@ def upgrade() -> None:
     """Upgrade schema."""
 
     # Create enums only if they don't exist
-    op.execute(
-        """
+    op.execute("""
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'grace_type_enum') THEN
@@ -28,10 +27,8 @@ def upgrade() -> None:
             END IF;
         END
         $$;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'applies_to_enum') THEN
@@ -39,12 +36,10 @@ def upgrade() -> None:
             END IF;
         END
         $$;
-    """
-    )
+    """)
 
     # Create shift_grace_policies table using raw SQL to avoid enum creation issues
-    op.execute(
-        """
+    op.execute("""
         CREATE TABLE shift_grace_policies (
             id SERIAL PRIMARY KEY,
             shift_id INTEGER NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
@@ -55,8 +50,7 @@ def upgrade() -> None:
             effective_to DATE,
             is_active BOOLEAN NOT NULL DEFAULT true
         )
-    """
-    )
+    """)
 
     # Constraints and indexes
     op.create_check_constraint(

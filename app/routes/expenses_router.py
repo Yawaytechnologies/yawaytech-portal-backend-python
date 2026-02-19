@@ -21,7 +21,6 @@ from app.schemas.expense import (
     CategorySummaryResponse,
 )
 
-
 # Reusable DB session type (removes Ruff B008 and keeps behavior the same)
 DBSession = Annotated[Session, Depends(get_db)]
 

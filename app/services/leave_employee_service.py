@@ -160,10 +160,13 @@ class LeaveMeService:
         )
 
     def list_requests(
-        self, db: Session, employee_id: str, status_str: Optional[str]
+        self, db: Session, employee_id: str, status: Optional[LeaveStatus]
     ) -> List[LeaveRequestOut]:
-        status_enum = LeaveStatus(status_str) if status_str else None
-        rows = self.repo.list_my_requests(db, employee_id, status_enum)
+        # `status` already typed as LeaveStatus by the router, so just pass it
+        # through to the repository. If any internal call passes a raw string
+        # it will be validated at the API layer; this keeps repository usage
+        # type-safe.
+        rows = self.repo.list_my_requests(db, employee_id, status)
         out: List[LeaveRequestOut] = []
         for r, lt in rows:
             out.append(

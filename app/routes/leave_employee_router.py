@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+from typing import Iterable
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
@@ -13,8 +14,8 @@ from app.schemas.leave_employee_schema import (
     LeaveSummaryOut,
 )
 from app.controllers.leave_employee_controller import LeaveMeController
+from app.data.models.leave import LeaveStatus
 from app.data.db import SessionLocal
-
 
 router = APIRouter(prefix="/api/leave", tags=["Leave"])
 ctl = LeaveMeController()
@@ -41,17 +42,42 @@ def list_balances(
 
 
 @router.get("/calendar")
+def _parse_flexible_datetime(value: str) -> datetime:
+    """Parse a datetime value that may be ISO format or common date formats.
+
+    Supported formats:
+    - ISO (YYYY-MM-DD or full ISO datetimes)
+    - DD-MM-YYYY and DD/MM/YYYY
+    - YYYY/MM/DD
+    """
+    try:
+        return datetime.fromisoformat(value)
+    except Exception:
+        # Try a few common human-friendly date formats
+        fmts: Iterable[str] = (
+            "%d-%m-%Y",
+            "%d/%m/%Y",
+            "%Y-%m-%d",
+            "%Y/%m/%d",
+            "%Y-%m-%dT%H:%M:%S",
+            "%d-%m-%YT%H:%M:%S",
+        )
+        for fmt in fmts:
+            try:
+                return datetime.strptime(value, fmt)
+            except Exception:
+                continue
+    raise HTTPException(400, f"Invalid datetime: Unsupported format '{value}'")
+
+
 def get_calendar(
     employeeId: str,
-    start: str = Query(..., description="ISO datetime"),
-    end: str = Query(..., description="ISO datetime"),
+    start: str = Query(..., description="ISO datetime or DD-MM-YYYY"),
+    end: str = Query(..., description="ISO datetime or DD-MM-YYYY"),
     db: Session = Depends(get_db),
 ):
-    try:
-        start_dt = datetime.fromisoformat(start)
-        end_dt = datetime.fromisoformat(end)
-    except Exception as e:
-        raise HTTPException(400, f"Invalid datetime: {e}")
+    start_dt = _parse_flexible_datetime(start)
+    end_dt = _parse_flexible_datetime(end)
     return ctl.get_calendar(db, employeeId, start_dt, end_dt)
 
 
@@ -67,8 +93,9 @@ def apply_leave(
 
 @router.get("/requests")
 def list_requests(
-    employeeId: str, status: Optional[str] = Query(None), db: Session = Depends(get_db)
+    employeeId: str, status: Optional[LeaveStatus] = Query(None), db: Session = Depends(get_db)
 ) -> List[LeaveRequestOut]:
+    # Let FastAPI validate the incoming `status` against the LeaveStatus enum.
     return ctl.list_requests(db, employeeId, status)
 
 
