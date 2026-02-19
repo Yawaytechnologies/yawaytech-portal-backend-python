@@ -16,6 +16,7 @@ from app.data.models.employee_salary import EmployeeSalary
 from app.data.models.payroll_policy import PayrollPolicy
 from app.data.models.salary_breakdown import SalaryBreakdown
 from app.data.models.monthly_summary import MonthlyEmployeeSummary
+
 # Attendance models not required in this module
 
 
