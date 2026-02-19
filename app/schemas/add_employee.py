@@ -8,7 +8,6 @@ import binascii
 
 from app.data.models.add_employee import MaritalStatus, Department
 
-
 EMP_ID_LEN = 9
 
 

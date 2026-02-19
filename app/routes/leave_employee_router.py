@@ -17,7 +17,6 @@ from app.controllers.leave_employee_controller import LeaveMeController
 from app.data.models.leave import LeaveStatus
 from app.data.db import SessionLocal
 
-
 router = APIRouter(prefix="/api/leave", tags=["Leave"])
 ctl = LeaveMeController()
 

@@ -14,7 +14,6 @@ from app.services.payroll_calculator_service import (
     generate_salary_breakdown,
 )
 
-
 router = APIRouter(prefix="/api/payroll", tags=["payroll"])
 
 

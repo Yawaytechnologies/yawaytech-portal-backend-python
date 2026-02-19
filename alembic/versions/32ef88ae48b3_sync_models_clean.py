@@ -421,8 +421,7 @@ def upgrade() -> None:
 
     # status → normalize & convert to ENUM with Title-Case labels
     # Normalize existing data to match enum labels exactly
-    op.execute(
-        """
+    op.execute("""
         UPDATE attendance_days
         SET status = CASE UPPER(status)
             WHEN 'PRESENT' THEN 'Present'
@@ -432,8 +431,7 @@ def upgrade() -> None:
             WHEN 'WEEKEND' THEN 'Weekend'
             ELSE 'Present'
         END
-        """
-    )
+        """)
     day_status_enum = sa.Enum(
         "Present", "Absent", "Leave", "Holiday", "Weekend", name="day_status_enum"
     )
