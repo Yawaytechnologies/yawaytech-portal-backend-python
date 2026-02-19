@@ -55,7 +55,10 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("checkin_monitoring_pkey")),
     )
     op.create_index(
-        op.f("ix_checkin_monitoring_session_id"), "checkin_monitoring", ["session_id"], unique=False
+        op.f("ix_checkin_monitoring_session_id"),
+        "checkin_monitoring",
+        ["session_id"],
+        unique=False,
     )
     # ### end Alembic commands ###
 

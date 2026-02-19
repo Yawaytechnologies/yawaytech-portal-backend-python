@@ -7,11 +7,11 @@ from app.controllers.worklog_controller import WorklogController
 from app.schemas.worklog import Worklog, WorklogCreate, WorklogUpdate
 from app.core.deps import get_db
 
-router = APIRouter(prefix="/worklog", tags=["worklog"])
+router = APIRouter(prefix="/api", tags=["Worklog"])
 controller = WorklogController()
 
 
-@router.post("/", response_model=Worklog, status_code=status.HTTP_201_CREATED)
+@router.post("/worklog", response_model=Worklog, status_code=status.HTTP_201_CREATED)
 def create_worklog(worklog_create: WorklogCreate, db: Session = Depends(get_db)):
     return controller.create_worklog(db, worklog_create)
 

@@ -8,7 +8,6 @@ import binascii
 
 from app.data.models.add_employee import MaritalStatus, Department
 
-
 EMP_ID_LEN = 9
 
 
@@ -22,6 +21,8 @@ class EmployeeBase(BaseModel):
     date_of_leaving: Optional[date] = None
     email: EmailStr
     mobile_number: str = Field(..., min_length=10, max_length=10, pattern=r"^\d{10}$")
+    pan_number: str = Field(..., min_length=10, max_length=10)
+    aadhar_number: str = Field(..., min_length=12, max_length=12)
     marital_status: MaritalStatus
     permanent_address: str = Field(..., min_length=5)
     designation: str = Field(..., min_length=2, max_length=30)
@@ -82,6 +83,9 @@ class EmployeeUpdate(BaseModel):
     email: Optional[EmailStr] = None
     mobile_number: Optional[str] = Field(None, min_length=10, max_length=10, pattern=r"^\d{10}$")
 
+    pan_number: Optional[str] = Field(None, min_length=10, max_length=10)
+    aadhar_number: Optional[str] = Field(None, min_length=12, max_length=12)
+
     marital_status: Optional[MaritalStatus] = None
     date_of_birth: Optional[date] = None
 
@@ -120,6 +124,8 @@ class EmployeeRead(BaseModel):
     date_of_leaving: Optional[date] = None
     email: EmailStr
     mobile_number: str
+    pan_number: str
+    aadhar_number: str
     marital_status: MaritalStatus
     permanent_address: str
     designation: str
@@ -140,7 +146,9 @@ class EmployeeCreateForm:
         date_of_joining: str = Form(...),  # Will be converted to date
         date_of_leaving: Optional[str] = Form(None),
         email: str = Form(...),
-        mobile_number: str = Form(..., min_length=10, max_length=10, regex=r"^\d{10}$"),
+        mobile_number: str = Form(..., min_length=10, max_length=10, pattern=r"^\d{10}$"),
+        pan_number: str = Form(..., min_length=10, max_length=10),
+        aadhar_number: str = Form(..., min_length=12, max_length=12),
         marital_status: str = Form(...),
         permanent_address: str = Form(..., min_length=5),
         designation: str = Form(..., min_length=2, max_length=30),
@@ -156,6 +164,8 @@ class EmployeeCreateForm:
         self.date_of_leaving = date_of_leaving
         self.email = email
         self.mobile_number = mobile_number
+        self.pan_number = pan_number
+        self.aadhar_number = aadhar_number
         self.marital_status = marital_status
         self.permanent_address = permanent_address
         self.designation = designation
@@ -187,6 +197,8 @@ class EmployeeCreateForm:
             date_of_leaving=date_of_leaving,
             email=self.email,
             mobile_number=self.mobile_number,
+            pan_number=self.pan_number,
+            aadhar_number=self.aadhar_number,
             marital_status=MaritalStatus(self.marital_status),
             permanent_address=self.permanent_address,
             designation=self.designation,
@@ -205,7 +217,11 @@ class EmployeeUpdateForm:
         date_of_joining: Optional[str] = Form(None),
         date_of_leaving: Optional[str] = Form(None),
         email: Optional[str] = Form(None),
-        mobile_number: Optional[str] = Form(None, min_length=10, max_length=10, regex=r"^\d{10}$"),
+        mobile_number: Optional[str] = Form(
+            None, min_length=10, max_length=10, pattern=r"^\d{10}$"
+        ),
+        pan_number: Optional[str] = Form(None, min_length=10, max_length=10),
+        aadhar_number: Optional[str] = Form(None, min_length=12, max_length=12),
         marital_status: Optional[str] = Form(None),
         date_of_birth: Optional[str] = Form(None),
         password: Optional[str] = Form(None, min_length=8),
@@ -221,6 +237,8 @@ class EmployeeUpdateForm:
         self.date_of_leaving = date_of_leaving
         self.email = email
         self.mobile_number = mobile_number
+        self.pan_number = pan_number
+        self.aadhar_number = aadhar_number
         self.marital_status = marital_status
         self.date_of_birth = date_of_birth
         self.password = password
@@ -252,7 +270,9 @@ class EmployeeUpdateForm:
             date_of_leaving=date_of_leaving,
             email=self.email,
             mobile_number=self.mobile_number,
-            marital_status=MaritalStatus(self.marital_status) if self.marital_status else None,
+            pan_number=self.pan_number,
+            aadhar_number=self.aadhar_number,
+            marital_status=(MaritalStatus(self.marital_status) if self.marital_status else None),
             date_of_birth=date_of_birth,
             password=self.password,
             permanent_address=self.permanent_address,

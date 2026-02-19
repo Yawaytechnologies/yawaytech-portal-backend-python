@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Generator, Any, Dict
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.pool import NullPool
@@ -80,17 +80,18 @@ Base = declarative_base()
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 # ---------- Startup probe ----------
-try:
-    with engine.connect() as conn:
-        try:
-            who = conn.execute(text("select current_user")).scalar()
-            ssl = conn.execute(text("show ssl")).scalar()
-            print(f"[DB] current_user: {who} | ssl={ssl}")
-        except Exception:
-            one = conn.execute(text("select 1")).scalar()
-            print(f"[DB] sqlite probe -> SELECT 1 = {one}")
-except Exception as e:
-    print(f"[DB] startup probe error: {e}")
+# Commented out to speed up startup
+# try:
+#     with engine.connect() as conn:
+#         try:
+#             who = conn.execute(text("select current_user")).scalar()
+#             ssl = conn.execute(text("show ssl")).scalar()
+#             print(f"[DB] current_user: {who} | ssl={ssl}")
+#         except Exception:
+#             one = conn.execute(text("select 1")).scalar()
+#             print(f"[DB] sqlite probe -> SELECT 1 = {one}")
+# except Exception as e:
+#     print(f"[DB] startup probe error: {e}")
 
 
 # ---------- FastAPI dependency ----------
@@ -103,4 +104,4 @@ def get_db() -> Generator[Session, None, None]:
 
 
 # Enable automatic table creation on startup
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Commented out to prevent hanging on startup; use Alembic migrations instead

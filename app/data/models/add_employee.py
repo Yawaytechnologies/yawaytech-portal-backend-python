@@ -3,8 +3,16 @@ from __future__ import annotations
 from datetime import date, datetime
 from enum import Enum
 
-from sqlalchemy import Date, DateTime, Enum as SAEnum, Integer, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import (
+    Date,
+    DateTime,
+    Enum as SAEnum,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.data.db import Base
 
 
@@ -16,9 +24,9 @@ class MaritalStatus(str, Enum):
 class Department(str, Enum):
     HR = "HR"
     IT = "IT"
-    SALES = "Sales"
-    FINANCE = "Finance"
-    MARKETING = "Marketing"
+    SALES = "SALES"
+    FINANCE = "FINANCE"
+    MARKETING = "MARKETING"
 
 
 class Employee(Base):
@@ -36,6 +44,12 @@ class Employee(Base):
 
     email: Mapped[str] = mapped_column(String(30), nullable=False, unique=True, index=True)
     mobile_number: Mapped[str] = mapped_column(String(10), nullable=False)
+    pan_number: Mapped[str | None] = mapped_column(
+        String(10), unique=True, index=True, nullable=True
+    )
+    aadhar_number: Mapped[str | None] = mapped_column(
+        String(12), unique=True, index=True, nullable=True
+    )
 
     marital_status: Mapped[MaritalStatus] = mapped_column(SAEnum(MaritalStatus), nullable=False)
     date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
@@ -44,7 +58,10 @@ class Employee(Base):
 
     designation: Mapped[str] = mapped_column(String(30), nullable=False)
     department: Mapped[Department] = mapped_column(SAEnum(Department), nullable=False, index=True)
+    region: Mapped[str | None] = mapped_column(String(8), nullable=True, index=True)
     profile_picture: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bank_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    ifsc_code: Mapped[str | None] = mapped_column(String(11), nullable=True)
     password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
@@ -55,8 +72,14 @@ class Employee(Base):
     __table_args__ = (
         UniqueConstraint("employee_id", name="uq_employee_employee_id"),
         UniqueConstraint("email", name="uq_employee_email"),
+        UniqueConstraint("pan_number", name="uq_employee_pan_number"),
+        UniqueConstraint("aadhar_number", name="uq_employee_aadhar_number"),
         UniqueConstraint("mobile_number", name="uq_employee_mobile_number"),
     )
+
+    # Relationships
+    bank_details = relationship("EmployeeBankDetail", back_populates="employee")
+    salaries = relationship("EmployeeSalary", back_populates="employee")
 
     # Index("ix_employees_dept_name", Employee.department, Employee.name)
     # Index("ix_employees_employee_id", Employee.employee_id, unique=True)

@@ -35,7 +35,13 @@ def upgrade() -> None:
         sa.Column(
             "work_type",
             postgresql.ENUM(
-                "FEATURE", "BUG_FIX", "MEETING", "TRAINING", "SUPPORT", "OTHER", name="worktype"
+                "FEATURE",
+                "BUG_FIX",
+                "MEETING",
+                "TRAINING",
+                "SUPPORT",
+                "OTHER",
+                name="worktype",
             ),
             nullable=True,
         ),
@@ -45,10 +51,16 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column(
-            "created_at", postgresql.TIMESTAMP(), server_default=sa.text("now()"), nullable=False
+            "created_at",
+            postgresql.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.Column(
-            "updated_at", postgresql.TIMESTAMP(), server_default=sa.text("now()"), nullable=False
+            "updated_at",
+            postgresql.TIMESTAMP(),
+            server_default=sa.text("now()"),
+            nullable=False,
         ),
         sa.ForeignKeyConstraint(
             ["employee_id"],

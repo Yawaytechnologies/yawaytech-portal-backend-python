@@ -32,7 +32,11 @@ def get_monthly_expenses(db: Session) -> dict:
         .scalar()
     ) or 0.0
 
-    return {"year": today.year, "month": today.month, "total_expenses_this_month": round(total, 2)}
+    return {
+        "year": today.year,
+        "month": today.month,
+        "total_expenses_this_month": round(total, 2),
+    }
 
 
 def get_half_expenses(db: Session, year: int, half: str) -> dict:

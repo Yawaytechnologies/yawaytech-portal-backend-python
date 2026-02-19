@@ -35,7 +35,10 @@ def seed_data():
         # Seed Admin
         admin_password = hash_password("admin123")
         admin = Admin(
-            admin_id="admin", password_hash=admin_password, is_active=True, is_super_admin=True
+            admin_id="admin",
+            password_hash=admin_password,
+            is_active=True,
+            is_super_admin=True,
         )
         db.add(admin)
         print("Seeded admin")

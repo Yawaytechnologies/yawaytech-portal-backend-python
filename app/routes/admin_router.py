@@ -18,7 +18,11 @@ def login(payload: AdminLogin, db: Session = Depends(get_db)):
 @router.post("/bootstrap", response_model=dict)
 def bootstrap(payload: BootstrapCreate, db: Session = Depends(get_db)):
     admin = svc.bootstrap_super_admin(db, **payload.model_dump())
-    return {"id": admin.id, "admin_id": admin.admin_id, "is_super_admin": admin.is_super_admin}
+    return {
+        "id": admin.id,
+        "admin_id": admin.admin_id,
+        "is_super_admin": admin.is_super_admin,
+    }
 
 
 @router.get("/me", dependencies=[Depends(require_admin)], response_model=dict)

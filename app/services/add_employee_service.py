@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
 from app.core.security import hash_password
-from app.data.models.add_employee import Employee
-from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate
+from app.data.models.add_employee import Employee, Department
+from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
 
 
 class EmployeeService:
@@ -38,7 +38,11 @@ class EmployeeService:
         return db.scalar(select(Employee).where(Employee.employee_id == employee_id))
 
     def list_employees(
-        self, db: Session, q: Optional[str] = None, skip: int = 0, limit: Optional[int] = None
+        self,
+        db: Session,
+        q: Optional[str] = None,
+        skip: int = 0,
+        limit: Optional[int] = None,
     ) -> Tuple[List[Employee], int]:
         stmt = select(Employee)
         if q:
@@ -71,7 +75,7 @@ class EmployeeService:
             exclude_unset=True
         )  # Pydantic v2: payload.model_dump(exclude_unset=True)
 
-        if "password" in data:
+        if "password" in data and data["password"] is not None:
             data["password"] = hash_password(data["password"])
 
         if "email" in data:
@@ -106,3 +110,71 @@ class EmployeeService:
         db.delete(emp)
         db.commit()
         return True
+
+    def get_employees_by_department(self, db: Session, department: Department) -> List[Employee]:
+        stmt = select(Employee).where(Employee.department == department)
+        rows = db.scalars(stmt).all()
+        employees: List[Employee] = cast(List[Employee], list(rows))
+        return employees
+
+    def get_department_progress(self, db: Session, department: Department) -> dict:
+        """Get progress metrics for all employees in a department"""
+        from app.data.models.monthly_summary import MonthlyEmployeeSummary
+
+        # Get all employees in department
+        employees = self.get_employees_by_department(db, department)
+        employee_ids = [emp.employee_id for emp in employees]
+
+        if not employee_ids:
+            return {"department": department.value, "total_employees": 0, "progress": []}
+
+        # Get latest monthly summaries for these employees
+        latest_summaries = (
+            db.query(MonthlyEmployeeSummary)
+            .filter(MonthlyEmployeeSummary.employee_id.in_(employee_ids))
+            .order_by(MonthlyEmployeeSummary.employee_id, MonthlyEmployeeSummary.month_start.desc())
+            .all()
+        )
+
+        # Group by employee_id to get latest summary per employee
+        employee_summaries = {}
+        for summary in latest_summaries:
+            if summary.employee_id not in employee_summaries:
+                employee_summaries[summary.employee_id] = summary
+
+        # Calculate department totals
+        total_employees = len(employees)
+        total_present_days = sum(s.present_days for s in employee_summaries.values())
+        total_work_days = sum(s.total_work_days for s in employee_summaries.values())
+        total_worked_hours = sum(s.total_worked_hours for s in employee_summaries.values())
+        total_overtime_hours = sum(s.overtime_hours for s in employee_summaries.values())
+        total_leave_days = sum(s.leave_days for s in employee_summaries.values())
+
+        # Calculate averages
+        avg_attendance_rate = (
+            (total_present_days / total_work_days * 100) if total_work_days > 0 else 0
+        )
+        avg_worked_hours = total_worked_hours / total_employees if total_employees > 0 else 0
+
+        return {
+            "department": department.value,
+            "total_employees": total_employees,
+            "total_present_days": total_present_days,
+            "total_work_days": total_work_days,
+            "total_worked_hours": total_worked_hours,
+            "total_overtime_hours": total_overtime_hours,
+            "total_leave_days": total_leave_days,
+            "average_attendance_rate": round(avg_attendance_rate, 2),
+            "average_worked_hours": round(avg_worked_hours, 2),
+        }
+
+    def get_all_employees_by_department(self, db: Session) -> dict:
+        """Get all employees grouped by department"""
+        from app.data.models.add_employee import Department
+
+        result = {}
+        for dept in Department:
+            employees = self.get_employees_by_department(db, dept)
+            if employees:  # Only include departments with employees
+                result[dept.value] = [EmployeeRead.model_validate(emp) for emp in employees]
+        return result
