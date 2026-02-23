@@ -42,11 +42,13 @@ def upgrade() -> None:
     new_enum.create(op.get_bind())
 
     # Alter column to use new enum
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE expenses
         ALTER COLUMN category TYPE expense_category
         USING category::text::expense_category
-    """)
+    """
+    )
 
     # Drop old enum
     op.execute("DROP TYPE expense_category_old")
@@ -57,11 +59,13 @@ def downgrade() -> None:
     old_enum.create(op.get_bind())
 
     # Revert column to old enum
-    op.execute("""
+    op.execute(
+        """
         ALTER TABLE expenses
         ALTER COLUMN category TYPE expense_category
         USING category::text::expense_category
-    """)
+    """
+    )
 
     # Drop new enum
     op.execute("DROP TYPE expense_category")
