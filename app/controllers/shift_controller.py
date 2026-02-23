@@ -13,3 +13,7 @@ def assign_shift_controller(db: Session, assignment: EmployeeShiftAssignmentCrea
 
 def get_current_shift_controller(db: Session, employee_id: str, target_date):
     return shift_service.get_current_shift_service(db, employee_id, target_date)
+
+
+def get_all_shifts_controller(db: Session):
+    return shift_service.get_all_shifts_service(db) 
