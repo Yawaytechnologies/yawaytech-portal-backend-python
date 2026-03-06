@@ -9,8 +9,8 @@ def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
     return employee_bank_detail_service.create_bank_detail(db, data)
 
 
-def get_bank_detail(db: Session, detail_id: int):
-    detail = employee_bank_detail_service.get_bank_detail(db, detail_id)
+def get_bank_detail(db: Session, employee_id: str):
+    detail = employee_bank_detail_service.get_bank_detail(db, employee_id)
     if not detail:
         raise HTTPException(status_code=404, detail="Bank detail not found")
     return detail
@@ -20,8 +20,8 @@ def list_bank_details(db: Session):
     return employee_bank_detail_service.list_bank_details(db)
 
 
-def update_bank_detail(db: Session, detail_id: int, updates: EmployeeBankDetailUpdate):
-    detail = employee_bank_detail_service.update_bank_detail(db, detail_id, updates)
+def update_bank_detail(db: Session, employee_id: str, updates: EmployeeBankDetailUpdate):
+    detail = employee_bank_detail_service.update_bank_detail(db, employee_id, updates)
     if not detail:
         raise HTTPException(status_code=404, detail="Bank detail not found")
     return detail
