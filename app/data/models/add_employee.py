@@ -16,8 +16,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.data.db import Base
 
 
-
-
 class MaritalStatus(str, Enum):
     SINGLE = "Single"
     MARRIED = "Married"
@@ -80,5 +78,7 @@ class Employee(Base):
     )
 
     # Relationships
-    bank_details = relationship("EmployeeBankDetail", back_populates="employee",cascade="all, delete-orphan")
+    bank_details = relationship(
+        "EmployeeBankDetail", back_populates="employee", cascade="all, delete-orphan"
+    )
     salaries = relationship("EmployeeSalary", back_populates="employee")

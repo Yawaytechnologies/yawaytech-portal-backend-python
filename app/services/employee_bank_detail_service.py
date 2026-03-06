@@ -27,9 +27,7 @@ def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
     db.refresh(detail)
 
     emp_employee_id = (
-        db.query(Employee.employee_id)
-        .filter(Employee.id == detail.employee_id)
-        .scalar()
+        db.query(Employee.employee_id).filter(Employee.id == detail.employee_id).scalar()
     )
     return _to_read_dict(detail, emp_employee_id)
 
@@ -58,12 +56,8 @@ def list_bank_details(db: Session):
     return [_to_read_dict(detail, emp_employee_id) for detail, emp_employee_id in rows]
 
 
-def update_bank_detail(db: Session, employee_id:str, updates: EmployeeBankDetailUpdate):
-    detail = (
-        db.query(EmployeeBankDetail)
-        .filter(Employee.employee_id == employee_id)
-        .first()
-    )
+def update_bank_detail(db: Session, employee_id: str, updates: EmployeeBankDetailUpdate):
+    detail = db.query(EmployeeBankDetail).filter(Employee.employee_id == employee_id).first()
     if not detail:
         return None
 
@@ -74,19 +68,13 @@ def update_bank_detail(db: Session, employee_id:str, updates: EmployeeBankDetail
     db.refresh(detail)
 
     emp_employee_id = (
-        db.query(Employee.employee_id)
-        .filter(Employee.id == detail.employee_id)
-        .scalar()
+        db.query(Employee.employee_id).filter(Employee.id == detail.employee_id).scalar()
     )
     return _to_read_dict(detail, emp_employee_id)
 
 
 def delete_bank_detail(db: Session, employee_id: str):
-    detail = (
-        db.query(EmployeeBankDetail)
-        .filter(Employee.employee_id == employee_id)
-        .first()
-    )
+    detail = db.query(EmployeeBankDetail).filter(Employee.employee_id == employee_id).first()
     if detail:
         db.delete(detail)
         db.commit()

@@ -20,4 +20,3 @@ def get_current_shift_service(db: Session, employee_id: str, target_date: date):
 
 def get_all_shifts_service(db: Session):
     return db.query(Shift).all()
-
