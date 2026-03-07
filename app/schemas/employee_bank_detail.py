@@ -4,7 +4,8 @@ from typing import Optional
 
 
 class EmployeeBankDetailBase(BaseModel):
-    employee_id: int
+    id: int
+    employee_id: str
     bank_name: str
     account_number: str
     ifsc_code: str
