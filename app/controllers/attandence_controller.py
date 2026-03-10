@@ -167,10 +167,17 @@ class AttendanceController:
         db.commit()
         db.refresh(evidence)
 
+        # Handle evidence_type - could be enum or string depending on source
+        evidence_type_value = (
+            evidence.evidence_type.value
+            if hasattr(evidence.evidence_type, "value")
+            else evidence.evidence_type
+        )
+
         evidence_response = AttendanceEvidenceResponse(
             id=evidence.id,
             session_id=evidence.session_id,
-            evidence_type=evidence.evidence_type.value,
+            evidence_type=evidence_type_value,
             verified=evidence.verified,
             confidence_score=evidence.confidence_score,
             verification_notes=evidence.verification_notes,
@@ -261,10 +268,17 @@ class AttendanceController:
         db.commit()
         db.refresh(evidence)
 
+        # Handle evidence_type - could be enum or string depending on source
+        evidence_type_value = (
+            evidence.evidence_type.value
+            if hasattr(evidence.evidence_type, "value")
+            else evidence.evidence_type
+        )
+
         evidence_response = AttendanceEvidenceResponse(
             id=evidence.id,
             session_id=evidence.session_id,
-            evidence_type=evidence.evidence_type.value,
+            evidence_type=evidence_type_value,
             verified=evidence.verified,
             confidence_score=evidence.confidence_score,
             verification_notes=evidence.verification_notes,
@@ -299,11 +313,17 @@ class AttendanceController:
 
         result = []
         for evidence in evidences:
+            # Handle evidence_type - could be enum or string depending on source
+            evidence_type_value = (
+                evidence.evidence_type.value
+                if hasattr(evidence.evidence_type, "value")
+                else evidence.evidence_type
+            )
             result.append(
                 AttendanceEvidenceResponse(
                     id=evidence.id,
                     session_id=evidence.session_id,
-                    evidence_type=evidence.evidence_type.value,
+                    evidence_type=evidence_type_value,
                     verified=evidence.verified,
                     confidence_score=evidence.confidence_score,
                     verification_notes=evidence.verification_notes,
@@ -341,11 +361,17 @@ class AttendanceController:
 
         result = []
         for evidence in evidences:
+            # Handle evidence_type - could be enum or string depending on source
+            evidence_type_value = (
+                evidence.evidence_type.value
+                if hasattr(evidence.evidence_type, "value")
+                else evidence.evidence_type
+            )
             result.append(
                 AttendanceEvidenceResponse(
                     id=evidence.id,
                     session_id=evidence.session_id,
-                    evidence_type=evidence.evidence_type.value,
+                    evidence_type=evidence_type_value,
                     verified=evidence.verified,
                     confidence_score=evidence.confidence_score,
                     verification_notes=evidence.verification_notes,
