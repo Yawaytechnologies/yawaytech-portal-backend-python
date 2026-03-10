@@ -18,7 +18,7 @@ def create_bank_detail(data: EmployeeBankDetailCreate, db: Session = Depends(get
 
 
 @router.get("/", response_model=list[EmployeeBankDetailRead])
-def get_all_bank_details(db: Session = Depends(get_db)):
+def list_bank_details(db: Session = Depends(get_db)):
     return employee_bank_detail_controller.get_all_bank_details(db)
 
 
