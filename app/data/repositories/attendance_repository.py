@@ -40,6 +40,13 @@ class AttendanceRepository:
         )
         return db.execute(stmt).scalar_one_or_none()
 
+    def get_session_by_id(self, db: Session, session_id: int) -> AttendanceSession | None:
+        """
+        Fetch a session by its ID.
+        """
+        stmt = select(AttendanceSession).where(AttendanceSession.id == session_id)
+        return db.execute(stmt).scalar_one_or_none()
+
     def create_session(
         self,
         db: Session,
