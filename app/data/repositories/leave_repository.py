@@ -1,22 +1,23 @@
 # app/data/repositories/leave_repository.py
 from __future__ import annotations
-from datetime import date, datetime
-from typing import Optional, List
-from calendar import monthrange
-from decimal import Decimal
 
+from calendar import monthrange
+from datetime import date, datetime
+from decimal import Decimal
+from typing import List, Optional
+
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_, func, or_
 from sqlalchemy.types import Date
 
-from app.data.models.leave import (
-    LeaveType,
-    LeaveRequest,
-    LeaveBalance,
-    LeaveStatus,
-    LeaveReqUnit,
-)
 from app.data.models.attendance import AttendanceDay, DayStatus
+from app.data.models.leave import (
+    LeaveBalance,
+    LeaveReqUnit,
+    LeaveRequest,
+    LeaveStatus,
+    LeaveType,
+)
 from app.data.models.policy import HolidayCalendar
 
 EIGHT_HOURS = 8.0
@@ -271,7 +272,7 @@ class LeaveRepository:
         """Calculate the number of days requested based on unit and dates/hours."""
         if row.requested_unit == "HOUR":
             # For hours, assume 8 hours per day
-            return float((row.requested_hours or Decimal("0")) / Decimal ("8"))
+            return float((row.requested_hours or Decimal("0")) / Decimal("8"))
         elif row.requested_unit == "HALF_DAY":
             # Calculate number of days between start and end, inclusive
             days = (row.end_date - row.start_date).days + 1
@@ -309,7 +310,7 @@ class LeaveRepository:
         db: Session,
         employee_id: str,
         d: date,
-        hours: Decimal,
+        hours: Decimal | float,
         is_paid: bool,
     ) -> AttendanceDay:
         """
@@ -335,7 +336,7 @@ class LeaveRepository:
                 unpaid_seconds=0,
                 first_check_in_utc=None,
                 last_check_out_utc=None,
-                status=DayStatus.LEAVE,  # Enum (Title-case)
+                status=DayStatus.LEAVE,
                 lock_flag=False,
             )
             db.add(row)
@@ -344,7 +345,9 @@ class LeaveRepository:
             # make sure status is harmonized
             row.status = DayStatus.LEAVE
 
-        inc = int(round(hours * 3600))
+        hours_decimal = hours if isinstance(hours, Decimal) else Decimal(str(hours))
+        inc = int(round(hours_decimal * Decimal("3600")))
+
         if is_paid:
             row.paid_leave_seconds = (row.paid_leave_seconds or 0) + inc
         else:
