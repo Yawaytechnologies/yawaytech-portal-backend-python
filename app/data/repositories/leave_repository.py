@@ -422,3 +422,5 @@ class LeaveRepository:
 
         result = db.execute(stmt).first()
         return result is not None
+    
+    
