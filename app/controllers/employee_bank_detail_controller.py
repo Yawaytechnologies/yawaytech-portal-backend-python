@@ -12,7 +12,7 @@ def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
 
 
 def list_bank_details(db: Session):
-    return employee_bank_detail_service.get_all_bank_details(db)
+    return employee_bank_detail_service.list_bank_details(db)
 
 
 def get_bank_detail_by_employee_id(db: Session, employee_id: str):

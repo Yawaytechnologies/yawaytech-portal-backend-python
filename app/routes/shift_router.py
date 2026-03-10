@@ -40,4 +40,4 @@ def get_all_shifts(db: Session = Depends(get_db)):
 
 @router.get("/department/{department}", response_model=list[ShiftSchema])
 def get_shifts_by_department(department: str, db: Session = Depends(get_db)):
-    return shift_controller.get_shift_by_department_controller(db, department)
+    return shift_controller.get_all_shifts_controller(db)

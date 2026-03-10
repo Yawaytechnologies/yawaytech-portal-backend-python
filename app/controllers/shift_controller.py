@@ -19,5 +19,5 @@ def get_all_shifts_controller(db: Session):
     return shift_service.get_all_shifts_service(db)
 
 
-def get_shift_by_department_controller(db: Session, department: str):
+def get_shift_by_department_controller(db: Session, department: int):
     return shift_service.get_shift_by_department_service(db, department)
