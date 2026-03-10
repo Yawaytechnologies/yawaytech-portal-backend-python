@@ -32,7 +32,7 @@ def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
     return _to_read_dict(detail, emp_employee_id)
 
 
-def get_bank_detail(db: Session, employee_id: str):
+def get_bank_detail_by_employee_id(db: Session, employee_id: str):
     row = (
         db.query(EmployeeBankDetail, Employee.employee_id)
         .join(Employee, EmployeeBankDetail.employee_id == Employee.id)

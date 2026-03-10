@@ -11,7 +11,7 @@ def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
     return employee_bank_detail_service.create_bank_detail(db, data)
 
 
-def get_all_bank_details(db: Session):
+def list_bank_details(db: Session):
     return employee_bank_detail_service.get_all_bank_details(db)
 
 
