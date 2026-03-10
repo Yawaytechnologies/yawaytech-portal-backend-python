@@ -26,6 +26,7 @@ from app.routes.employee_salary_router import router as employee_salary_router
 from app.routes.employee_bank_detail_router import router as employee_bank_detail_router
 from app.routes.department_router import router as department_router
 from app.routes.payroll_calculator_router import router as payroll_calculator_router
+from app.routes.employee_profile_router import router as employee_profile_router
 
 
 @asynccontextmanager
@@ -81,6 +82,7 @@ app.include_router(payroll_policy_router, prefix="")
 app.include_router(employee_salary_router, prefix="")
 app.include_router(employee_bank_detail_router, prefix="")
 app.include_router(payroll_calculator_router, prefix="")
+app.include_router(employee_profile_router, prefix="")
 
 
 # Health check routes
