@@ -30,8 +30,7 @@ def upgrade() -> None:
     )
 
     # Salary Breakdown table - use raw SQL to avoid enum creation issue
-    op.execute(
-        """
+    op.execute("""
         CREATE TABLE salary_breakdowns (
             id SERIAL PRIMARY KEY,
             employee_salary_id INTEGER NOT NULL REFERENCES employee_salaries(id),
@@ -40,8 +39,7 @@ def upgrade() -> None:
             applies_to VARCHAR(50) NOT NULL,
             amount FLOAT NOT NULL
         )
-    """
-    )
+    """)
 
     # Employee Bank Detail table
     op.create_table(
