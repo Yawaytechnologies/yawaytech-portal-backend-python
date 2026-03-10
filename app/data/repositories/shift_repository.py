@@ -29,9 +29,10 @@ def get_current_shift(db: Session, employee_id: str, date) -> Shift | None:
         .first()
     )
 
+
 def get_shifts_by_department(db: Session, department_id: int):
-    return(
+    return (
         db.query(Shift)
         .join(EmployeeShiftAssignment, Shift.id == EmployeeShiftAssignment.shift_id)
         .all()
-    )        
+    )

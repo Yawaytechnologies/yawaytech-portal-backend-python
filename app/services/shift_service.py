@@ -21,5 +21,6 @@ def get_current_shift_service(db: Session, employee_id: str, target_date: date):
 def get_all_shifts_service(db: Session):
     return db.query(Shift).all()
 
+
 def get_shift_by_department_service(db: Session, department_id: int):
     return shift_repository.get_shifts_by_department(db, department_id)

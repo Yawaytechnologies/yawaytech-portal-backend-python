@@ -20,7 +20,8 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     # Create the expense_category enum
-    op.execute("""
+    op.execute(
+        """
         CREATE TYPE expense_category AS ENUM (
             'Food',
             'Transport',
@@ -33,7 +34,8 @@ def upgrade() -> None:
             'Health',
             'Other'
         );
-    """)
+    """
+    )
 
 
 def downgrade() -> None:
