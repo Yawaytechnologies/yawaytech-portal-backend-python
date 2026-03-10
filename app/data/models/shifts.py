@@ -62,4 +62,3 @@ class EmployeeShiftAssignment(Base):
         ),
         UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
     )
-
