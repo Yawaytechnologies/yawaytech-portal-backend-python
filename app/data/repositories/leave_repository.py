@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional, List
 from calendar import monthrange
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_, func, or_
@@ -270,7 +271,7 @@ class LeaveRepository:
         """Calculate the number of days requested based on unit and dates/hours."""
         if row.requested_unit == "HOUR":
             # For hours, assume 8 hours per day
-            return (row.requested_hours or 0) / 8.0
+            return (row.requested_hours or Decimal("0")) /Decimal ("8")
         elif row.requested_unit == "HALF_DAY":
             # Calculate number of days between start and end, inclusive
             days = (row.end_date - row.start_date).days + 1

@@ -63,11 +63,3 @@ class EmployeeShiftAssignment(Base):
         UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
     )
 
-    # Postgres overlap guard (migration):
-    # ALTER TABLE employee_shift_assignments
-    #   ADD COLUMN eff_range daterange
-    #     GENERATED ALWAYS AS (daterange(effective_from, COALESCE(effective_to, 'infinity'::date), '[]')) STORED;
-    # CREATE EXTENSION IF NOT EXISTS btree_gist;
-    # ALTER TABLE employee_shift_assignments
-    #   ADD CONSTRAINT ex_shift_assign_no_overlap
-    #   EXCLUDE USING gist (employee_id WITH =, eff_range WITH &&);
