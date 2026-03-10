@@ -166,6 +166,8 @@ class TestCheckOutWithFace:
     def mock_face_service(self):
         """Mock FaceVerificationService."""
         with patch("app.controllers.attandence_controller.FaceVerificationService") as mock:
+            from app.data.models.attendance_evidence import EvidenceType
+
             svc = MagicMock()
 
             svc.verify_face.return_value = {
@@ -176,10 +178,11 @@ class TestCheckOutWithFace:
                 "error": None,
             }
 
+            # Mock save_evidence response - use enum for evidence_type
             mock_evidence = MagicMock()
             mock_evidence.id = 2
             mock_evidence.session_id = 1
-            mock_evidence.evidence_type = "check_out"
+            mock_evidence.evidence_type = EvidenceType.CHECK_OUT  # Use enum, not string
             mock_evidence.image_path = "attendance/TEST001/2024-01-01/check_out_test.jpg"
             mock_evidence.verified = True
             mock_evidence.confidence_score = 0.80
