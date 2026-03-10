@@ -104,8 +104,10 @@ class TestCheckInWithFace:
         assert result.evidence.verified is True
 
     def test_check_in_with_face_failure(self, controller, mock_db):
-        """Test check-in with face verification failure."""
+        """Test check-in with face verification failure - should raise HTTPException."""
         from tests.conftest import MockUploadFile, create_test_image
+        import pytest
+        from fastapi.exceptions import HTTPException
 
         # Modify mock to return failure
         controller.face_service.verify_face.return_value = {
@@ -120,21 +122,18 @@ class TestCheckInWithFace:
         # Setup
         selfie_file = MockUploadFile(content=create_test_image())
 
-        # Execute
-        result = asyncio.run(
-            controller.check_in_with_face(
-                db=mock_db, employee_id="TEST001", selfie_file=selfie_file
+        # Execute - should raise HTTPException when face verification fails
+        with pytest.raises(HTTPException) as exc_info:
+            asyncio.run(
+                controller.check_in_with_face(
+                    db=mock_db, employee_id="TEST001", selfie_file=selfie_file
+                )
             )
-        )
 
-        # Assert - check-in still succeeds but face verification fails
-        assert result.sessionId == 1
-        assert result.faceVerification.verified is False
-        assert result.faceVerification.confidence_score == 0.0
-
-        # Evidence is still saved (for audit trail)
-        assert result.evidence is not None
-        assert result.evidence.verified is False
+        # Assert - check that the exception contains expected details
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.detail["verified"] is False
+        assert exc_info.value.detail["confidence_score"] == 0.0
 
 
 # =============================================================================
@@ -229,8 +228,10 @@ class TestCheckOutWithFace:
         assert result.evidence.evidence_type == "check_out"
 
     def test_check_out_with_face_failure(self, controller, mock_db):
-        """Test check-out with face verification failure."""
+        """Test check-out with face verification failure - should raise HTTPException."""
         from tests.conftest import MockUploadFile, create_test_image
+        import pytest
+        from fastapi.exceptions import HTTPException
 
         # Modify mock to return failure
         controller.face_service.verify_face.return_value = {
@@ -239,25 +240,24 @@ class TestCheckOutWithFace:
             "distance": 0.90,
             "message": "Face verification failed",
             "error": "Low similarity",
+            "debug_note": "Face not recognized",
         }
 
         # Setup
         selfie_file = MockUploadFile(content=create_test_image())
 
-        # Execute
-        result = asyncio.run(
-            controller.check_out_with_face(
-                db=mock_db, employee_id="TEST001", selfie_file=selfie_file
+        # Execute - should raise HTTPException when face verification fails
+        with pytest.raises(HTTPException) as exc_info:
+            asyncio.run(
+                controller.check_out_with_face(
+                    db=mock_db, employee_id="TEST001", selfie_file=selfie_file
+                )
             )
-        )
 
-        # Assert - check-out succeeds but face verification fails
-        assert result.sessionId == 1
-        assert result.faceVerification.verified is False
-
-        # Evidence is still saved
-        assert result.evidence is not None
-        assert result.evidence.verified is False
+        # Assert - check that the exception contains expected details
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.detail["verified"] is False
+        assert exc_info.value.detail["confidence_score"] == 0.10
 
 
 # =============================================================================
