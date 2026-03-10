@@ -99,6 +99,58 @@ class VisitedSite(BaseModel):
     visited_at: str  # ISO format datetime string
 
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Face Verification & Attendance Evidence Schemas
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class FaceVerificationResult(BaseModel):
+    """Result of face verification"""
+
+    verified: bool
+    confidence_score: float = Field(..., description="0.0 to 1.0, higher is more confident")
+    distance: Optional[float] = None
+    message: str
+    error: Optional[str] = None
+
+
+class AttendanceEvidenceResponse(BaseModel):
+    """Evidence record for check-in/check-out with face verification"""
+
+    id: int
+    session_id: int
+    evidence_type: str  # "check_in" or "check_out"
+    verified: bool
+    confidence_score: Optional[float]
+    verification_notes: Optional[str]
+    image_path: str
+    verified_at: Optional[datetime]
+    created_at: datetime
+
+
+class CheckInWithFaceResponse(BaseModel):
+    """Response for check-in with face verification"""
+
+    sessionId: int
+    employeeId: str
+    checkInUtc: datetime
+    workDateLocal: date
+    faceVerification: FaceVerificationResult
+    evidence: Optional[AttendanceEvidenceResponse] = None
+
+
+class CheckOutWithFaceResponse(BaseModel):
+    """Response for check-out with face verification"""
+
+    sessionId: int
+    employeeId: str
+    checkInUtc: datetime
+    checkOutUtc: datetime
+    workedSeconds: int
+    faceVerification: FaceVerificationResult
+    evidence: Optional[AttendanceEvidenceResponse] = None
+
+
 class CheckInMonitoringItem(BaseModel):
     id: int
     session_id: int

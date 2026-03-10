@@ -12,5 +12,15 @@ email-validator==2.0.0.post2
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 psutil==5.9.8
+supabase==2.10.0
+
+# Image processing & face recognition
+opencv-python==4.8.1.78
+opencv-contrib-python==4.8.1.78  # Includes DNN module
+Pillow==10.1.0
+numpy==1.24.3
+scikit-image==0.24.0
+
 # Test / dev dependencies
 httpx==0.24.1
+
