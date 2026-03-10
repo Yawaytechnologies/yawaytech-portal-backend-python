@@ -271,7 +271,7 @@ class LeaveRepository:
         """Calculate the number of days requested based on unit and dates/hours."""
         if row.requested_unit == "HOUR":
             # For hours, assume 8 hours per day
-            return float((row.requested_hours or Decimal("0")) /Decimal ("8"))
+            return float((row.requested_hours or Decimal("0")) / Decimal ("8"))
         elif row.requested_unit == "HALF_DAY":
             # Calculate number of days between start and end, inclusive
             days = (row.end_date - row.start_date).days + 1
