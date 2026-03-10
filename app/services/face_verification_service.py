@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 # 0.5 means 50% similarity threshold
 FACE_SIMILARITY_THRESHOLD = 0.50
 
+# Alias for backwards compatibility
+SIMILARITY_THRESHOLD = 0.35
+
 # Model paths for OpenCV DNN face detection
 # Using OpenCV's pre-trained face detection model
 FACE_DETECTOR_PROTO = "deploy.prototxt"
@@ -42,11 +45,11 @@ class FaceVerificationService:
     def __init__(self):
         self.profile_repo = EmployeeProfileRepo()
         self.attendance_repo = AttendanceRepository()
-        
+
         # Try to load OpenCV DNN face detector
         self.face_net = None
         self.face_detector_loaded = False
-        
+
         # Try loading the DNN face detector
         # First check if model files exist locally
         model_paths = self._get_model_paths()
@@ -57,7 +60,7 @@ class FaceVerificationService:
                 logger.info("✅ Loaded OpenCV DNN face detector")
             except Exception as e:
                 logger.warning(f"Could not load DNN face detector: {e}")
-        
+
         # Fallback to Haar Cascade
         if not self.face_detector_loaded:
             cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
@@ -70,7 +73,7 @@ class FaceVerificationService:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         prototxt = os.path.join(base_dir, FACE_DETECTOR_PROTO)
         caffemodel = os.path.join(base_dir, FACE_DETECTOR_MODEL)
-        
+
         if os.path.exists(prototxt) and os.path.exists(caffemodel):
             return (prototxt, caffemodel)
         return None
@@ -142,9 +145,7 @@ class FaceVerificationService:
             logger.info(f"Selfie image: {len(selfie_image_data)} bytes")
 
             # 3) Perform face verification using improved algorithm
-            is_match, similarity_score = self._compare_faces(
-                profile_image_data, selfie_image_data
-            )
+            is_match, similarity_score = self._compare_faces(profile_image_data, selfie_image_data)
 
             # Confidence score is the similarity score
             confidence_score = similarity_score
@@ -199,17 +200,17 @@ class FaceVerificationService:
         """Detect faces using OpenCV DNN with pre-trained model."""
         if self.face_net is None:
             return []
-        
+
         h, w = img.shape[:2]
-        
+
         # Preprocess for DNN
         blob = cv2.dnn.blobFromImage(
             cv2.resize(img, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0)
         )
-        
+
         self.face_net.setInput(blob)
         detections = self.face_net.forward()
-        
+
         faces = []
         for i in range(detections.shape[2]):
             confidence = detections[0, 0, i, 2]
@@ -217,7 +218,7 @@ class FaceVerificationService:
                 box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
                 x1, y1, x2, y2 = box.astype(int)
                 faces.append((x1, y1, x2 - x1, y2 - y1))
-        
+
         return faces
 
     def _detect_faces_haar(self, img: np.ndarray) -> list:
@@ -227,16 +228,12 @@ class FaceVerificationService:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         else:
             gray = img
-        
+
         # Detect faces with multiple parameters for better detection
         faces = self.face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=5,
-            minSize=(30, 30),
-            flags=cv2.CASCADE_SCALE_IMAGE
+            gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30), flags=cv2.CASCADE_SCALE_IMAGE
         )
-        
+
         return list(faces)
 
     def _detect_faces(self, img: np.ndarray) -> list:
@@ -247,18 +244,16 @@ class FaceVerificationService:
             if len(faces) > 0:
                 logger.info(f"DNN detected {len(faces)} faces")
                 return faces
-        
+
         # Fallback to Haar Cascade
         faces = self._detect_faces_haar(img)
         logger.info(f"Haar cascade detected {len(faces)} faces")
         return faces
 
-    def _compare_faces(
-        self, profile_image: bytes, selfie_image: bytes
-    ) -> Tuple[bool, float]:
+    def _compare_faces(self, profile_image: bytes, selfie_image: bytes) -> Tuple[bool, float]:
         """
         Compare two face images using improved algorithm.
-        
+
         Uses multiple techniques:
         1. Deep learning-based face detection
         2. Histogram-based comparison for lighting invariance
@@ -304,10 +299,10 @@ class FaceVerificationService:
 
             # Extract face regions
             x1, y1, w1, h1 = profile_face
-            profile_face_region = img_profile[y1:y1+h1, x1:x1+w1]
-            
+            profile_face_region = img_profile[y1 : y1 + h1, x1 : x1 + w1]
+
             x2, y2, w2, h2 = selfie_face
-            selfie_face_region = img_selfie[y2:y2+h2, x2:x2+w2]
+            selfie_face_region = img_selfie[y2 : y2 + h2, x2 : x2 + w2]
 
             logger.info(f"Profile face region: {w1}x{h1}, Selfie face region: {w2}x{h2}")
 
@@ -318,10 +313,12 @@ class FaceVerificationService:
 
             # Calculate similarity using multiple methods
             similarity = self._calculate_similarity(profile_resized, selfie_resized)
-            
+
             is_match = similarity >= FACE_SIMILARITY_THRESHOLD
 
-            logger.info(f"Similarity score: {similarity:.4f} (threshold: {FACE_SIMILARITY_THRESHOLD})")
+            logger.info(
+                f"Similarity score: {similarity:.4f} (threshold: {FACE_SIMILARITY_THRESHOLD})"
+            )
 
             return is_match, min(1.0, similarity)
 
@@ -332,7 +329,7 @@ class FaceVerificationService:
     def _calculate_similarity(self, img1: np.ndarray, img2: np.ndarray) -> float:
         """
         Calculate similarity between two face images using multiple methods.
-        
+
         Combines:
         1. Histogram correlation (lighting invariant)
         2. Structural similarity (SSIM-like)
@@ -341,45 +338,54 @@ class FaceVerificationService:
         # Convert to grayscale for some comparisons
         gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY) if len(img1.shape) == 3 else img1
         gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY) if len(img2.shape) == 3 else img2
-        
+
         # Method 1: Histogram correlation (0-1, higher is better)
         hist1 = cv2.calcHist([gray1], [0], None, [256], [0, 256])
         hist2 = cv2.calcHist([gray2], [0], None, [256], [0, 256])
         hist_corr = cv2.compareHist(hist1, hist2, cv2.HISTCMP_CORREL)
-        
+
         # Method 2: Template matching / normalized correlation
-        norm_corr = np.sum((gray1.astype(float) - gray1.mean()) * (gray2.astype(float) - gray2.mean())) / (
-            np.sqrt(np.sum((gray1.astype(float) - gray1.mean())**2) * 
-                    np.sum((gray2.astype(float) - gray2.mean())**2)) + 1e-10
+        norm_corr = np.sum(
+            (gray1.astype(float) - gray1.mean()) * (gray2.astype(float) - gray2.mean())
+        ) / (
+            np.sqrt(
+                np.sum((gray1.astype(float) - gray1.mean()) ** 2)
+                * np.sum((gray2.astype(float) - gray2.mean()) ** 2)
+            )
+            + 1e-10
         )
-        
+
         # Method 3: ORB feature matching (robust to rotations/scale)
-        orb = cv2.ORB_create(nfeatures=500)
+        orb = cv2.ORB_create(nfeatures=500)  # type: ignore[attr-defined]
         kp1, des1 = orb.detectAndCompute(gray1, None)
         kp2, des2 = orb.detectAndCompute(gray2, None)
-        
+
         feature_sim = 0.0
         if des1 is not None and des2 is not None and len(des1) > 0 and len(des2) > 0:
             # Use BFMatcher with Hamming distance (good for binary descriptors)
             bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
             matches = bf.match(des1, des2)
-            
+
             if len(matches) > 0:
                 # Good matches ratio
                 feature_sim = len(matches) / max(len(kp1), len(kp2))
                 # Scale to 0-1
-                feature_sim = min(1.0, feature_sim * 2)  # Boost since ORB typically has lower ratios
-        
+                feature_sim = min(
+                    1.0, feature_sim * 2
+                )  # Boost since ORB typically has lower ratios
+
         # Combine scores with weights
         # Histogram and normalized correlation are more reliable for faces
         combined_similarity = (
-            0.35 * max(0, hist_corr) +      # Histogram: 35%
-            0.35 * max(0, (norm_corr + 1) / 2) +  # Normalized correlation: 35%
-            0.30 * feature_sim               # ORB features: 30%
+            0.35 * max(0, hist_corr)  # Histogram: 35%
+            + 0.35 * max(0, (norm_corr + 1) / 2)  # Normalized correlation: 35%
+            + 0.30 * feature_sim  # ORB features: 30%
         )
-        
-        logger.info(f"Similarity breakdown: hist={hist_corr:.4f}, norm_corr={norm_corr:.4f}, features={feature_sim:.4f}")
-        
+
+        logger.info(
+            f"Similarity breakdown: hist={hist_corr:.4f}, norm_corr={norm_corr:.4f}, features={feature_sim:.4f}"
+        )
+
         return combined_similarity
 
     def save_evidence(
@@ -448,5 +454,3 @@ class FaceVerificationService:
         except Exception as e:
             logger.error(f"Error saving evidence: {str(e)}")
             raise
-
-
