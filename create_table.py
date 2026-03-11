@@ -7,7 +7,9 @@ def create_attendance_evidences_table():
     try:
         with engine.connect() as conn:
             # Create enum type safely
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 DO $$
                 BEGIN
                     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'evidence_type_enum') THEN
@@ -15,10 +17,14 @@ def create_attendance_evidences_table():
                     END IF;
                 END
                 $$;
-            """))
+            """
+                )
+            )
 
             # Create table
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE IF NOT EXISTS attendance_evidences (
                     id SERIAL PRIMARY KEY,
                     session_id INTEGER NOT NULL REFERENCES attendance_sessions(id) ON DELETE CASCADE,
@@ -34,16 +40,26 @@ def create_attendance_evidences_table():
                     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
                 );
-            """))
+            """
+                )
+            )
 
             # Create indexes
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE INDEX IF NOT EXISTS ix_evidence_session_type ON attendance_evidences (session_id, evidence_type);
-            """))
+            """
+                )
+            )
 
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE INDEX IF NOT EXISTS ix_evidence_verified ON attendance_evidences (verified);
-            """))
+            """
+                )
+            )
 
             conn.commit()
             print("✅ attendance_evidences table created successfully!")
