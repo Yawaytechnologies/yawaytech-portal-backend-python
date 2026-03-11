@@ -55,10 +55,10 @@ class EmployeeShiftAssignment(Base):
     effective_to: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
 
     __table_args__ = (
-    Index("ix_shift_assign_emp_from", "employee_id", "effective_from"),
-    CheckConstraint(
-        "(effective_to IS NULL) OR (effective_to >= effective_from)",
-        name="ck_shift_assign_range",
+        Index("ix_shift_assign_emp_from", "employee_id", "effective_from"),
+        CheckConstraint(
+            "(effective_to IS NULL) OR (effective_to >= effective_from)",
+            name="ck_shift_assign_range",
     ),
     UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
 )
