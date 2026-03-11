@@ -31,3 +31,13 @@ def get_current_shift(
     if not shift:
         raise HTTPException(status_code=404, detail="No active shift found")
     return shift
+
+
+@router.get("/allshits", response_model=list[ShiftSchema])
+def get_all_shifts(db: Session = Depends(get_db)):
+    return shift_controller.get_all_shifts_controller(db)
+
+
+@router.get("/department/{department}", response_model=list[ShiftSchema])
+def get_shifts_by_department(department: str, db: Session = Depends(get_db)):
+    return shift_controller.get_all_shifts_controller(db)

@@ -2,7 +2,6 @@
 from __future__ import annotations
 from datetime import date, datetime
 from enum import Enum
-
 from sqlalchemy import (
     Date,
     DateTime,
@@ -78,8 +77,7 @@ class Employee(Base):
     )
 
     # Relationships
-    bank_details = relationship("EmployeeBankDetail", back_populates="employee")
+    bank_details = relationship(
+        "EmployeeBankDetail", back_populates="employee", cascade="all, delete-orphan"
+    )
     salaries = relationship("EmployeeSalary", back_populates="employee")
-
-    # Index("ix_employees_dept_name", Employee.department, Employee.name)
-    # Index("ix_employees_employee_id", Employee.employee_id, unique=True)

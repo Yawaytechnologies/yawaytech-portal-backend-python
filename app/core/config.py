@@ -20,6 +20,14 @@ class _Settings(BaseModel):
     ADMIN_PASSWORD_HASH: str | None = os.getenv("ADMIN_PASSWORD_HASH")
     ADMIN_PASSWORD_PLAINTEXT: str | None = os.getenv("ADMIN_PASSWORD", "admin123")
 
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    SUPABASE_PROFILE_BUCKET: str = os.getenv("SUPABASE_PROFILE_BUCKET", "employee-profiles")
+    SUPABASE_EVIDENCE_BUCKET: str = os.getenv("SUPABASE_EVIDENCE_BUCKET", "daily_attandance")
+
+    SUPABASE_BUCKET_PUBLIC: bool = os.getenv("SUPABASE_BUCKET_PUBLIC", "false").lower() == "true"
+    SIGNED_URL_EXPIRE_SECONDS: int = int(os.getenv("SIGNED_URL_EXPIRE_SECONDS", "3600"))
+
 
 settings = _Settings()
 
@@ -29,3 +37,9 @@ if settings.ADMIN_PASSWORD_HASH:
     settings.ADMIN_PASSWORD_HASH = settings.ADMIN_PASSWORD_HASH.strip().strip('"').strip("'")
 if settings.ADMIN_PASSWORD_PLAINTEXT:
     settings.ADMIN_PASSWORD_PLAINTEXT = settings.ADMIN_PASSWORD_PLAINTEXT.strip()
+
+# Hard guard: catch the pooler mistake early
+if "pooler.supabase.com" in settings.SUPABASE_URL:
+    raise RuntimeError(
+        "SUPABASE_URL is wrong. Use https://<project-ref>.supabase.co (project API URL), not pooler host."
+    )

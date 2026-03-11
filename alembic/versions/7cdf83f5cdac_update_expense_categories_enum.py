@@ -28,7 +28,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # Note: PostgreSQL does not support removing enum values directly
-    # This would require recreating the enum without the values
-    # For simplicity, we'll leave the enum as is for downgrade
     pass
