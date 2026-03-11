@@ -14,14 +14,13 @@ python-multipart==0.0.6
 psutil==5.9.8
 supabase==2.10.0
 setuptools>=65.0.0  # Required for building opencv-contrib-python
-
+ 
 # Image processing & face recognition
 opencv-python==4.8.1.78
 opencv-contrib-python==4.8.1.78  # Includes DNN module
 Pillow==10.4.0  # Updated for Python 3.13 compatibility
 numpy<2
 scikit-image==0.24.0
-
+ 
 # Test / dev dependencies
 httpx>=0.26.0,<0.28.0
-
