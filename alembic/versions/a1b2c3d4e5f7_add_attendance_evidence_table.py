@@ -23,9 +23,11 @@ def upgrade() -> None:
     """Upgrade schema - create attendance_evidences table."""
 
     # Create enum type for evidence_type
-    op.execute("""
+    op.execute(
+        """
         CREATE TYPE evidence_type_enum AS ENUM ('check_in', 'check_out');
-        """)
+        """
+    )
 
     # Create table
     op.create_table(

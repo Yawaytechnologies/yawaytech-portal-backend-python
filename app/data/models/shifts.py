@@ -59,6 +59,6 @@ class EmployeeShiftAssignment(Base):
         CheckConstraint(
             "(effective_to IS NULL) OR (effective_to >= effective_from)",
             name="ck_shift_assign_range",
-    ),
-    UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
-)
+        ),
+        UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
+    )
