@@ -21,15 +21,26 @@ def _to_read_dict(detail: EmployeeBankDetail, employee_code: str | None):
 
 
 def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
-    detail = EmployeeBankDetail(**data.dict())
+    # ── 1. Resolve "YTPL503IT"  →  Employee.id (integer FK) ──────────────────
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == data.employee_id)   # match the string code
+        .first()
+    )
+    if not employee:
+        return None                                          # or raise 404
+
+    # ── 2. Build the DB row using the resolved integer PK ────────────────────
+    payload = data.dict()
+    payload["employee_id"] = employee.id                    # swap code → int FK
+
+    detail = EmployeeBankDetail(**payload)
     db.add(detail)
     db.commit()
     db.refresh(detail)
 
-    emp_employee_id = (
-        db.query(Employee.employee_id).filter(Employee.id == detail.employee_id).scalar()
-    )
-    return _to_read_dict(detail, emp_employee_id)
+    # ── 3. Return with the human-readable code, not the int ──────────────────
+    return _to_read_dict(detail, employee.employee_id)
 
 
 def get_bank_detail_by_employee_id(db: Session, employee_id: str):
