@@ -27,7 +27,7 @@ def get_db():
 
 @router.get("/calculation/employee/{employee_id}")
 async def get_employee_payroll(
-    employee_id: int,
+    employee_id: str,
     month_start: date = Query(..., description="First day of month (YYYY-MM-01)"),
     db: Session = Depends(get_db),
 ):
@@ -63,7 +63,7 @@ async def get_all_employees_payroll(
 
 @router.post("/generate/employee/{employee_id}")
 async def generate_employee_salary(
-    employee_id: int,
+    employee_id: str,
     month_start: date = Query(..., description="First day of month (YYYY-MM-01)"),
     db: Session = Depends(get_db),
 ):

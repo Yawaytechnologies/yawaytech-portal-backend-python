@@ -12,7 +12,7 @@ def _to_read_dict(detail: EmployeeBankDetail, employee_code: str | None):
     """Map DB row -> API response dict (employee_id becomes code like YTPL503IT)."""
     return {
         "id": detail.id,
-        "employee_id": employee_code,  # ✅ return employees.employee_id (YTPL503IT)
+        "employee_id": employee_code,  # YTPL503IT)
         "bank_name": detail.bank_name,
         "account_number": detail.account_number,
         "ifsc_code": detail.ifsc_code,
@@ -21,15 +21,24 @@ def _to_read_dict(detail: EmployeeBankDetail, employee_code: str | None):
 
 
 def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
-    detail = EmployeeBankDetail(**data.dict())
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == data.employee_id)   
+        .first()
+    )
+    if not employee:
+        return None                                         
+
+    payload = data.dict()
+    payload["employee_id"] = employee.id                    
+
+    detail = EmployeeBankDetail(**payload)
     db.add(detail)
     db.commit()
     db.refresh(detail)
 
-    emp_employee_id = (
-        db.query(Employee.employee_id).filter(Employee.id == detail.employee_id).scalar()
-    )
-    return _to_read_dict(detail, emp_employee_id)
+    # ── 3. Return with the human-readable code, not the int 
+    return _to_read_dict(detail, employee.employee_id)
 
 
 def get_bank_detail_by_employee_id(db: Session, employee_id: str):
