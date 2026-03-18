@@ -12,7 +12,7 @@ def _to_read_dict(detail: EmployeeBankDetail, employee_code: str | None):
     """Map DB row -> API response dict (employee_id becomes code like YTPL503IT)."""
     return {
         "id": detail.id,
-        "employee_id": employee_code,  # ✅ return employees.employee_id (YTPL503IT)
+        "employee_id": employee_code,  # YTPL503IT)
         "bank_name": detail.bank_name,
         "account_number": detail.account_number,
         "ifsc_code": detail.ifsc_code,
@@ -21,25 +21,23 @@ def _to_read_dict(detail: EmployeeBankDetail, employee_code: str | None):
 
 
 def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
-    # ── 1. Resolve "YTPL503IT"  →  Employee.id (integer FK) ──────────────────
     employee = (
         db.query(Employee)
-        .filter(Employee.employee_id == data.employee_id)   # match the string code
+        .filter(Employee.employee_id == data.employee_id)   
         .first()
     )
     if not employee:
-        return None                                          # or raise 404
+        return None                                         
 
-    # ── 2. Build the DB row using the resolved integer PK ────────────────────
     payload = data.dict()
-    payload["employee_id"] = employee.id                    # swap code → int FK
+    payload["employee_id"] = employee.id                    
 
     detail = EmployeeBankDetail(**payload)
     db.add(detail)
     db.commit()
     db.refresh(detail)
 
-    # ── 3. Return with the human-readable code, not the int ──────────────────
+    # ── 3. Return with the human-readable code, not the int 
     return _to_read_dict(detail, employee.employee_id)
 
 
