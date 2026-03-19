@@ -40,6 +40,7 @@ class HolidayUpdate(BaseModel):
     is_paid: Optional[bool] = None
     region: Optional[str] = None
     recurs_annually: Optional[bool] = None
+    holiday_date: Optional[date] = None
 
 
 class HolidayResponse(BaseModel):
