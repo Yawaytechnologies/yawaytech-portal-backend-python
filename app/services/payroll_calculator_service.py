@@ -17,13 +17,11 @@ from app.data.models.payroll_policy import PayrollPolicy
 from app.data.models.salary_breakdown import SalaryBreakdown
 from app.data.models.monthly_summary import MonthlyEmployeeSummary
 
-# Attendance models not required in this module
-
 
 class PayrollCalculation:
     """Represents a single payroll calculation with detailed breakdown."""
 
-    def __init__(self, employee_id: int, employee_code: str, month_start: date):
+    def __init__(self, employee_id: str, employee_code: str, month_start: date):
         self.employee_id = employee_id
         self.employee_code = employee_code
         self.month_start = month_start
@@ -64,9 +62,12 @@ class PayrollCalculation:
             },
             "attendance": {
                 "present_days": self.present_days,
+                "absent_days": self.total_work_days - self.present_days,
+                "holiday_days": self.total_work_days - self.present_days,  # Assuming holidays are non-working days
+                "weekend_days": self.total_work_days - self.present_days,  # Assuming weekends are non-working days
                 "total_work_days": self.total_work_days,
                 "worked_hours": round(self.worked_hours, 2),
-                "expected_hours": round(self.total_work_days * 8, 2),  # 8 hours per day
+                "expected_hours": round(self.total_work_days * 8, 2),
                 "overtime_hours": round(self.overtime_hours, 2),
                 "underwork_hours": round(self.underwork_hours, 2),
                 "paid_leave_hours": round(self.paid_leave_hours, 2),
@@ -86,29 +87,33 @@ class PayrollCalculation:
 
 def get_payroll_for_employee(
     db: Session,
-    employee_id: int,
+    employee_code: str,
     month_start: date,
 ) -> Optional[PayrollCalculation]:
     """
-    Calculate payroll for a single employee for a given month.
+    Calculate payroll for a single employee for a given month using employee code.
 
     Args:
         db: Database session
-        employee_id: Employee primary key
+        employee_code: Business employee code like 'YTPL503IT'
         month_start: First day of the month to calculate
 
     Returns:
         PayrollCalculation object with full breakdown, or None if employee not found
     """
-    # 1. Fetch employee
-    employee = db.query(Employee).filter(Employee.id == employee_id).first()
+    # 1. Fetch employee by employee code, NOT by internal DB id
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == employee_code)
+        .first()
+    )
     if not employee:
         return None
 
-    # 2. Fetch employee's current salary record
+    # 2. Fetch employee's current salary record using internal PK/FK relation
     salary_record = (
         db.query(EmployeeSalary)
-        .filter(EmployeeSalary.employee_id == employee_id)
+        .filter(EmployeeSalary.employee_id == employee.id)
         .order_by(EmployeeSalary.id.desc())
         .first()
     )
@@ -116,6 +121,7 @@ def get_payroll_for_employee(
         return None
 
     # 3. Fetch monthly attendance summary
+    # Assuming MonthlyEmployeeSummary.employee_id stores employee code string
     summary = (
         db.query(MonthlyEmployeeSummary)
         .filter(
@@ -136,32 +142,30 @@ def get_payroll_for_employee(
 
     # Create calculation object
     calc = PayrollCalculation(
-        employee_id=employee.id,
+        employee_id=str(employee.id),
         employee_code=employee.employee_id,
         month_start=month_start,
     )
 
-    calc.base_salary = salary_record.base_salary
+    calc.base_salary = float(salary_record.base_salary or 0.0)
     calc.policy_id = cast(Optional[int], policy.id) if policy else None
     calc.policy_name = cast(Optional[str], policy.name) if policy else None
 
     # Populate attendance metrics from summary
     if summary:
-        calc.present_days = summary.present_days
-        calc.total_work_days = summary.total_work_days
-        calc.worked_hours = float(summary.total_worked_hours) if summary.total_worked_hours else 0.0
-        calc.overtime_hours = float(summary.overtime_hours) if summary.overtime_hours else 0.0
-        calc.underwork_hours = float(summary.underwork_hours) if summary.underwork_hours else 0.0
-        calc.paid_leave_hours = float(summary.paid_leave_hours) if summary.paid_leave_hours else 0.0
-        calc.unpaid_leave_hours = (
-            float(summary.unpaid_leave_hours) if summary.unpaid_leave_hours else 0.0
-        )
+        calc.present_days = int(summary.present_days or 0)
+        calc.total_work_days = int(summary.total_work_days or 0)
+        calc.worked_hours = float(summary.total_worked_hours or 0.0)
+        calc.overtime_hours = float(summary.overtime_hours or 0.0)
+        calc.underwork_hours = float(summary.underwork_hours or 0.0)
+        calc.paid_leave_hours = float(summary.paid_leave_hours or 0.0)
+        calc.unpaid_leave_hours = float(summary.unpaid_leave_hours or 0.0)
 
     # Calculate salary with policy rules and attendance adjustments
     if policy:
-        _apply_policy_rules(calc, salary_record.base_salary, policy, summary)
+        _apply_policy_rules(calc, calc.base_salary, policy, summary)
     else:
-        calc.gross_salary = salary_record.base_salary
+        calc.gross_salary = calc.base_salary
 
     calc.net_salary = calc.gross_salary
 
@@ -174,19 +178,12 @@ def get_payroll_for_all_employees(
 ) -> List[PayrollCalculation]:
     """
     Calculate payroll for all employees for a given month.
-
-    Args:
-        db: Database session
-        month_start: First day of the month to calculate
-
-    Returns:
-        List of PayrollCalculation objects
     """
     employees = db.query(Employee).all()
-    results = []
+    results: List[PayrollCalculation] = []
 
     for employee in employees:
-        payroll = get_payroll_for_employee(db, employee.id, month_start)
+        payroll = get_payroll_for_employee(db, employee.employee_id, month_start)
         if payroll:
             results.append(payroll)
 
@@ -214,62 +211,57 @@ def _apply_policy_rules(
             continue
 
         amount = 0.0
-        applies_to = rule.applies_to.lower()
+        applies_to = (rule.applies_to or "").lower()
 
         # Determine amount based on rule type and attendance
         if summary and applies_to == "overtime":
-            # Overtime pay: rule.value per hour
-            overtime_hours = float(summary.overtime_hours) if summary.overtime_hours else 0.0
-            amount = rule.value * overtime_hours
+            overtime_hours = float(summary.overtime_hours or 0.0)
+            amount = float(rule.value) * overtime_hours
             if amount > 0:
                 calc.attendance_adjustments.append(
                     {
                         "name": rule.rule_name,
                         "type": "overtime",
                         "hours": overtime_hours,
-                        "rate": rule.value,
+                        "rate": float(rule.value),
                         "amount": round(amount, 2),
                     }
                 )
 
         elif summary and applies_to == "unpaid_leave":
-            # Deduction for unpaid leave: rule.value per hour
-            unpaid_hours = float(summary.unpaid_leave_hours) if summary.unpaid_leave_hours else 0.0
-            amount = rule.value * unpaid_hours
+            unpaid_hours = float(summary.unpaid_leave_hours or 0.0)
+            amount = float(rule.value) * unpaid_hours
             if amount > 0:
                 calc.attendance_adjustments.append(
                     {
                         "name": rule.rule_name,
                         "type": "unpaid_leave_deduction",
                         "hours": unpaid_hours,
-                        "rate": rule.value,
+                        "rate": float(rule.value),
                         "amount": round(amount, 2),
                     }
                 )
 
         elif summary and applies_to == "underwork":
-            # Underwork penalty: rule.value per hour
-            underwork_hours = float(summary.underwork_hours) if summary.underwork_hours else 0.0
-            amount = rule.value * underwork_hours
+            underwork_hours = float(summary.underwork_hours or 0.0)
+            amount = float(rule.value) * underwork_hours
             if amount > 0:
                 calc.attendance_adjustments.append(
                     {
                         "name": rule.rule_name,
                         "type": "underwork_deduction",
                         "hours": underwork_hours,
-                        "rate": rule.value,
+                        "rate": float(rule.value),
                         "amount": round(amount, 2),
                     }
                 )
 
         elif summary and applies_to == "attendance_bonus":
-            # Attendance bonus: percentage/fixed if present_days >= threshold
-            # Simple: fixed amount per present day
-            present_days = summary.present_days if summary.present_days else 0
+            present_days = int(summary.present_days or 0)
             amount = (
-                (base_salary * rule.value / 100)
+                (base_salary * float(rule.value) / 100)
                 if rule.is_percentage
-                else (rule.value * present_days)
+                else (float(rule.value) * present_days)
             )
             if amount > 0:
                 calc.attendance_adjustments.append(
@@ -282,29 +274,34 @@ def _apply_policy_rules(
                 )
 
         else:
-            # Fixed allowance/deduction (percentage or flat)
-            amount = (base_salary * rule.value / 100) if rule.is_percentage else rule.value
+            amount = (
+                (base_salary * float(rule.value) / 100)
+                if rule.is_percentage
+                else float(rule.value)
+            )
 
         # Update gross salary and track in lists
         rule_type_str = str(rule.rule_type)
+
         if "ALLOWANCE" in rule_type_str:
             gross += amount
             calc.allowances.append(
                 {
                     "rule_name": rule.rule_name,
                     "is_percentage": rule.is_percentage,
-                    "value": rule.value,
+                    "value": float(rule.value),
                     "amount": round(amount, 2),
                     "applies_to": rule.applies_to,
                 }
             )
+
         elif "DEDUCTION" in rule_type_str:
             gross -= amount
             calc.deductions.append(
                 {
                     "rule_name": rule.rule_name,
                     "is_percentage": rule.is_percentage,
-                    "value": rule.value,
+                    "value": float(rule.value),
                     "amount": round(amount, 2),
                     "applies_to": rule.applies_to,
                 }
@@ -315,7 +312,7 @@ def _apply_policy_rules(
 
 def generate_salary_breakdown(
     db: Session,
-    employee_id: int,
+    employee_code: str,
     month_start: date,
 ) -> Optional[EmployeeSalary]:
     """
@@ -324,19 +321,27 @@ def generate_salary_breakdown(
 
     Args:
         db: Database session
-        employee_id: Employee primary key
+        employee_code: Business employee code like 'YTPL503IT'
         month_start: First day of month to generate salary for
 
     Returns:
         Updated EmployeeSalary record, or None if not found
     """
-    payroll = get_payroll_for_employee(db, employee_id, month_start)
+    employee = (
+        db.query(Employee)
+        .filter(Employee.employee_id == employee_code)
+        .first()
+    )
+    if not employee:
+        return None
+
+    payroll = get_payroll_for_employee(db, employee_code, month_start)
     if not payroll:
         return None
 
     salary = (
         db.query(EmployeeSalary)
-        .filter(EmployeeSalary.employee_id == employee_id)
+        .filter(EmployeeSalary.employee_id == employee.id)
         .order_by(EmployeeSalary.id.desc())
         .first()
     )
@@ -373,7 +378,7 @@ def generate_salary_breakdown(
     for adjustment in payroll.attendance_adjustments:
         rule_type = (
             "ALLOWANCE"
-            if adjustment.get("type") == "overtime" or adjustment.get("type") == "attendance_bonus"
+            if adjustment.get("type") in ["overtime", "attendance_bonus"]
             else "DEDUCTION"
         )
         breakdown = SalaryBreakdown(
