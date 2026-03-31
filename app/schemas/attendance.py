@@ -123,7 +123,7 @@ class AttendanceEvidenceResponse(BaseModel):
     verified: bool
     confidence_score: Optional[float]
     verification_notes: Optional[str]
-    image_path: str
+    image_path: Optional[str] = None
     verified_at: Optional[datetime]
     created_at: datetime
 

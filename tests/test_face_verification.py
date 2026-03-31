@@ -252,30 +252,19 @@ class TestSaveEvidence:
         mock_session = create_mock_attendance_session()
         mock_attendance_repo.get_session_by_id.return_value = mock_session
 
-        with patch("app.services.face_verification_service.get_supabase") as mock_supabase:
-            mock_bucket = MagicMock()
-            mock_bucket.upload.return_value = {"path": "test/path"}
-            mock_storage = MagicMock()
-            mock_storage.from_.return_value = mock_bucket
-            mock_supabase.return_value.storage = mock_storage
-
-            from tests.conftest import create_test_image
-
-            image_data = create_test_image()
-
-            result = service.save_evidence(
-                db=mock_db,
-                session_id=1,
-                evidence_type=EvidenceType.CHECK_IN,
-                image_data=image_data,
-                image_mime="image/jpeg",
-                verified=True,
-                confidence_score=0.75,
-                verification_notes="Face verified successfully",
-            )
+        result = service.save_evidence(
+            db=mock_db,
+            session_id=1,
+            evidence_type=EvidenceType.CHECK_IN,
+            verified=True,
+            confidence_score=0.75,
+            verification_notes="Face verified successfully",
+        )
 
         # Assert
         assert result is not None
+        assert result.image_bucket is None
+        assert result.image_path is None
         mock_db.add.assert_called_once()
         mock_db.flush.assert_called_once()
 

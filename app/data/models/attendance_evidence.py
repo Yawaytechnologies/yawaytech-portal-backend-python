@@ -1,13 +1,8 @@
 """
-Attendance Evidence Model - stores face verification evidence for check-in/check-out.
+Attendance Evidence Model - stores face verification results for check-in/check-out.
 
-Flow:
-1. User sends selfie for check-in/check-out
-2. FaceVerificationService compares selfie against employee's profile image
-3. If faces match (similarity >= 0.6), evidence is saved with verified=True
-4. If no match, evidence is saved with verified=False (for audit trail)
-5. Evidence images stored in Supabase storage with path like:
-   attendance/{employee_id}/{work_date}/check_in_{timestamp}.jpg
+The registration profile image remains in storage and is used for verification.
+Check-in/check-out selfies are processed in-memory and are not persisted.
 """
 
 from __future__ import annotations
@@ -40,14 +35,14 @@ class AttendanceEvidence(Base):
     """
     Stores face verification evidence for attendance sessions.
 
-    Each check-in or check-out can capture a selfie image and verify it
-    against the employee's stored profile image.
+    Each check-in or check-out verifies a live selfie against the employee's
+    stored profile image, but only the verification result is persisted.
 
     Fields explained:
     - session_id: Links to AttendanceSession (FK)
     - evidence_type: Whether this is check-in or check-out evidence
-    - image_bucket: Supabase bucket name (e.g., "daily_attandance")
-    - image_path: Path in bucket where selfie is stored
+    - image_bucket: Optional storage bucket name if an image is retained
+    - image_path: Optional storage path if an image is retained
     - verified: True if face matched with confidence >= 0.6
     - confidence_score: Similarity score between profile and selfie (0.0-1.0)
       • 0.0 = no match (face not detected or no features found)
@@ -77,10 +72,10 @@ class AttendanceEvidence(Base):
     )
 
     # Storage details
-    image_bucket: Mapped[str] = mapped_column(String(128), nullable=False)
-    image_path: Mapped[str] = mapped_column(String(255), nullable=False)
-    image_mime: Mapped[str] = mapped_column(String(64), nullable=True)
-    image_size: Mapped[int] = mapped_column(Integer, nullable=True)
+    image_bucket: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    image_path: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    image_mime: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    image_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     # Verification results
     verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
