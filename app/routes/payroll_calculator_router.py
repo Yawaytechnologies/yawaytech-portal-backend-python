@@ -117,7 +117,7 @@ async def generate_all_employees_salaries(
 
     for employee in employees:
         try:
-            salary = generate_salary_breakdown(db, employee.id, month_start)
+            salary = generate_salary_breakdown(db, employee.employee_id, month_start)
             if salary:
                 results.append(
                     {
