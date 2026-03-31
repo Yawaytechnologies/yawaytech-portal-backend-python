@@ -14,8 +14,8 @@ import cv2
 import numpy as np
 from sqlalchemy.orm import Session
 
-from app.core.supabase_client import get_supabase
 from app.core.config import settings
+from app.core.supabase_client import get_supabase
 from app.data.repositories.employee_profile_repository import EmployeeProfileRepo
 from app.data.models.attendance_evidence import AttendanceEvidence, EvidenceType
 from app.data.repositories.attendance_repository import AttendanceRepository
@@ -393,52 +393,28 @@ class FaceVerificationService:
         db: Session,
         session_id: int,
         evidence_type: EvidenceType,
-        image_data: bytes,
-        image_mime: str,
         verified: bool,
         confidence_score: float,
         verification_notes: Optional[str] = None,
     ) -> AttendanceEvidence:
         """
-        Save face verification evidence to database and storage.
+        Save face verification metadata only.
+
+        Check-in/check-out selfies are intentionally not persisted. The image is
+        used in-memory for verification and then discarded.
         """
         try:
-            # Get session to extract employee_id and date
-            session = self.attendance_repo.get_session_by_id(db, session_id)
-            if not session:
+            if not self.attendance_repo.get_session_by_id(db, session_id):
                 raise ValueError(f"Session {session_id} not found")
-
-            # Determine file extension
-            ext_map = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
-            ext = ext_map.get(image_mime, "jpg")
-
-            # Build unique storage path
-            ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-            evidence_type_str = evidence_type.value
-            bucket = settings.SUPABASE_EVIDENCE_BUCKET
-            path = f"attendance/{session.employee_id}/{session.work_date_local}/{evidence_type_str}_{ts}.{ext}"
-
-            # Upload to Supabase
-            supabase = get_supabase()
-            try:
-                supabase.storage.from_(bucket).upload(
-                    path,
-                    image_data,
-                    file_options={"content-type": image_mime, "upsert": "true"},
-                )
-                logger.info(f"Evidence image uploaded: {path}")
-            except Exception as e:
-                logger.error(f"Failed to upload evidence image: {str(e)}")
-                raise ValueError(f"Failed to upload evidence image: {str(e)}")
 
             # Create evidence record
             evidence = AttendanceEvidence(
                 session_id=session_id,
                 evidence_type=evidence_type,
-                image_bucket=bucket,
-                image_path=path,
-                image_mime=image_mime,
-                image_size=len(image_data),
+                image_bucket=None,
+                image_path=None,
+                image_mime=None,
+                image_size=None,
                 verified=verified,
                 confidence_score=confidence_score,
                 verification_notes=verification_notes,
@@ -447,7 +423,7 @@ class FaceVerificationService:
 
             db.add(evidence)
             db.flush()
-            logger.info(f"Evidence saved: {evidence.id}")
+            logger.info(f"Evidence metadata saved: {evidence.id}")
 
             return evidence
 
