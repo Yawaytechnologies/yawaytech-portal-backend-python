@@ -14,7 +14,6 @@ import cv2
 import numpy as np
 from sqlalchemy.orm import Session
 
-from app.core.config import settings
 from app.core.supabase_client import get_supabase
 from app.data.repositories.employee_profile_repository import EmployeeProfileRepo
 from app.data.models.attendance_evidence import AttendanceEvidence, EvidenceType
