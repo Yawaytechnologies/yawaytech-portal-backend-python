@@ -1,5 +1,6 @@
 # app/services/employee_salary_service.py
 from typing import Optional
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 from app.data.models.employee_salary import EmployeeSalary
 from app.data.models.payroll_policy import PayrollPolicy
@@ -33,13 +34,21 @@ def calculate_gross_with_breakdown(base_salary: float, policy: Optional[PayrollP
     return gross, breakdowns
 
 
+def _payroll_policy_tables_exist(db: Session) -> bool:
+    bind = db.get_bind()
+    inspector = inspect(bind)
+    return inspector.has_table("payroll_policies") and inspector.has_table("payroll_policy_rules")
+
+
 def create_salary(db: Session, data: EmployeeSalaryCreate):
     # Query employee by id
     employee = db.query(Employee).filter(Employee.id == data.employee_id).first()
     if not employee:
         raise ValueError(f"Employee with id {data.employee_id} not found")
 
-    policy = db.query(PayrollPolicy).filter(PayrollPolicy.id == data.payroll_policy_id).first()
+    policy = None
+    if data.payroll_policy_id and _payroll_policy_tables_exist(db):
+        policy = db.query(PayrollPolicy).filter(PayrollPolicy.id == data.payroll_policy_id).first()
     gross, breakdowns = calculate_gross_with_breakdown(data.base_salary, policy)
 
     salary = EmployeeSalary(
@@ -69,7 +78,9 @@ def update_salary(db: Session, salary_id: int, updates: EmployeeSalaryUpdate):
     if updates.payroll_policy_id is not None:
         salary.payroll_policy_id = updates.payroll_policy_id
 
-    policy = db.query(PayrollPolicy).filter(PayrollPolicy.id == salary.payroll_policy_id).first()
+    policy = None
+    if salary.payroll_policy_id and _payroll_policy_tables_exist(db):
+        policy = db.query(PayrollPolicy).filter(PayrollPolicy.id == salary.payroll_policy_id).first()
     gross, breakdowns = calculate_gross_with_breakdown(salary.base_salary, policy)
     salary.gross_salary = gross
 

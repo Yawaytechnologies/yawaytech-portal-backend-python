@@ -6,7 +6,9 @@ from typing import Optional
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Column,
     Date,
+    Enum,
     ForeignKey,
     Index,
     Integer,
@@ -26,7 +28,7 @@ class Shift(Base):
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
     total_hours: Mapped[int] = mapped_column(Integer, nullable=False, default=8)  # 8h baseline
-    is_night: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    shift = Column(Enum("Day", "Afternoon", "Night", name="shift_enum"), nullable=False)
 
     __table_args__ = (CheckConstraint("total_hours BETWEEN 1 AND 24", name="ck_shift_total_hours"),)
 

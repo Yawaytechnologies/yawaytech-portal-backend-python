@@ -9,6 +9,7 @@ Comprehensive payroll calculation service that integrates:
 
 from datetime import date
 from typing import Optional, Dict, List, cast
+from sqlalchemy import inspect
 from sqlalchemy.orm import Session
 
 from app.data.models.add_employee import Employee
@@ -85,6 +86,13 @@ class PayrollCalculation:
         }
 
 
+def _payroll_policy_tables_exist(db: Session) -> bool:
+    """Return True when the payroll policy tables are present in the current database."""
+    bind = db.get_bind()
+    inspector = inspect(bind)
+    return inspector.has_table("payroll_policies") and inspector.has_table("payroll_policy_rules")
+
+
 def get_payroll_for_employee(
     db: Session,
     employee_code: str,
@@ -133,7 +141,7 @@ def get_payroll_for_employee(
 
     # 4. Fetch policy
     policy = None
-    if salary_record.payroll_policy_id:
+    if salary_record.payroll_policy_id and _payroll_policy_tables_exist(db):
         policy = (
             db.query(PayrollPolicy)
             .filter(PayrollPolicy.id == salary_record.payroll_policy_id)
