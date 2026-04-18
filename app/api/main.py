@@ -1,4 +1,6 @@
 from contextlib import asynccontextmanager
+import traceback
+
 from fastapi import FastAPI, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -44,7 +46,6 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -63,15 +64,13 @@ app.add_middleware(
 )
 
 # Routers
-app.include_router(employee_router.router)
 app.include_router(admin_router.router)
 app.include_router(proctected_example_router.router)
 app.include_router(attendance_router)
 app.include_router(expenses_router, prefix="")
 app.include_router(employee_router.router, prefix="/api", tags=["employee"])
-app.include_router(add_employee_router)  # Added to include add_employee_router routes
+app.include_router(add_employee_router)
 app.include_router(department_router, prefix="/api")
-
 app.include_router(worklog_router, prefix="")
 app.include_router(leave_admin_router, prefix="")
 app.include_router(policy_router, prefix="")
@@ -85,25 +84,19 @@ app.include_router(employee_bank_detail_router, prefix="")
 app.include_router(payroll_calculator_router, prefix="")
 app.include_router(employee_profile_router, prefix="")
 
-
-# Health check routes
 @app.get("/")
 def root():
     print("✅ Root route hit")
     return {"message": "Expense Manager API is running"}
 
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
 
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
 
-
-# Debug DB connection
 @app.get("/debug/db")
 def debug_db(db: Session = Depends(get_db)):
     try:
@@ -112,12 +105,11 @@ def debug_db(db: Session = Depends(get_db)):
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
-
-# Global error handlers
 @app.exception_handler(Exception)
-async def unhandled_exceptions(_: Request, __: Exception):
-    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
-
+async def unhandled_exceptions(request: Request, exc: Exception):
+    print(f"Unhandled error on {request.url}")
+    traceback.print_exc()
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):
