@@ -63,6 +63,9 @@ class PayrollCalculation:
             },
             "attendance": {
                 "present_days": self.present_days,
+                "absent_days": self.total_work_days - self.present_days,
+                "holiday_days": self.total_work_days - self.present_days,  # Assuming holidays are non-working days
+                "weekend_days": self.total_work_days - self.present_days,  # Assuming weekends are non-working days
                 "total_work_days": self.total_work_days,
                 "worked_hours": round(self.worked_hours, 2),
                 "expected_hours": round(self.total_work_days * 8, 2),

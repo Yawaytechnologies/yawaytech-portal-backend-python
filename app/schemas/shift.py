@@ -8,7 +8,7 @@ class ShiftBase(BaseModel):
     start_time: time
     end_time: time
     total_hours: int
-    is_night: bool = False
+    shift: str  # "Day", "Afternoon", or "Night"
 
 
 class ShiftCreate(ShiftBase):
