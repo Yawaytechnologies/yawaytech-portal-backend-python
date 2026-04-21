@@ -56,7 +56,7 @@ app.add_middleware(
         "http://127.0.0.1:5174",
         "https://yawaytech-portal-frontend.onrender.com",
         "https://main.d5928n6qpn0dc.amplifyapp.com",
-        "https://main.dzt3vlx6lo61e.amplifyapp.com"
+        "https://main.dzt3vlx6lo61e.amplifyapp.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -84,18 +84,22 @@ app.include_router(employee_bank_detail_router, prefix="")
 app.include_router(payroll_calculator_router, prefix="")
 app.include_router(employee_profile_router, prefix="")
 
+
 @app.get("/")
 def root():
     print("✅ Root route hit")
     return {"message": "Expense Manager API is running"}
 
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
+
 
 @app.get("/debug/db")
 def debug_db(db: Session = Depends(get_db)):
@@ -105,11 +109,13 @@ def debug_db(db: Session = Depends(get_db)):
     except Exception as e:
         return {"connected": False, "error": str(e)}
 
+
 @app.exception_handler(Exception)
 async def unhandled_exceptions(request: Request, exc: Exception):
     print(f"Unhandled error on {request.url}")
     traceback.print_exc()
     return JSONResponse(status_code=500, content={"detail": str(exc)})
+
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(_: Request, exc: StarletteHTTPException):

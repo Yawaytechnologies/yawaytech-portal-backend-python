@@ -22,23 +22,19 @@ def _to_read_dict(detail: EmployeeBankDetail, employee_code: str | None):
 
 
 def create_bank_detail(db: Session, data: EmployeeBankDetailCreate):
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == data.employee_id)   
-        .first()
-    )
+    employee = db.query(Employee).filter(Employee.employee_id == data.employee_id).first()
     if not employee:
-        return None                                         
+        return None
 
     payload = data.dict()
-    payload["employee_id"] = employee.id                    
+    payload["employee_id"] = employee.id
 
     detail = EmployeeBankDetail(**payload)
     db.add(detail)
     db.commit()
     db.refresh(detail)
 
-    # ── 3. Return with the human-readable code, not the int 
+    # ── 3. Return with the human-readable code, not the int
     return _to_read_dict(detail, employee.employee_id)
 
 
@@ -64,9 +60,6 @@ def list_bank_details(db: Session):
     )
 
     return [_to_read_dict(detail, emp_employee_id) for detail, emp_employee_id in rows]
-
-
-
 
 
 def update_bank_detail(db: Session, employee_id: str, data: EmployeeBankDetailUpdate):

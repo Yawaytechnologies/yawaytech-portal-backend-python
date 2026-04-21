@@ -64,8 +64,10 @@ class PayrollCalculation:
             "attendance": {
                 "present_days": self.present_days,
                 "absent_days": self.total_work_days - self.present_days,
-                "holiday_days": self.total_work_days - self.present_days,  # Assuming holidays are non-working days
-                "weekend_days": self.total_work_days - self.present_days,  # Assuming weekends are non-working days
+                "holiday_days": self.total_work_days
+                - self.present_days,  # Assuming holidays are non-working days
+                "weekend_days": self.total_work_days
+                - self.present_days,  # Assuming weekends are non-working days
                 "total_work_days": self.total_work_days,
                 "worked_hours": round(self.worked_hours, 2),
                 "expected_hours": round(self.total_work_days * 8, 2),
@@ -110,11 +112,7 @@ def get_payroll_for_employee(
         PayrollCalculation object with full breakdown, or None if employee not found
     """
     # 1. Fetch employee by employee code, NOT by internal DB id
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == employee_code)
-        .first()
-    )
+    employee = db.query(Employee).filter(Employee.employee_id == employee_code).first()
     if not employee:
         return None
 
@@ -283,9 +281,7 @@ def _apply_policy_rules(
 
         else:
             amount = (
-                (base_salary * float(rule.value) / 100)
-                if rule.is_percentage
-                else float(rule.value)
+                (base_salary * float(rule.value) / 100) if rule.is_percentage else float(rule.value)
             )
 
         # Update gross salary and track in lists
@@ -335,11 +331,7 @@ def generate_salary_breakdown(
     Returns:
         Updated EmployeeSalary record, or None if not found
     """
-    employee = (
-        db.query(Employee)
-        .filter(Employee.employee_id == employee_code)
-        .first()
-    )
+    employee = db.query(Employee).filter(Employee.employee_id == employee_code).first()
     if not employee:
         return None
 

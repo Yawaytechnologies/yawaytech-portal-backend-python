@@ -19,10 +19,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.alter_column("attendance_evidences", "image_bucket", existing_type=sa.String(length=128), nullable=True)
-    op.alter_column("attendance_evidences", "image_path", existing_type=sa.String(length=255), nullable=True)
+    op.alter_column(
+        "attendance_evidences", "image_bucket", existing_type=sa.String(length=128), nullable=True
+    )
+    op.alter_column(
+        "attendance_evidences", "image_path", existing_type=sa.String(length=255), nullable=True
+    )
 
 
 def downgrade() -> None:
-    op.alter_column("attendance_evidences", "image_path", existing_type=sa.String(length=255), nullable=False)
-    op.alter_column("attendance_evidences", "image_bucket", existing_type=sa.String(length=128), nullable=False)
+    op.alter_column(
+        "attendance_evidences", "image_path", existing_type=sa.String(length=255), nullable=False
+    )
+    op.alter_column(
+        "attendance_evidences", "image_bucket", existing_type=sa.String(length=128), nullable=False
+    )
