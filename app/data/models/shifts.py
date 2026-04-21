@@ -6,9 +6,7 @@ from enum import Enum as PyEnum
 from typing import Optional
 
 from sqlalchemy import (
-    Boolean,
     CheckConstraint,
-    Column,
     Date,
     Enum as SAEnum,
     ForeignKey,
