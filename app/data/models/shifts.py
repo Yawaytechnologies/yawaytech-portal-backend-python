@@ -1,14 +1,14 @@
 # app/data/models/shifts.py
 from __future__ import annotations
+
 from datetime import date, time
+from enum import Enum as PyEnum
 from typing import Optional
 
 from sqlalchemy import (
-    Boolean,
     CheckConstraint,
-    Column,
     Date,
-    Enum,
+    Enum as SAEnum,
     ForeignKey,
     Index,
     Integer,
@@ -17,26 +17,55 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column
+
 from app.data.db import Base
+
+
+class ShiftEnum(str, PyEnum):
+    DAY = "Day"
+    AFTERNOON = "Afternoon"
+    NIGHT = "Night"
 
 
 class Shift(Base):
     __tablename__ = "shifts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(30), nullable=False, unique=True, index=True)
-    start_time: Mapped[time] = mapped_column(Time, nullable=False)
-    end_time: Mapped[time] = mapped_column(Time, nullable=False)
-    total_hours: Mapped[int] = mapped_column(Integer, nullable=False, default=8)  # 8h baseline
-    shift = Column(Enum("Day", "Afternoon", "Night", name="shift_enum"), nullable=False)
 
-    __table_args__ = (CheckConstraint("total_hours BETWEEN 1 AND 24", name="ck_shift_total_hours"),)
+    name: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
+    start_time: Mapped[time] = mapped_column(Time, nullable=False)
+
+    end_time: Mapped[time] = mapped_column(Time, nullable=False)
+
+    total_hours: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=8,
+    )
+
+    shift: Mapped[ShiftEnum] = mapped_column(
+        SAEnum(ShiftEnum, name="shift_enum"),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "total_hours BETWEEN 1 AND 24",
+            name="ck_shift_total_hours",
+        ),
+    )
 
 
 class EmployeeShiftAssignment(Base):
     """
     Effective-dated mapping of employee -> shift.
-    Prevent overlapping windows per employee (see Postgres note below).
+    Prevent overlapping windows per employee.
     """
 
     __tablename__ = "employee_shift_assignments"
@@ -49,12 +78,23 @@ class EmployeeShiftAssignment(Base):
         index=True,
         nullable=False,
     )
+
     shift_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("shifts.id", ondelete="RESTRICT"), nullable=False
+        Integer,
+        ForeignKey("shifts.id", ondelete="RESTRICT"),
+        nullable=False,
     )
 
-    effective_from: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    effective_to: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    effective_from: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+        index=True,
+    )
+
+    effective_to: Mapped[Optional[date]] = mapped_column(
+        Date,
+        nullable=True,
+    )
 
     __table_args__ = (
         Index("ix_shift_assign_emp_from", "employee_id", "effective_from"),
@@ -62,5 +102,10 @@ class EmployeeShiftAssignment(Base):
             "(effective_to IS NULL) OR (effective_to >= effective_from)",
             name="ck_shift_assign_range",
         ),
-        UniqueConstraint("employee_id", "shift_id", "effective_from", name="uq_shift_assign_start"),
+        UniqueConstraint(
+            "employee_id",
+            "shift_id",
+            "effective_from",
+            name="uq_shift_assign_start",
+        ),
     )

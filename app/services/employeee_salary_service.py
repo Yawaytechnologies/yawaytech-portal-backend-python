@@ -80,7 +80,9 @@ def update_salary(db: Session, salary_id: int, updates: EmployeeSalaryUpdate):
 
     policy = None
     if salary.payroll_policy_id and _payroll_policy_tables_exist(db):
-        policy = db.query(PayrollPolicy).filter(PayrollPolicy.id == salary.payroll_policy_id).first()
+        policy = (
+            db.query(PayrollPolicy).filter(PayrollPolicy.id == salary.payroll_policy_id).first()
+        )
     gross, breakdowns = calculate_gross_with_breakdown(salary.base_salary, policy)
     salary.gross_salary = gross
 
