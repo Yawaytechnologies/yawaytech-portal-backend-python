@@ -20,8 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     # Create the expense_category enum
-    op.execute(
-        """
+    op.execute("""
         DO $$
         BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'expense_category') THEN
@@ -39,8 +38,7 @@ def upgrade() -> None:
                 );
             END IF;
         END $$;
-        """
-    )
+        """)
 
 
 def downgrade() -> None:

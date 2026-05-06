@@ -16,8 +16,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute(
-        """
+    op.execute("""
         DO $$
         BEGIN
             IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'leave_status_enum')
@@ -34,11 +33,9 @@ def upgrade() -> None:
                 );
             END IF;
         END $$;
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         DO $$
         BEGIN
             IF to_regclass('public.leave_requests') IS NOT NULL
@@ -58,8 +55,7 @@ def upgrade() -> None:
                 DROP TYPE leave_status_enum_old;
             END IF;
         END $$;
-        """
-    )
+        """)
 
 
 def downgrade() -> None:

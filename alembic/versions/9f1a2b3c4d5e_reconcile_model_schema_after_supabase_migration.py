@@ -17,8 +17,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute(
-        """
+    op.execute("""
         CREATE TABLE IF NOT EXISTS payroll_policies (
             id SERIAL PRIMARY KEY,
             name VARCHAR(100) NOT NULL,
@@ -27,17 +26,13 @@ def upgrade() -> None:
             effective_to DATE,
             is_active BOOLEAN NOT NULL DEFAULT true
         )
-        """
-    )
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_payroll_policies_id ON payroll_policies (id)"
-    )
+        """)
+    op.execute("CREATE INDEX IF NOT EXISTS ix_payroll_policies_id ON payroll_policies (id)")
 
     op.execute("ALTER TABLE employees ADD COLUMN IF NOT EXISTS bank_name VARCHAR(50)")
     op.execute("ALTER TABLE employees ADD COLUMN IF NOT EXISTS ifsc_code VARCHAR(11)")
 
-    op.execute(
-        """
+    op.execute("""
         CREATE TABLE IF NOT EXISTS attendance_overrides (
             id SERIAL PRIMARY KEY,
             employee_id VARCHAR(9) NOT NULL,
@@ -48,23 +43,17 @@ def upgrade() -> None:
             acted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             is_active BOOLEAN NOT NULL DEFAULT true
         )
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         CREATE INDEX IF NOT EXISTS ix_attendance_overrides_employee_id
         ON attendance_overrides (employee_id)
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         CREATE INDEX IF NOT EXISTS ix_attendance_overrides_work_date_local
         ON attendance_overrides (work_date_local)
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         DO $$
         BEGIN
             IF NOT EXISTS (
@@ -79,18 +68,14 @@ def upgrade() -> None:
                 NOT VALID;
             END IF;
         END $$;
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE payroll_policy_rules
         ALTER COLUMN rule_name TYPE VARCHAR(100)
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
         DO $$
         BEGIN
             IF NOT EXISTS (
@@ -127,35 +112,26 @@ def upgrade() -> None:
                 NOT VALID;
             END IF;
         END $$;
-        """
-    )
+        """)
 
 
 def downgrade() -> None:
-    op.execute(
-        """
+    op.execute("""
         ALTER TABLE employee_salaries
         DROP CONSTRAINT IF EXISTS employee_salaries_payroll_policy_id_fkey
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         ALTER TABLE employee_salaries
         DROP CONSTRAINT IF EXISTS employee_salaries_employee_id_fkey
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         ALTER TABLE payroll_policy_rules
         DROP CONSTRAINT IF EXISTS payroll_policy_rules_payroll_policy_id_fkey
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         ALTER TABLE attendance_overrides
         DROP CONSTRAINT IF EXISTS attendance_overrides_employee_id_fkey
-        """
-    )
+        """)
     op.execute("DROP TABLE IF EXISTS attendance_overrides")
     op.execute("ALTER TABLE employees DROP COLUMN IF EXISTS ifsc_code")
     op.execute("ALTER TABLE employees DROP COLUMN IF EXISTS bank_name")

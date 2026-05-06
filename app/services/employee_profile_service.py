@@ -13,6 +13,7 @@ from app.data.repositories.employee_profile_repository import EmployeeProfileRep
 
 logger = logging.getLogger(__name__)
 
+
 class EmployeeProfileService:
     def __init__(self):
         self.emp_repo = EmployeeRepository()

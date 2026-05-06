@@ -10,7 +10,6 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-
 revision: str = "00e866ef6dab"
 down_revision: Union[str, Sequence[str], None] = "6c9c2f9d8b21"
 branch_labels: Union[str, Sequence[str], None] = None
@@ -26,16 +25,14 @@ def upgrade() -> None:
         sa.Column("shift", shift_enum, nullable=True),
     )
 
-    op.execute(
-        """
+    op.execute("""
         UPDATE shifts
         SET shift =
             CASE
                 WHEN is_night = TRUE THEN 'Night'::shift_enum
                 ELSE 'Day'::shift_enum
             END
-        """
-    )
+        """)
 
     op.alter_column(
         "shifts",
@@ -53,16 +50,14 @@ def downgrade() -> None:
         sa.Column("is_night", sa.Boolean(), nullable=True),
     )
 
-    op.execute(
-        """
+    op.execute("""
         UPDATE shifts
         SET is_night =
             CASE
                 WHEN shift = 'Night' THEN TRUE
                 ELSE FALSE
             END
-        """
-    )
+        """)
 
     op.alter_column(
         "shifts",

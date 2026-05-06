@@ -5,7 +5,6 @@ from typing import Iterable
 
 from PIL import Image, ImageOps
 
-
 ALLOWED_IMAGE_MIME = {"image/jpeg", "image/jpg", "image/png", "image/webp"}
 
 
@@ -34,8 +33,9 @@ def optimize_image_for_storage(
     quality: int = 75,
 ) -> bytes:
     """Normalize uploaded images to bounded JPEG bytes before storage."""
-    with Image.open(BytesIO(data)) as image:
-        image = ImageOps.exif_transpose(image)
+    with Image.open(BytesIO(data)) as source_image:
+        transposed = ImageOps.exif_transpose(source_image)
+        image = transposed if transposed is not None else source_image
         image.thumbnail((max_dimension, max_dimension))
 
         if image.mode not in ("RGB", "L"):
