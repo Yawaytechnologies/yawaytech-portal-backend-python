@@ -28,6 +28,7 @@ class EmployeeService:
         # If you're on Pydantic v2, prefer payload.model_dump()
         data = payload.dict()
         data["password"] = hash_password(data.pop("password"))
+        data["profile_picture"] = None
         emp = Employee(**data)
         db.add(emp)
         db.commit()
@@ -74,6 +75,8 @@ class EmployeeService:
         data = payload.dict(
             exclude_unset=True
         )  # Pydantic v2: payload.model_dump(exclude_unset=True)
+        if "profile_picture" in data:
+            data["profile_picture"] = None
 
         if "password" in data and data["password"] is not None:
             data["password"] = hash_password(data["password"])

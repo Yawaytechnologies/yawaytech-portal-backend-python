@@ -30,7 +30,7 @@ def upgrade() -> None:
     # op.create_index("ix_employees_pan_number", "employees", ["pan_number"], unique=True)
     # op.create_index("ix_employees_aadhar_number", "employees", ["aadhar_number"], unique=True)
     op.create_index(op.f("ix_aadhar_number"), "employees", ["aadhar_number"], unique=False)
-    op.create_index(op.f("ix_pan_number"), "employees", ["pan"], unique=False)
+    op.create_index(op.f("ix_pan_number"), "employees", ["pan_number"], unique=False)
 
 
 def downgrade() -> None:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from logging.config import fileConfig
 from typing import Literal
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from alembic import context  # type: ignore[attr-defined]
 from sqlalchemy import engine_from_config, pool
@@ -33,6 +33,8 @@ def _get_db_url() -> str:
 
     if raw_url.startswith("postgres://"):
         raw_url = raw_url.replace("postgres://", "postgresql+psycopg://", 1)
+    elif raw_url.startswith("postgresql://"):
+        raw_url = raw_url.replace("postgresql://", "postgresql+psycopg://", 1)
     elif raw_url.startswith("postgresql+psycopg2://"):
         raw_url = raw_url.replace("postgresql+psycopg2://", "postgresql+psycopg://", 1)
 
@@ -41,8 +43,8 @@ def _get_db_url() -> str:
         query = parse_qs(parsed.query)
         normalized = URL.create(
             drivername="postgresql+psycopg",
-            username=parsed.username,
-            password=parsed.password,
+            username=unquote(parsed.username or ""),
+            password=unquote(parsed.password or ""),
             host=parsed.hostname,
             port=parsed.port,
             database=parsed.path.lstrip("/"),

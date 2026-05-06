@@ -16,17 +16,50 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Rename the existing type, create new enum type with uppercase values,
-    # convert the column values by upper-casing them, then drop the old type.
-    op.execute("ALTER TYPE leave_status_enum RENAME TO leave_status_enum_old;")
     op.execute(
-        "CREATE TYPE leave_status_enum AS ENUM ('PENDING','APPROVED','REJECTED','CANCELLED');"
+        """
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'leave_status_enum')
+               AND NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'leave_status_enum_old') THEN
+                ALTER TYPE leave_status_enum RENAME TO leave_status_enum_old;
+            END IF;
+
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'leave_status_enum') THEN
+                CREATE TYPE leave_status_enum AS ENUM (
+                    'PENDING',
+                    'APPROVED',
+                    'REJECTED',
+                    'CANCELLED'
+                );
+            END IF;
+        END $$;
+        """
     )
-    # Use upper() to map existing 'Pending' -> 'PENDING' etc
+
     op.execute(
-        "ALTER TABLE leave_requests ALTER COLUMN status TYPE leave_status_enum USING (upper(status::text)::leave_status_enum);"
+        """
+        DO $$
+        BEGIN
+            IF to_regclass('public.leave_requests') IS NOT NULL
+               AND EXISTS (
+                   SELECT 1
+                   FROM information_schema.columns
+                   WHERE table_schema = 'public'
+                     AND table_name = 'leave_requests'
+                     AND column_name = 'status'
+               ) THEN
+                ALTER TABLE leave_requests
+                ALTER COLUMN status TYPE leave_status_enum
+                USING (upper(status::text)::leave_status_enum);
+            END IF;
+
+            IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'leave_status_enum_old') THEN
+                DROP TYPE leave_status_enum_old;
+            END IF;
+        END $$;
+        """
     )
-    op.execute("DROP TYPE leave_status_enum_old;")
 
 
 def downgrade() -> None:

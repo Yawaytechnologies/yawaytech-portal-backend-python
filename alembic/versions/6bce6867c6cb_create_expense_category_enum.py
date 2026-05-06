@@ -22,19 +22,24 @@ def upgrade() -> None:
     # Create the expense_category enum
     op.execute(
         """
-        CREATE TYPE expense_category AS ENUM (
-            'Food',
-            'Transport',
-            'Utilities',
-            'Entertainment',
-            'Progress',
-            'Office',
-            'Travel',
-            'Software',
-            'Health',
-            'Other'
-        );
-    """
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'expense_category') THEN
+                CREATE TYPE expense_category AS ENUM (
+                    'Food',
+                    'Transport',
+                    'Utilities',
+                    'Entertainment',
+                    'Progress',
+                    'Office',
+                    'Travel',
+                    'Software',
+                    'Health',
+                    'Other'
+                );
+            END IF;
+        END $$;
+        """
     )
 
 

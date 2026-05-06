@@ -13,6 +13,8 @@ class EmployeeBankDetail(Base):
     account_number = Column(String(50), nullable=False)
     ifsc_code = Column(String(20), nullable=False)
     branch_name = Column(String(100), nullable=True)
+    uan_number = Column(String(50), nullable=True)
+    pf_number = Column(String(50), nullable=True)
 
     # Relationship back to employee
     employee = relationship("Employee", back_populates="bank_details")

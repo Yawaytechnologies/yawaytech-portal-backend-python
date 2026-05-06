@@ -7,7 +7,6 @@ Create Date: 2025-11-18 11:28:17.595451
 
 from typing import Sequence, Union
 from alembic import op
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "965a0ee1feab"
@@ -17,25 +16,18 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.create_table(
-        "admins",
-        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
-        sa.Column("admin_id", sa.String(length=80), nullable=False, unique=True),
-        sa.Column("password_hash", sa.String(length=255), nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("true")),
-        sa.Column("is_super_admin", sa.Boolean(), nullable=False, server_default=sa.text("true")),
-        sa.Column(
-            "created_at",
-            sa.TIMESTAMP(timezone=True),
-            nullable=False,
-            server_default=sa.text("now()"),
-        ),
-        sa.Column(
-            "updated_at",
-            sa.TIMESTAMP(timezone=True),
-            nullable=False,
-            server_default=sa.text("now()"),
-        ),
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS admins (
+            id SERIAL PRIMARY KEY,
+            admin_id VARCHAR(80) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            is_active BOOLEAN NOT NULL DEFAULT true,
+            is_super_admin BOOLEAN NOT NULL DEFAULT true,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """
     )
 
 

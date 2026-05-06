@@ -7,7 +7,6 @@ Create Date: 2025-11-28 12:58:37.281084
 
 from typing import Sequence, Union
 from alembic import op
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "8b771c23003e"
@@ -19,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     """Upgrade schema."""
     # Add region column to employees
-    op.add_column("employees", sa.Column("region", sa.String(length=50), nullable=True))
+    op.execute("ALTER TABLE employees ADD COLUMN IF NOT EXISTS region VARCHAR(50)")
 
 
 def downgrade() -> None:

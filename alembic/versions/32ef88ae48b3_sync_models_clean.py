@@ -257,7 +257,14 @@ def upgrade() -> None:
         sa.Column("requested_hours", sa.Numeric(precision=5, scale=2), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("PENDING", "APPROVED", "REJECTED", "CANCELLED", name="leave_status_enum"),
+            postgresql.ENUM(
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "CANCELLED",
+                name="leave_status_enum",
+                create_type=False,
+            ),
             nullable=False,
         ),
         sa.Column("approver_employee_id", sa.String(length=9), nullable=True),
