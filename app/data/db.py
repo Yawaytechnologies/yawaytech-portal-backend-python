@@ -32,20 +32,22 @@ engine_kwargs: Dict[str, Any] = dict(pool_pre_ping=True)
 try:
     if raw_url.startswith("postgres://"):
         raw_url = raw_url.replace("postgres://", "postgresql+psycopg://")
+    elif raw_url.startswith("postgresql://"):
+        raw_url = raw_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
     if raw_url.startswith("postgresql+psycopg2://"):
         raw_url = raw_url.replace("postgresql+psycopg2://", "postgresql+psycopg://")
 
     if raw_url.startswith("postgresql+psycopg://"):
-        from urllib.parse import urlparse, parse_qs
+        from urllib.parse import parse_qs, unquote, urlparse
 
         parsed = urlparse(raw_url)
         query = parse_qs(parsed.query)
 
         url = URL.create(
             drivername="postgresql+psycopg",
-            username=parsed.username,
-            password=parsed.password,
+            username=unquote(parsed.username or ""),
+            password=unquote(parsed.password or ""),
             host=parsed.hostname,
             port=parsed.port,
             database=parsed.path.lstrip("/"),

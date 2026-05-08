@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from typing import Optional, Tuple, Dict, Any
 from datetime import datetime, timezone
+from collections import OrderedDict
 import os
 
 import cv2
@@ -33,6 +34,7 @@ SIMILARITY_THRESHOLD = 0.35
 # Using OpenCV's pre-trained face detection model
 FACE_DETECTOR_PROTO = "deploy.prototxt"
 FACE_DETECTOR_MODEL = "res10_300x300_ssd_iter_140000.caffemodel"
+PROFILE_IMAGE_CACHE_MAX_ENTRIES = 256
 
 
 class FaceVerificationService:
@@ -44,6 +46,7 @@ class FaceVerificationService:
     def __init__(self):
         self.profile_repo = EmployeeProfileRepo()
         self.attendance_repo = AttendanceRepository()
+        self._profile_image_cache: OrderedDict[tuple[str, str], bytes] = OrderedDict()
 
         # Try to load OpenCV DNN face detector
         self.face_net = None
@@ -189,10 +192,20 @@ class FaceVerificationService:
 
     def _download_image_from_storage(self, bucket: str, path: str) -> bytes:
         """Download image from Supabase storage."""
+        cache_key = (bucket, path)
+        cached = self._profile_image_cache.get(cache_key)
+        if cached is not None:
+            self._profile_image_cache.move_to_end(cache_key)
+            return cached
+
         supabase = get_supabase()
         response = supabase.storage.from_(bucket).download(path)
         if not response:
             raise ValueError(f"Failed to download image from {bucket}/{path}")
+
+        self._profile_image_cache[cache_key] = response
+        if len(self._profile_image_cache) > PROFILE_IMAGE_CACHE_MAX_ENTRIES:
+            self._profile_image_cache.popitem(last=False)
         return response
 
     def _detect_faces_dnn(self, img: np.ndarray) -> list:

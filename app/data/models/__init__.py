@@ -12,6 +12,10 @@ from app.data.models.payroll_policy import PayrollPolicy
 from app.data.models.payroll_policy_rule import PayrollPolicyRule, Ruletypes
 from app.data.models.salary_breakdown import SalaryBreakdown
 from app.data.models.monthly_summary import MonthlyEmployeeSummary
+from app.data.models.worklog import Worklog
+from app.data.models.employee_profile import EmployeeProfile
+from app.data.models.attendance_evidence import AttendanceEvidence
+from app.data.models.attendance_override import AttendanceOverride
 
 # from app.data.models.payroll import EmployeeSalary, PayPeriod, PayrollRun, PayrollItem  # Commented out as payroll is removed
 
@@ -37,6 +41,10 @@ __all__ = [
     "Ruletypes",
     "SalaryBreakdown",
     "MonthlyEmployeeSummary",
+    "Worklog",
+    "EmployeeProfile",
+    "AttendanceEvidence",
+    "AttendanceOverride",
     # "PayPeriod",  # Commented out as payroll is removed
     # "PayrollRun",  # Commented out as payroll is removed
     # "PayrollItem",  # Commented out as payroll is removed

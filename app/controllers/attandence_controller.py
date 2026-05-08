@@ -2,6 +2,8 @@ from __future__ import annotations
 from sqlalchemy.orm import Session
 from datetime import date
 from fastapi import UploadFile, HTTPException
+from app.core.config import settings
+from app.core.image_utils import validate_image_upload
 from app.services.attendance_service import AttendanceService
 from app.services.face_verification_service import FaceVerificationService
 from app.schemas.attendance import (
@@ -117,6 +119,11 @@ class AttendanceController:
         # 1) Read selfie image first
         selfie_data = await selfie_file.read()
         selfie_mime = selfie_file.content_type or "image/jpeg"
+        validate_image_upload(
+            selfie_data,
+            selfie_mime,
+            max_bytes=settings.SELFIE_IMAGE_MAX_BYTES,
+        )
 
         # 2) Verify face FIRST - before creating any attendance record
         verification_result = self.face_service.verify_face(
@@ -210,6 +217,11 @@ class AttendanceController:
         # 1) Read selfie image first
         selfie_data = await selfie_file.read()
         selfie_mime = selfie_file.content_type or "image/jpeg"
+        validate_image_upload(
+            selfie_data,
+            selfie_mime,
+            max_bytes=settings.SELFIE_IMAGE_MAX_BYTES,
+        )
 
         # 2) Verify face FIRST - before performing any check-out
         verification_result = self.face_service.verify_face(

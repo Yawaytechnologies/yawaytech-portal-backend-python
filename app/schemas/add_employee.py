@@ -130,7 +130,6 @@ class EmployeeRead(BaseModel):
     permanent_address: str
     designation: str
     department: Department
-    profile_picture: Optional[str] = None
 
     model_config = {"from_attributes": True}  # pydantic v2
 

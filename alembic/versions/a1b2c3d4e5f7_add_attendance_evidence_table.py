@@ -23,11 +23,14 @@ def upgrade() -> None:
     """Upgrade schema - create attendance_evidences table."""
 
     # Create enum type for evidence_type
-    op.execute(
-        """
-        CREATE TYPE evidence_type_enum AS ENUM ('check_in', 'check_out');
-        """
-    )
+    op.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'evidence_type_enum') THEN
+                CREATE TYPE evidence_type_enum AS ENUM ('check_in', 'check_out');
+            END IF;
+        END $$;
+        """)
 
     # Create table
     op.create_table(
@@ -36,7 +39,7 @@ def upgrade() -> None:
         sa.Column("session_id", sa.Integer(), nullable=False),
         sa.Column(
             "evidence_type",
-            postgresql.ENUM("check_in", "check_out", name="evidence_type_enum"),
+            postgresql.ENUM("check_in", "check_out", name="evidence_type_enum", create_type=False),
             nullable=False,
         ),
         sa.Column("image_bucket", sa.String(128), nullable=False),

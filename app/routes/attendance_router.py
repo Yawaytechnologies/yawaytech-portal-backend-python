@@ -49,7 +49,7 @@ async def check_in_with_face(
     - Verifies identity by comparing selfie with stored profile image FIRST
     - ONLY creates attendance check-in if face verification succeeds (verified=true)
     - Returns 401 error if face verification fails (NO check-in recorded)
-    - Saves face evidence to storage for audit trail
+    - Saves face verification metadata for audit trail
 
     Returns:
     - 200: Face verified, check-in recorded successfully
@@ -84,7 +84,7 @@ async def check_out_with_face(
     - Verifies identity by comparing selfie with stored profile image FIRST
     - ONLY records check-out if face verification succeeds (verified=true)
     - Returns 401 error if face verification fails (NO check-out recorded)
-    - Saves face evidence to storage for audit trail
+    - Saves face verification metadata for audit trail
     - Updates attendance day totals
 
     Returns:

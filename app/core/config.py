@@ -27,6 +27,10 @@ class _Settings(BaseModel):
 
     SUPABASE_BUCKET_PUBLIC: bool = os.getenv("SUPABASE_BUCKET_PUBLIC", "false").lower() == "true"
     SIGNED_URL_EXPIRE_SECONDS: int = int(os.getenv("SIGNED_URL_EXPIRE_SECONDS", "3600"))
+    PROFILE_IMAGE_MAX_BYTES: int = int(os.getenv("PROFILE_IMAGE_MAX_BYTES", str(3 * 1024 * 1024)))
+    SELFIE_IMAGE_MAX_BYTES: int = int(os.getenv("SELFIE_IMAGE_MAX_BYTES", str(1024 * 1024)))
+    OPTIMIZED_PROFILE_MAX_DIMENSION: int = int(os.getenv("OPTIMIZED_PROFILE_MAX_DIMENSION", "768"))
+    OPTIMIZED_PROFILE_JPEG_QUALITY: int = int(os.getenv("OPTIMIZED_PROFILE_JPEG_QUALITY", "75"))
 
 
 settings = _Settings()

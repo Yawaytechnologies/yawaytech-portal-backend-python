@@ -257,7 +257,14 @@ def upgrade() -> None:
         sa.Column("requested_hours", sa.Numeric(precision=5, scale=2), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("PENDING", "APPROVED", "REJECTED", "CANCELLED", name="leave_status_enum"),
+            postgresql.ENUM(
+                "PENDING",
+                "APPROVED",
+                "REJECTED",
+                "CANCELLED",
+                name="leave_status_enum",
+                create_type=False,
+            ),
             nullable=False,
         ),
         sa.Column("approver_employee_id", sa.String(length=9), nullable=True),
@@ -421,8 +428,7 @@ def upgrade() -> None:
 
     # status → normalize & convert to ENUM with Title-Case labels
     # Normalize existing data to match enum labels exactly
-    op.execute(
-        """
+    op.execute("""
         UPDATE attendance_days
         SET status = CASE UPPER(status)
             WHEN 'PRESENT' THEN 'Present'
@@ -432,8 +438,7 @@ def upgrade() -> None:
             WHEN 'WEEKEND' THEN 'Weekend'
             ELSE 'Present'
         END
-        """
-    )
+        """)
     day_status_enum = sa.Enum(
         "Present", "Absent", "Leave", "Holiday", "Weekend", name="day_status_enum"
     )

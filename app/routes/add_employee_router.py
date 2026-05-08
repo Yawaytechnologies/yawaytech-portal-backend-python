@@ -13,12 +13,13 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 from datetime import date
-import base64
 
 from app.data.db import get_db
 from app.schemas.add_employee import EmployeeCreate, EmployeeUpdate, EmployeeRead
 from app.controllers.add_employee_controller import AddEmployeeController
 from app.data.models.add_employee import MaritalStatus, Department
+from app.core.config import settings
+from app.core.image_utils import validate_image_upload
 
 router = APIRouter(prefix="/api", tags=["Add Employee"])
 
@@ -41,10 +42,13 @@ def create_employee(
 
 @router.get("/", response_model=List[EmployeeRead])
 def list_employees(
+    q: str | None = None,
+    skip: int = 0,
+    limit: int = 50,
     db: Session = Depends(get_db),
     ctrl: AddEmployeeController = Depends(get_controller),
 ):
-    rows, _ = ctrl.list_many(db)
+    rows, _ = ctrl.list_many(db, q=q, skip=skip, limit=min(limit, 100))
     return rows
 
 
@@ -143,28 +147,17 @@ async def create_employee_with_form(
                 detail=f"Invalid date format. Expected YYYY-MM-DD format, got: {date_of_birth}, {date_of_joining}, {date_of_leaving}",
             )
 
-        # Process profile picture if provided
-        profile_picture_base64 = None
+        # Validate profile picture if provided, but do not store image bytes
+        # inline in the employee row. Inline base64 makes every employee list
+        # response resend the full image payload.
         if profile_picture and profile_picture.filename:
             try:
-                # Validate file size (max 5MB)
                 file_content = await profile_picture.read()
-                if len(file_content) > 5 * 1024 * 1024:  # 5MB limit
-                    raise HTTPException(
-                        status_code=400,
-                        detail="File size too large. Maximum 5MB allowed.",
-                    )
-
-                # Validate file type
-                allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/gif"]
-                if profile_picture.content_type not in allowed_types:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}",
-                    )
-
-                # Convert to base64
-                profile_picture_base64 = f"data:{profile_picture.content_type};base64,{base64.b64encode(file_content).decode()}"
+                validate_image_upload(
+                    file_content,
+                    profile_picture.content_type or "",
+                    max_bytes=settings.PROFILE_IMAGE_MAX_BYTES,
+                )
 
             except HTTPException:
                 raise  # Re-raise HTTP exceptions
@@ -192,7 +185,7 @@ async def create_employee_with_form(
                 designation=designation,
                 department=Department(department),
                 password=password,
-                profile_picture=profile_picture_base64,
+                profile_picture=None,
             )
         except ValueError as e:
             raise HTTPException(

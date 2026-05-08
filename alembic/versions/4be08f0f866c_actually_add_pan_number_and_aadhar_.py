@@ -1,5 +1,4 @@
 from alembic import op
-import sqlalchemy as sa
 from typing import Sequence, Union
 
 # IDs
@@ -10,8 +9,8 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column("employees", sa.Column("pan_number", sa.String(10), nullable=True))
-    op.add_column("employees", sa.Column("aadhar_number", sa.String(12), nullable=True))
+    op.execute("ALTER TABLE employees ADD COLUMN IF NOT EXISTS pan_number VARCHAR(10)")
+    op.execute("ALTER TABLE employees ADD COLUMN IF NOT EXISTS aadhar_number VARCHAR(12)")
 
 
 def downgrade() -> None:
